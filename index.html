@@ -42,7 +42,7 @@
   .today-box{text-align:right;line-height:1.4;flex:0 0 auto;}
   .today-date{font-size:12px;color:var(--body-muted);font-weight:500;white-space:nowrap;}
   .today-usd{font-size:12px;color:var(--body-muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .today-usd strong{color:var(--ink);font-weight:600;}
+  .today-usd strong{color:var(--body-muted);font-weight:500;}
   .today-usd.err{color:var(--ink-muted-48);}
   .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:16px;}
 
@@ -92,6 +92,22 @@
   .totals-v.save{color:var(--good);}
   .totals-v.neg{color:var(--a-clay);}
   @media(max-width:480px){.totals-cell{padding:14px 6px;}.totals-v{font-size:16px;}.totals-k{font-size:10px;}}
+
+  /* ---- per-person totals under the household strip: 2 accordion items, closed by default ---- */
+  .totals-person-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+  .totals-person{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .totals-person-who{list-style:none;cursor:pointer;font-size:12px;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--body-muted);font-weight:600;padding:10px 14px;
+    display:flex;align-items:center;justify-content:space-between;}
+  .totals-person-who::-webkit-details-marker{display:none;}
+  .totals-person-who::after{content:'▾';font-size:10px;transition:transform .15s ease;}
+  .totals-person[open] .totals-person-who::after{transform:rotate(180deg);}
+  .totals-person-row{display:flex;gap:10px;padding:0 14px 12px;}
+  .totals-person-cell{flex:1;text-align:center;}
+  .totals-person-k{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);font-weight:600;}
+  .totals-person-v{font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;}
+  .totals-person-v.save{color:var(--good);}
+  .totals-person-v.neg{color:var(--a-clay);}
 
   /* ---- savings history bars ---- */
   .sv-row{display:flex;align-items:center;gap:10px;padding:7px 0;}
@@ -159,20 +175,6 @@
   .goal-d{font-size:11.5px;color:var(--body-muted);line-height:1.5;font-variant-numeric:tabular-nums;}
   .goal-pct{font-weight:600;color:var(--ink);}
 
-  /* ---- instrument reference cards ---- */
-  .inst{display:flex;flex-direction:column;gap:10px;}
-  .inst-item{background:var(--pearl);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
-  .inst-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;}
-  .inst-n{font-size:14px;font-weight:600;letter-spacing:-0.224px;}
-  .inst-tag{font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;
-    padding:2px 8px;border-radius:9999px;white-space:nowrap;flex:0 0 auto;}
-  .risk-1{background:var(--good-bg);color:var(--good);}
-  .risk-2{background:#fdf3e3;color:#7a5410;}
-  .risk-3{background:var(--a-clay-bg);color:var(--a-clay-ink);}
-  .inst-d{font-size:12.5px;color:var(--body-muted);margin-top:6px;line-height:1.5;}
-  .inst-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--ink-muted-48);}
-  .inst-meta b{color:var(--body-muted);font-weight:600;}
-
   /* ---- "what's left" hero ---- */
   .avail{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .avail-col{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;text-align:center;}
@@ -204,8 +206,8 @@
     cursor:pointer;padding:4px 6px;border-radius:8px;transition:color .15s ease;}
   .modal-close:hover{color:var(--ink);}
   @media(max-width:540px){
-    .modal-backdrop{padding:0;align-items:flex-end;}
-    .modal{border-radius:18px 18px 0 0;max-width:none;margin:0;padding:20px 18px 28px;}
+    .modal-backdrop{padding:20px;align-items:flex-end;border-radius:0px;}
+    .modal{border-radius:18px;max-width:none;margin:0;padding:20px 18px 28px;max-height:90vh;overflow-y:auto;}
   }
 
   /* ---- quick-pick chips under Descripción ---- */
@@ -293,8 +295,9 @@
   .list-head .t{font-size:21px;font-weight:600;letter-spacing:0.231px;}
   .list-head .tot{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
 
-  form.add-form{display:flex;flex-direction:column;gap:14px;}
+  form.add-form{display:flex;flex-direction:column;gap:14px; margin-bottom:-10px}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:540px){.row2{grid-template-columns:1fr;}}
   label{font-size:14px;color:var(--body-muted);display:block;margin-bottom:6px;letter-spacing:-0.224px;}
   input[type=text],input[type=number],input[type=date],select{
     width:100%;border:1px solid var(--line-strong);background:var(--card);border-radius:8px;
@@ -312,6 +315,7 @@
   .seg button:last-child{border-right:none;}
   .seg button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
   .seg button:active{transform:scale(0.97);}
+  @media(min-width:541px){#splitToggle button{flex-basis:0;}}
 
   .income-note{font-size:12px;color:var(--body-muted);margin-top:2px;line-height:1.43;letter-spacing:-0.224px;}
   .income-preview{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;font-size:13px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
@@ -381,7 +385,16 @@
 
   .warn{background:#fdf3e3;border:1px solid #e8c98a;color:#7a5410;border-radius:12px;
     padding:12px 14px;font-size:12.5px;line-height:1.5;margin-bottom:16px;}
+
+  .code-hint{font-size:12.5px;color:var(--body-muted);line-height:1.5;margin:10px 0 4px;}
+  .code-info{margin-top:6px;}
+  .code-info summary{list-style:none;cursor:pointer;font-size:12.5px;color:var(--body-muted);display:inline-flex;align-items:center;gap:5px;}
+  .code-info summary::-webkit-details-marker{display:none;}
+  .code-info summary .i-badge{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--line-strong);font-size:10.5px;font-style:italic;font-family:Georgia,serif;flex:0 0 auto;}
+  .code-info[open] summary{color:var(--ink);}
+  .code-info p{font-size:12.5px;color:var(--body-muted);line-height:1.5;margin:6px 0 0;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -435,6 +448,7 @@
   <div class="tab-panel" id="panel-gastos" role="tabpanel">
     <!-- household totals for the selected month -->
     <div class="totals" id="totalsStrip"></div>
+    <div class="totals-person-grid" id="totalsPersonGrid"></div>
 
     <div class="avail" id="availGrid"></div>
     <p class="avail-cap">Te queda esto después de pagar tu parte de todos los gastos cargados en el mes.</p>
@@ -451,6 +465,10 @@
 
   <!-- ============ TAB: AHORRO ============ -->
   <div class="tab-panel" id="panel-ahorro" role="tabpanel">
+    <div class="seg" id="ahorroPersonSeg" style="margin-bottom:14px;">
+      <button type="button" data-person="A" class="active" id="ahorroPersonA">Nicolas</button>
+      <button type="button" data-person="B" id="ahorroPersonB">Valentina</button>
+    </div>
     <div class="card">
       <div class="section-title" id="ahorroTitle">Tu ahorro</div>
       <div class="totals" id="ahorroStrip"></div>
@@ -487,13 +505,6 @@
       <div id="goalsBox"></div>
     </div>
 
-    <div class="card">
-      <div class="section-title">Dónde puede ir la plata</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Qué es cada instrumento, en qué moneda queda tu plata y qué tan rápido podés sacarla. Ordenados de menos a más riesgo.</p>
-      <div class="inst" id="instrumentList"></div>
-    </div>
-
-    <p class="hint">Esto es información general para que entiendas las opciones, no una recomendación de inversión — no soy asesor financiero y no conozco tu situación completa. Las tasas y condiciones cambian seguido: confirmá siempre en tu banco o broker antes de decidir.</p>
   </div>
 
   <!-- ============ TAB: RESUMEN ============ -->
@@ -565,12 +576,46 @@
     <div class="card">
       <div class="section-title">Datos guardados</div>
       <p class="income-note" id="storageInfo" style="margin-top:-4px;"></p>
+      <button type="button" class="btn-primary" style="background:transparent;color:var(--body-muted);border:1px solid var(--line-strong);" onclick="changeCoupleCode()">Entrar a otro espacio</button>
     </div>
-    <p class="hint">Si abrís esto como artifact compartido, la info se guarda en el almacenamiento compartido y tu pareja ve lo mismo. Evitá compartir el link con más gente.</p>
+    <div class="card">
+      <div class="section-title">Contraseña del espacio</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cambiá el código de este espacio sin perder los datos. El código viejo deja de funcionar al instante — avisale a tu pareja el nuevo para que lo reingrese en su dispositivo.</p>
+      <div class="row2">
+        <div>
+          <input type="text" id="renameCodeInput" placeholder="Nuevo código" autocomplete="off" autocapitalize="off">
+        </div>
+        <button type="button" class="btn-primary" id="renameCodeBtn" onclick="renameCoupleCode()">Cambiar</button>
+      </div>
+      <p class="code-hint" id="renameCodeError" style="color:#b3261e;"></p>
+    </div>
+    <p class="hint">Quien tenga el código de tu espacio ve y edita los mismos datos. No lo compartas con nadie más.</p>
   </div>
 </div>
 
 <!-- ============ MODAL: agregar ingreso ============ -->
+<!-- ============ MODAL: código de pareja ============ -->
+<div class="modal-backdrop" id="coupleModal" role="dialog" aria-modal="true" aria-labelledby="coupleModalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="coupleModalTitle">Entrá a tu espacio</div>
+    </div>
+    <form class="add-form" id="coupleForm">
+      <div>
+        <label for="coupleCodeInput">Código de pareja</label>
+        <input type="text" id="coupleCodeInput" placeholder="Ej: nicoyvale" required autocomplete="off" autocapitalize="off">
+        <p class="code-hint">Inventá un código y compartilo con tu pareja: quien lo ingrese ve y edita los mismos datos. Si ya tenías uno, escribilo de nuevo tal cual.</p>
+        <details class="code-info">
+          <summary><span class="i-badge">i</span> ¿Es seguro?</summary>
+          <p>Si alguien escribe por casualidad el mismo código que otra pareja, entra directo a esos datos ajenos. No hay contraseña, así que usá un código razonablemente único (nombres + año, por ejemplo) para que eso no pase.</p>
+        </details>
+      </div>
+      <button type="submit" class="btn-primary" id="coupleSubmitBtn">Entrar</button>
+      <p class="code-hint" id="coupleError" style="color:#b3261e;"></p>
+    </form>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="incomeModal" role="dialog" aria-modal="true" aria-labelledby="incomeModalTitle">
   <div class="modal">
     <div class="modal-head">
@@ -578,6 +623,13 @@
       <button type="button" class="modal-close" onclick="closeIncomeModal()" aria-label="Cerrar">✕</button>
     </div>
     <form class="add-form" id="incomeForm">
+      <div>
+        <label>¿De quién es?</label>
+        <div class="seg" id="iWhoSeg">
+          <button type="button" data-who="A" class="active" id="iWhoA">Nicolas</button>
+          <button type="button" data-who="B" id="iWhoB">Valentina</button>
+        </div>
+      </div>
       <div>
         <label for="iDesc">Descripción</label>
         <input type="text" class="ie-letters" id="iDesc" placeholder="Ej: Sueldo, freelance" required>
@@ -602,13 +654,6 @@
         <label for="iFx">Cotización del dólar</label>
         <input type="text" inputmode="numeric" class="ie-money" id="iFx" placeholder="Dólar a">
       </div>
-      <div>
-        <label>¿De quién es?</label>
-        <div class="seg" id="iWhoSeg">
-          <button type="button" data-who="A" class="active" id="iWhoA">Nicolas</button>
-          <button type="button" data-who="B" id="iWhoB">Valentina</button>
-        </div>
-      </div>
       <button type="submit" class="btn-primary" id="iSubmitBtn">Agregar ingreso</button>
     </form>
   </div>
@@ -622,6 +667,13 @@
       <button type="button" class="modal-close" onclick="closeModal()" aria-label="Cerrar">✕</button>
     </div>
     <form class="add-form" id="addForm">
+      <div>
+        <label>¿Quién lo paga?</label>
+        <div class="seg" id="paidBySeg">
+          <button type="button" data-paid="A" class="active" id="paidLabelA">Nicolas</button>
+          <button type="button" data-paid="B" id="paidLabelB">Valentina</button>
+        </div>
+      </div>
       <div>
         <label for="fDesc">Descripción</label>
         <input type="text" id="fDesc" placeholder="Ej: Sillón, cena de aniversario" required>
@@ -639,17 +691,12 @@
         </div>
       </div>
       <div>
-        <label>¿Quién lo paga?</label>
-        <div class="seg" id="paidBySeg">
-          <button type="button" data-paid="A" class="active" id="paidLabelA">Nicolas</button>
-          <button type="button" data-paid="B" id="paidLabelB">Valentina</button>
-        </div>
-      </div>
-      <div>
         <label>¿Cómo se divide?</label>
         <div class="seg" id="splitToggle">
           <button type="button" data-split="50" class="active">50 / 50</button>
           <button type="button" data-split="income">Según ingresos</button>
+          <button type="button" data-split="a-to-b" id="splitAtoB">Nicolas a Valentina</button>
+          <button type="button" data-split="b-to-a" id="splitBtoA">Valentina a Nicolas</button>
         </div>
         <div class="income-note" id="incomeSplitPreview" style="display:none;"></div>
       </div>
@@ -675,11 +722,12 @@ let fixed = [];
 let fixedIncome = [];
 let currentSplit = '50';
 let currentPaidBy = 'A';
+let currentAhorroPerson = 'A';   // which person's individual breakdown Ahorro shows
 let viewMonth = '';           // 'YYYY-MM' — the month being planned
 let storageMode = 'ninguno';
 
 // what the table starts with on a first run; amounts are yours to fill in
-const FIXED_SEED = ['Alquiler','Edenor','Aysa','Metrogas','Wifi','Supermercado','Limpieza','Jardinería','Mantenimiento'];
+const FIXED_SEED = ['Alquiler','Edenor','Aysa','Metrogas','Wifi','Supermercado','Limpieza','Jardinería','Mantenimiento','Deuda'];
 // currency defaults to ARS — set it per row in Ajustes if one of these is in USD
 const FIXED_INCOME_SEED = [
   { person:'A', label:'Howdy',       amount:0, currency:'ARS', locked:true },
@@ -692,6 +740,8 @@ const FIXED_INCOME_LOCK_KEY = 'fixedincome_m1';
 const FIXED_MIGRATION_KEY = 'fixed_m1';
 // one-time: Alquiler back at the top and the standard rows protected from deletion
 const FIXED_LOCK_KEY = 'fixed_m2';
+// one-time: add Deuda to tables seeded before it existed
+const FIXED_DEUDA_KEY = 'fixed_m3';
 
 const CATEGORY_COLORS = {
   'Alquiler':'#B4862B','Wifi':'#3D6B4C','Limpieza':'#5C7A8A',
@@ -717,38 +767,219 @@ const fmtCur = (n,cur) => cur === 'USD' ? fmtUsd(n) : fmt(n);
 const $ = (id) => document.getElementById(id);
 
 // ---- persistence -------------------------------------------------------
-// window.storage is the Artifacts shared key-value store and only exists there.
-// Opened as a plain file it's undefined, which is why a refresh used to wipe
-// everything — so every read falls back to localStorage and every write goes
-// to both (shared truth + local cache).
+// Backed by Supabase: every couple (identified by a shared "código de pareja")
+// is one row in the `couples` table. All devices with the same code read and
+// write that row, and a Realtime subscription pushes each change to every
+// other open tab/device — see coupleRealtimeSub below.
+const SUPABASE_URL = 'https://kzdiymdksthukyoaeozr.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_QZMQwp5Ba1fqMCrB7xQBhg_9zuRTMRn';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const COUPLE_CODE_LOCAL_KEY = 'couple_code';
+
+// logical keys (unchanged call sites elsewhere) map to real `couples` columns;
+// the one-time migration flags collapse into a single jsonb column instead of
+// one row per flag
+const COLUMN_FOR_KEY = {
+  expenses_v1: 'expenses',
+  names_v1: 'names',
+  income_v2: 'income',
+  fixed_v1: 'fixed',
+  fixedincome_v1: 'fixed_income'
+};
+const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1']);
+
+let coupleCode = null;
+let coupleRow = null;          // cached full row, refreshed on load and on every remote change
+let coupleRealtimeSub = null;
+
+async function fetchCoupleRow(code){
+  const { data, error } = await sb.from('couples').select('*').eq('code', code).maybeSingle();
+  if(error) throw error;
+  return data;
+}
+
+async function ensureCoupleRow(code){
+  let row = await fetchCoupleRow(code);
+  if(row) return row;
+  const { data, error } = await sb.from('couples').insert({ code }).select().single();
+  if(error) throw error;
+  return data;
+}
+
+function subscribeCoupleRealtime(code){
+  if(coupleRealtimeSub) sb.removeChannel(coupleRealtimeSub);
+  coupleRealtimeSub = sb.channel('couple-' + code)
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'couples', filter: `code=eq.${code}` },
+      (payload) => {
+        coupleRow = payload.new;
+        applyCoupleRow();
+        render();
+        renderFixed(); renderChips(); renderFixedIncome(); renderIncomeChips(); renderIncomeLists();
+      })
+    .subscribe();
+}
+
+// pushes the cached row into the in-memory state variables the rest of the
+// app reads, on every Realtime push from the other device. fixed/fixedIncome
+// are only overwritten once they're actually arrays — loadAll() is the one
+// place responsible for seeding them from null, and a stray UPDATE that
+// touches some other column can carry a not-yet-seeded null for these, which
+// would otherwise wipe out an already-rendered table.
+function applyCoupleRow(){
+  if(!coupleRow) return;
+  expenses = Array.isArray(coupleRow.expenses) ? coupleRow.expenses : [];
+  if(coupleRow.names) names = coupleRow.names;
+  income = migrateIncome(coupleRow.income);
+  if(Array.isArray(coupleRow.fixed)) fixed = coupleRow.fixed;
+  if(Array.isArray(coupleRow.fixed_income)) fixedIncome = coupleRow.fixed_income;
+  if(normalizeExpenses()) saveExpenses();
+}
+
 const store = {
   async get(key){
-    try{
-      if(window.storage && window.storage.get){
-        const r = await window.storage.get(key, true);
-        if(r && r.value != null) return r.value;
-      }
-    }catch(e){}
-    try{ return localStorage.getItem(key); }catch(e){ return null; }
+    if(!coupleRow) return null;
+    if(MIGRATION_FLAG_KEYS.has(key)){
+      const flags = coupleRow.migration_flags || {};
+      return flags[key] ? '1' : null;
+    }
+    const col = COLUMN_FOR_KEY[key];
+    if(!col) return null;
+    const v = coupleRow[col];
+    return v == null ? null : JSON.stringify(v);
   },
   async set(key, value){
-    let shared = false, local = false;
+    if(!coupleCode) return false;
     try{
-      if(window.storage && window.storage.set){ await window.storage.set(key, value, true); shared = true; }
-    }catch(e){}
-    try{ localStorage.setItem(key, value); local = true; }catch(e){}
-    storageMode = shared && local ? 'compartido + local'
-      : shared ? 'compartido' : local ? 'este navegador (localStorage)' : 'ninguno — no se está guardando';
-    return shared || local;
+      let patch;
+      if(MIGRATION_FLAG_KEYS.has(key)){
+        const flags = { ...(coupleRow?.migration_flags || {}), [key]: true };
+        patch = { migration_flags: flags };
+      }else{
+        const col = COLUMN_FOR_KEY[key];
+        if(!col) return false;
+        patch = { [col]: JSON.parse(value) };
+      }
+      const { data, error } = await sb.from('couples').update(patch).eq('code', coupleCode).select().single();
+      if(error) throw error;
+      coupleRow = data;
+      storageMode = 'compartido';
+      return true;
+    }catch(e){
+      storageMode = 'error';
+      return false;
+    }
   }
 };
+
+// prompts for the shared couple code, creates the row if it's the first time,
+// and blocks until it's ready — everything else (loadAll, render, ...) assumes
+// coupleRow already holds real data by the time it runs
+function openCoupleModal(prefill){
+  $('coupleModal').classList.add('open');
+  $('coupleError').textContent = '';
+  if(prefill) $('coupleCodeInput').value = prefill;
+  $('coupleCodeInput').focus();
+}
+function closeCoupleModal(){ $('coupleModal').classList.remove('open'); }
+
+function changeCoupleCode(){
+  try{ localStorage.removeItem(COUPLE_CODE_LOCAL_KEY); }catch(e){}
+  openCoupleModal('');
+}
+
+// shared by the very first entry and by "Cambiar código de pareja" later —
+// after the very first resolve(), further submits just re-run loadAll() so
+// the new couple's data replaces what's on screen
+async function enterCouple(code, onDone){
+  coupleRow = await ensureCoupleRow(code);
+  coupleCode = code;
+  try{ localStorage.setItem(COUPLE_CODE_LOCAL_KEY, code); }catch(e){}
+  subscribeCoupleRealtime(code);
+  closeCoupleModal();
+  onDone();
+}
+
+// renames the current couple's row in place (code is the primary key) so the
+// same data survives under a new "password" — unlike changeCoupleCode(),
+// which leaves this space and enters/creates a different one
+async function renameCoupleCode(){
+  const input = $('renameCodeInput');
+  const errorEl = $('renameCodeError');
+  const btn = $('renameCodeBtn');
+  const newCode = input.value.trim().toLowerCase();
+  errorEl.textContent = '';
+  if(!newCode) return;
+  if(newCode === coupleCode){ errorEl.textContent = 'Ese ya es el código actual.'; return; }
+  btn.disabled = true;
+  try{
+    const existing = await fetchCoupleRow(newCode);
+    if(existing){ errorEl.textContent = 'Ese código ya está en uso por otro espacio. Probá con otro.'; return; }
+    const { data, error } = await sb.from('couples').update({ code: newCode }).eq('code', coupleCode).select().single();
+    if(error) throw error;
+    coupleRow = data;
+    coupleCode = newCode;
+    try{ localStorage.setItem(COUPLE_CODE_LOCAL_KEY, newCode); }catch(e){}
+    subscribeCoupleRealtime(newCode);
+    input.value = '';
+    describeStorage();
+  }catch(e){
+    errorEl.textContent = 'No se pudo cambiar el código. Revisá tu conexión e intentá de nuevo.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function initCouple(){
+  let firstResolve = null;
+  const firstReady = new Promise((resolve)=>{ firstResolve = resolve; });
+
+  $('coupleForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const code = $('coupleCodeInput').value.trim().toLowerCase();
+    if(!code) return;
+    $('coupleSubmitBtn').disabled = true;
+    $('coupleError').textContent = '';
+    try{
+      if(firstResolve){
+        const resolve = firstResolve; firstResolve = null;
+        await enterCouple(code, resolve);
+      }else{
+        await enterCouple(code, ()=> loadAll());
+      }
+    }catch(err){
+      $('coupleError').textContent = 'No se pudo conectar. Revisá tu conexión e intentá de nuevo.';
+    }finally{
+      $('coupleSubmitBtn').disabled = false;
+    }
+  });
+
+  let saved = null;
+  try{ saved = localStorage.getItem(COUPLE_CODE_LOCAL_KEY); }catch(e){}
+  if(saved){
+    fetchCoupleRow(saved).then(async (row)=>{
+      try{
+        coupleRow = row || await ensureCoupleRow(saved);
+        coupleCode = saved;
+        subscribeCoupleRealtime(saved);
+        firstResolve(); firstResolve = null;
+      }catch(err){
+        openCoupleModal(saved);
+      }
+    }).catch(()=> openCoupleModal(saved));
+  }else{
+    openCoupleModal('');
+  }
+
+  return firstReady;
+}
+
 function describeStorage(){
   const el = $('storageInfo');
   if(!el) return;
-  const hasShared = !!(window.storage && window.storage.get);
-  el.textContent = hasShared
-    ? 'Se guarda en el almacenamiento compartido del artifact y también como copia en este navegador.'
-    : 'Se guarda en este navegador (localStorage). Si abrís el archivo en otra compu o en modo incógnito, no vas a ver estos datos.';
+  el.textContent = storageMode === 'error'
+    ? 'No se pudo guardar el último cambio — revisá tu conexión.'
+    : `Compartido con tu pareja mediante el código "${coupleCode}". Cualquiera que ingrese el mismo código ve y edita estos datos.`;
 }
 
 // ---- amount fields: thousands separators while typing ----
@@ -961,6 +1192,16 @@ async function loadAll(){
         fixed.forEach(f=>{ if(std.includes(f.label.toLowerCase())) f.locked = true; });
         await store.set(FIXED_LOCK_KEY, '1');
         saveFixed();
+      }
+    }catch(e){}
+    // tables seeded before Deuda existed don't have it yet
+    try{
+      if(!(await store.get(FIXED_DEUDA_KEY))){
+        if(!fixed.some(f=>f.label.toLowerCase() === 'deuda')){
+          fixed.push({ id: genId(), label: 'Deuda', amount: 0 });
+          saveFixed();
+        }
+        await store.set(FIXED_DEUDA_KEY, '1');
       }
     }catch(e){}
   }
@@ -1317,7 +1558,7 @@ function openModal(expenseId){
     $('fAmount').value = groupThousands(String(ex.amount));
     $('fDate').value = ex.date;
     currentPaidBy = ex.paidBy;
-    currentSplit = ex.splitType === 'income' ? 'income' : '50';
+    currentSplit = ['income','a-to-b','b-to-a'].includes(ex.splitType) ? ex.splitType : '50';
     document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
     document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
     syncChips();
@@ -1389,10 +1630,23 @@ function refreshNameLabels(){
   $('paidLabelB').textContent = names.B;
   $('incomeLabelA').textContent = names.A;
   $('incomeLabelB').textContent = names.B;
+  $('splitAtoB').textContent = `${names.A} a ${names.B}`;
+  $('splitBtoA').textContent = `${names.B} a ${names.A}`;
+  $('ahorroPersonA').textContent = names.A;
+  $('ahorroPersonB').textContent = names.B;
 }
 
 $('nameA').addEventListener('change', e=>{ names.A = e.target.value || 'Nicolas'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
 $('nameB').addEventListener('change', e=>{ names.B = e.target.value || 'Valentina'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
+
+$('ahorroPersonSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#ahorroPersonSeg button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentAhorroPerson = btn.dataset.person;
+  renderAhorro();
+});
 
 // ---- income modal: same flow as the expense one ----
 let currentIncomeCur = 'ARS';
@@ -1401,6 +1655,7 @@ let editingIncomeId = null;      // set when the modal is editing an existing en
 
 function syncIncomeFx(){
   $('iFxWrap').style.display = currentIncomeCur === 'USD' ? 'block' : 'none';
+  if(currentIncomeCur === 'USD' && todayUsdRate) $('iFx').placeholder = fmtNum(todayUsdRate);
 }
 $('iCurSeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
@@ -1603,7 +1858,10 @@ $('addForm').addEventListener('submit', (e)=>{
   const desc = $('fDesc').value.trim();
   const amount = numVal('fAmount');
   if(!desc || !amount) return;
-  const pctA = currentSplit === 'income' ? (incomePctA() ?? 50) : 50;
+  const pctA = currentSplit === 'income' ? (incomePctA() ?? 50)
+    : currentSplit === 'a-to-b' ? 0
+    : currentSplit === 'b-to-a' ? 100
+    : 50;
   const fields = {
     desc, amount,
     date: $('fDate').value || defaultDate(),
@@ -1667,6 +1925,7 @@ function render(){
   $('resumenTitle').textContent = 'Gastos de ' + monthShort(viewMonth);
 
   renderTotals(total);
+  renderTotalsPerPerson(list);
   renderAvailable(list);
   renderCharts(list);
   renderBalance();
@@ -1685,6 +1944,29 @@ function renderTotals(gasto){
     cell('Ingreso', ingreso) +
     cell('Gasto', gasto) +
     cell('Ahorro', ahorro, ahorro < 0 ? 'neg' : 'save');
+}
+
+// same three numbers, but broken out per person: what each one earns,
+// actually paid out of pocket (by paidBy, not by split share), and keeps
+function renderTotalsPerPerson(list){
+  const cell = (k, v, cls='') => `<div class="totals-person-cell">
+      <div class="totals-person-k">${k}</div>
+      <div class="totals-person-v ${cls}">${fmt(v)}</div>
+    </div>`;
+  const personBlock = (who, person) => {
+    const inc = incomeTotalArs(person);
+    const paid = list.filter(ex=>ex.paidBy === person).reduce((s,ex)=>s+ex.amount, 0);
+    const ahorro = inc - paid;
+    return `<details class="totals-person">
+      <summary class="totals-person-who">${escapeHtml(who)}</summary>
+      <div class="totals-person-row">
+        ${cell('Ingreso', inc)}
+        ${cell('Gasto', paid)}
+        ${cell('Ahorro', ahorro, ahorro < 0 ? 'neg' : 'save')}
+      </div>
+    </details>`;
+  };
+  $('totalsPersonGrid').innerHTML = personBlock(names.A, 'A') + personBlock(names.B, 'B');
 }
 
 // what's left for extras: income minus your share of everything booked this month
@@ -1714,37 +1996,26 @@ function renderAvailable(list){
 }
 
 // ---- Ahorro tab ----
-// neutral reference, ordered least to most risk. descriptive only: what the thing
-// is, what currency it leaves you in, how fast you can get out.
-const INSTRUMENTS = [
-  { n:'Cuenta remunerada / FCI money market', risk:1, r:'Riesgo bajo',
-    d:'La plata queda en tu cuenta de una billetera o broker y rinde una tasa diaria. No se inmoviliza: entra y sale cuando querés.',
-    moneda:'Pesos', plazo:'Sacás en el día' },
-  { n:'Plazo fijo tradicional', risk:1, r:'Riesgo bajo',
-    d:'Le prestás plata al banco a una tasa fija pactada de entrada. Sabés exactamente cuánto vas a cobrar, pero no podés tocarla antes del vencimiento.',
-    moneda:'Pesos', plazo:'30 días mínimo' },
-  { n:'Plazo fijo UVA', risk:2, r:'Riesgo medio',
-    d:'Ajusta por inflación (índice UVA) más una tasa chica. Protege el poder de compra si la inflación sube, pero rinde menos que un plazo fijo común si baja.',
-    moneda:'Pesos ajustados', plazo:'90 días mínimo' },
-  { n:'Dólar MEP', risk:2, r:'Riesgo medio',
-    d:'Comprás dólares legalmente por el mercado de capitales, vía broker. Te deja dolarizado, así que el riesgo pasa a ser el tipo de cambio: el dólar puede quedarse quieto mientras los precios suben.',
-    moneda:'Dólares', plazo:'Inmediato (parking según el caso)' },
-  { n:'Obligaciones negociables (ON)', risk:2, r:'Riesgo medio',
-    d:'Deuda que emiten empresas privadas. Muchas pagan en dólares con renta periódica. El riesgo es que la empresa no pague, y el precio se mueve si querés vender antes.',
-    moneda:'Pesos o dólares', plazo:'Se vende en el mercado' },
-  { n:'CEDEARs', risk:3, r:'Riesgo alto',
-    d:'Acciones de empresas del exterior (Apple, Coca-Cola, etc.) que se compran en pesos. Seguís el precio de la acción y el dólar a la vez. Puede subir mucho y también bajar mucho.',
-    moneda:'Pesos atados al dólar', plazo:'Se vende en el mercado' },
-  { n:'Acciones argentinas', risk:3, r:'Riesgo alto',
-    d:'Participación en empresas locales. Es la opción más volátil de la lista: los movimientos fuertes en pocos días son normales.',
-    moneda:'Pesos', plazo:'Se vende en el mercado' }
-];
-
 // an expense counts as a "need" when it matches one of your fixed expenses;
 // anything typed by hand (category Otro) falls on the "wants" side
 function isNeed(ex){
   const c = (ex.category||'').toLowerCase();
   return fixed.some(f=>f.label.toLowerCase() === c);
+}
+
+// this person's share of one expense, per its pctA split (not who paid it)
+function personShareOf(ex, person){
+  return ex.amount * (person === 'A' ? ex.pctA : 100 - ex.pctA) / 100;
+}
+function personShareTotal(list, person){
+  return list.reduce((s,ex)=>s+personShareOf(ex, person), 0);
+}
+// gastos fijos have no split field of their own — prorate the household total
+// by this person's share ratio of the month's actual expenses (50/50 with none yet)
+function personShareRatio(list, person){
+  const total = list.reduce((s,ex)=>s+ex.amount, 0);
+  if(total <= 0) return 0.5;
+  return personShareTotal(list, person) / total;
 }
 
 const RULE_ANNUAL_ROI = 0.06;   // the 6% reference
@@ -1766,8 +2037,8 @@ const PLAN = [
     d:'El capital que, rindiendo 6% al año, te deposita un sueldo por mes sin trabajar.' }
 ];
 
-function renderPlan(){
-  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
+function renderPlan(person){
+  const ingreso = incomeTotalArs(person);
   const box = $('planBox');
   if(ingreso <= 0){
     box.innerHTML = '<div class="empty">Cargá los ingresos para ver tus números.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
@@ -1782,7 +2053,7 @@ function renderPlan(){
       </span>
       <span class="plan-v">${fmt(ingreso * p.f)}${p.flow ? '<span style="font-size:11px;font-weight:400;color:var(--body-muted);"> /mes</span>' : ''}</span>
     </div>`).join('') +
-    `<p class="income-note" style="margin-top:12px;">Calculado sobre ${fmt(ingreso)} de ingreso mensual del hogar. Es una referencia: cambia según la situación de cada uno.</p>`;
+    `<p class="income-note" style="margin-top:12px;">Calculado sobre ${fmt(ingreso)} de ingreso mensual de ${escapeHtml(names[person])}. Es una referencia: cambia según tu situación.</p>`;
 }
 
 // months of contributions needed to go from `current` to `target` at the 6% rate
@@ -1803,15 +2074,15 @@ function humanMonths(m){
   return (y < 10 ? y.toFixed(1).replace('.', ',') : Math.round(y)) + ' años';
 }
 
-function renderGoals(acumulado, monthlySaving){
-  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
+function renderGoals(acumulado, monthlySaving, person, shareRatio){
+  const ingreso = incomeTotalArs(person);
   const box = $('goalsBox');
   if(ingreso <= 0){
     box.innerHTML = '<div class="empty">Cargá los ingresos para ver tus metas.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
     return;
   }
   const saved = Math.max(0, acumulado);
-  const fijosMes = fixed.reduce((s,f)=>s+(f.amount||0), 0);
+  const fijosMes = fixed.reduce((s,f)=>s+(f.amount||0), 0) * shareRatio;
 
   const goal = (name, target, extra) => {
     const pct = Math.min(100, saved/target*100);
@@ -1828,7 +2099,7 @@ function renderGoals(acumulado, monthlySaving){
   };
 
   const runway = fijosMes > 0
-    ? `Tu ahorro de hoy cubre ${(saved/fijosMes).toFixed(1).replace('.', ',')} meses de tus gastos fijos (${fmt(fijosMes)} por mes).`
+    ? `Tu ahorro de hoy cubre ${(saved/fijosMes).toFixed(1).replace('.', ',')} meses de tu parte de los gastos fijos (${fmt(fijosMes)} por mes).`
     : '';
 
   box.innerHTML =
@@ -1838,16 +2109,16 @@ function renderGoals(acumulado, monthlySaving){
     `<p class="income-note" style="margin-top:14px;">El "a tu ritmo actual" asume que seguís ahorrando ${fmt(Math.max(0, monthlySaving))} por mes al 6% anual, en pesos de hoy y sin descontar inflación.</p>`;
 }
 
-function renderRule5030(){
-  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
+function renderRule5030(person){
+  const ingreso = incomeTotalArs(person);
   const box = $('ruleBox');
   if(ingreso <= 0){
     box.innerHTML = '<div class="empty">Cargá los ingresos para ver el reparto.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
     return;
   }
   const list = expenses.filter(x=>inViewMonth(x.date));
-  const needs = list.filter(isNeed).reduce((s,x)=>s+x.amount,0);
-  const wants = list.filter(x=>!isNeed(x)).reduce((s,x)=>s+x.amount,0);
+  const needs = list.filter(isNeed).reduce((s,x)=>s+personShareOf(x, person),0);
+  const wants = list.filter(x=>!isNeed(x)).reduce((s,x)=>s+personShareOf(x, person),0);
   const saved = ingreso - needs - wants;
 
   // for needs/wants, going over the target is the bad direction; for savings it's under
@@ -1895,29 +2166,19 @@ function renderProjection(monthly){
   }).join('') + `<p class="income-note" style="margin-top:12px;">Calculado sobre ${fmt(monthly)} por mes al 6% anual. Son pesos de hoy sin descontar inflación, así que tomalo como el efecto del interés compuesto y no como poder de compra futuro.</p>`;
 }
 
-function renderInstruments(){
-  $('instrumentList').innerHTML = INSTRUMENTS.map(i=>`
-    <div class="inst-item">
-      <div class="inst-h">
-        <span class="inst-n">${escapeHtml(i.n)}</span>
-        <span class="inst-tag risk-${i.risk}">${escapeHtml(i.r)}</span>
-      </div>
-      <div class="inst-d">${escapeHtml(i.d)}</div>
-      <div class="inst-meta"><span><b>Moneda:</b> ${escapeHtml(i.moneda)}</span><span><b>Disponibilidad:</b> ${escapeHtml(i.plazo)}</span></div>
-    </div>`).join('');
-}
-
-function monthTotal(key){
-  return expenses.filter(x=>monthKey(x.date) === key).reduce((s,x)=>s+x.amount,0);
+// this person's share of everything booked in a given month
+function monthTotalForPerson(key, person){
+  return expenses.filter(x=>monthKey(x.date) === key).reduce((s,x)=>s+personShareOf(x, person),0);
 }
 
 function renderAhorro(){
-  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
-  const gasto = monthTotal(viewMonth);
+  const person = currentAhorroPerson;
+  const ingreso = incomeTotalArs(person);
+  const gasto = monthTotalForPerson(viewMonth, person);
   const ahorro = ingreso - gasto;
   const tasa = ingreso > 0 ? (ahorro / ingreso) * 100 : 0;
 
-  $('ahorroTitle').textContent = 'Tu ahorro de ' + monthShort(viewMonth);
+  $('ahorroTitle').textContent = `Ahorro de ${escapeHtml(names[person])} · ${monthShort(viewMonth)}`;
   const cell = (k, v, cls='') => `<div class="totals-cell">
       <div class="totals-k">${k}</div><div class="totals-v ${cls}">${v}</div></div>`;
   $('ahorroStrip').innerHTML =
@@ -1926,16 +2187,16 @@ function renderAhorro(){
     cell('En dólares', todayUsdRate && ahorro > 0 ? fmtUsd(ahorro / todayUsdRate) : '—');
 
   $('ahorroNote').textContent = todayUsdRate
-    ? `Convertido al blue promedio de hoy ($${fmtNum(todayUsdRate)}). La tasa de ahorro es qué porcentaje de lo que entra no te lo gastás.`
-    : 'La tasa de ahorro es qué porcentaje de lo que entra no te lo gastás. La conversión a dólares aparece cuando se pueda leer la cotización.';
+    ? `Convertido al blue promedio de hoy ($${fmtNum(todayUsdRate)}). La tasa de ahorro es qué porcentaje de lo que entra no te lo gastás. El gasto es tu parte de cada gasto según cómo se dividió.`
+    : 'La tasa de ahorro es qué porcentaje de lo que entra no te lo gastás. El gasto es tu parte de cada gasto según cómo se dividió. La conversión a dólares aparece cuando se pueda leer la cotización.';
 
-  renderPlan();
-  renderRule5030();
+  renderPlan(person);
+  renderRule5030(person);
   renderProjection(ahorro);
 
   // ---- month by month ----
   const months = [...new Set(expenses.map(e=>monthKey(e.date)).filter(Boolean))].sort();
-  const rows = months.map(m=>({ m, ahorro: ingreso - monthTotal(m) }));
+  const rows = months.map(m=>({ m, ahorro: incomeTotalArs(person) - monthTotalForPerson(m, person) }));
   const peak = Math.max(1, ...rows.map(r=>Math.abs(r.ahorro)));
   const acumulado = rows.reduce((s,r)=>s+r.ahorro, 0);
 
@@ -1950,7 +2211,9 @@ function renderAhorro(){
   }).join('') + `<div class="sv-total"><span>Acumulado</span><span class="v ${acumulado<0?'neg':''}">${fmt(acumulado)}</span></div>`
     : '<div class="empty">Todavía no hay gastos cargados en ningún mes.</div>';
 
-  renderGoals(acumulado, ahorro);
+  const monthList = expenses.filter(x=>inViewMonth(x.date));
+  const shareRatio = personShareRatio(monthList, person);
+  renderGoals(acumulado, ahorro, person, shareRatio);
 }
 
 // ---- pie charts ----
@@ -2030,10 +2293,9 @@ function renderBalance(){
 
 viewMonth = monthNow();
 renderTodayDate();
-renderInstruments();
 resetForm();
 resetIncomeForm();
-loadAll();
+initCouple().then(loadAll);
 // fire-and-forget: the app works fine without it, and re-render once it lands so
 // the dollar figures on Ahorro fill in
 loadUsdToday().then(()=>render());
