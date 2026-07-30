@@ -321,21 +321,46 @@
     .fixed-actions,.fixed-actions.two{flex:1 0 100%;justify-content:flex-end;order:3;}
   }
 
-  .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-  .chart-col{display:flex;flex-direction:column;align-items:center;}
   .chart-title{font-size:12px;color:var(--body-muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
-  .pie-legend{display:flex;flex-direction:column;gap:5px;margin-top:12px;width:100%;}
-  .pie-legend-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:6px;}
-  .pie-legend-label{display:flex;align-items:center;color:var(--ink);min-width:0;}
-  .pie-legend-label .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0;}
-  .pie-legend-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .pie-legend-val{color:var(--body-muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  @media(max-width:480px){.charts-grid{grid-template-columns:1fr;}}
 
-  #panel-resumen{text-align:center;}
-  #panel-resumen .section-title{justify-content:center;}
-  #panel-resumen .pie-legend{align-items:center;}
-  #panel-resumen .pie-legend-row{width:100%;max-width:220px;}
+  /* ---- Resumen: hero total + delta vs. last month ---- */
+  .rs-hero{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .rs-hero-amt{font-size:32px;font-weight:600;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;}
+  .rs-hero-delta{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;padding:5px 10px;border-radius:9999px;background:var(--paper);color:var(--body-muted);white-space:nowrap;}
+  .rs-hero-delta.up{color:var(--a-clay-ink);background:var(--a-clay-bg);}
+  .rs-hero-delta.down{color:var(--good);background:var(--good-bg);}
+
+  /* ---- Resumen: ranked category bars ---- */
+  .rank-row{padding:9px 0;}
+  .rank-row:first-child{padding-top:2px;}
+  .rank-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px;}
+  .rank-label{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;min-width:0;}
+  .rank-label .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .rank-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rank-val{flex:0 0 auto;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--body-muted);}
+  .rank-val b{color:var(--ink);font-weight:600;}
+  .rank-track{height:8px;background:var(--paper);border-radius:9999px;overflow:hidden;}
+  .rank-track i{display:block;height:100%;border-radius:9999px;}
+
+  /* ---- Resumen: who-paid split bar ---- */
+  .split-bar{display:flex;height:14px;border-radius:9999px;overflow:hidden;background:var(--paper);margin:4px 0 12px;}
+  .split-bar span{height:100%;}
+  .split-legend{display:flex;justify-content:space-between;font-size:13px;gap:10px;}
+  .split-legend-item{display:flex;align-items:center;gap:7px;min-width:0;}
+  .split-legend-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .split-legend-name{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .split-legend-val{font-variant-numeric:tabular-nums;color:var(--body-muted);white-space:nowrap;}
+  .split-legend-val b{color:var(--ink);font-weight:600;}
+
+  /* ---- Resumen: monthly trend bars ---- */
+  .trend-row{display:flex;align-items:center;gap:10px;padding:6px 0;}
+  .trend-m{flex:0 0 80px;font-size:12px;color:var(--body-muted);text-transform:capitalize;}
+  .trend-bar{flex:1;height:8px;background:var(--paper);border-radius:9999px;overflow:hidden;min-width:20px;}
+  .trend-bar i{display:block;height:100%;border-radius:9999px;background:var(--primary);}
+  .trend-bar i.current{background:var(--a-gold);}
+  .trend-v{flex:0 0 92px;text-align:right;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;}
+  @media(max-width:480px){.trend-m{flex:0 0 58px;font-size:11px;}.trend-v{flex:0 0 78px;font-size:11.5px;}}
+
 
   .section-title{font-size:21px;font-weight:600;letter-spacing:0.231px;margin:32px 0 12px;display:flex;align-items:center;gap:8px;}
   .section-title .count{font-weight:600;font-size:12px;letter-spacing:0;color:var(--body-muted);background:var(--paper);padding:2px 9px;border-radius:9999px;}
@@ -613,16 +638,23 @@
   <div class="tab-panel" id="panel-resumen" role="tabpanel">
     <div class="card">
       <div class="section-title" id="resumenTitle">Gastos del mes</div>
-      <div class="charts-grid">
-        <div class="chart-col">
-          <div class="chart-title">Por categoría</div>
-          <div id="categoryChart"></div>
-        </div>
-        <div class="chart-col">
-          <div class="chart-title">Quién pagó</div>
-          <div id="personChart"></div>
-        </div>
-      </div>
+      <div class="rs-hero" id="resumenHero"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-title">Por categoría</div>
+      <div id="categoryRank"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-title">Quién pagó</div>
+      <div id="personSplit"></div>
+      <div class="bal-line" id="resumenBalance"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-title">Últimos meses</div>
+      <div id="monthTrend"></div>
     </div>
   </div>
 
@@ -2740,61 +2772,89 @@ function renderAhorro(){
   renderGoals(acumulado, ahorro, person, shareRatio);
 }
 
-// ---- pie charts ----
-function polarToCartesian(cx,cy,r,angleDeg){
-  const rad = (angleDeg-90) * Math.PI/180;
-  return { x: cx + r*Math.cos(rad), y: cy + r*Math.sin(rad) };
-}
-function arcPath(cx,cy,r,startAngle,endAngle){
-  const startPt = polarToCartesian(cx,cy,r,startAngle);
-  const endPt = polarToCartesian(cx,cy,r,endAngle);
-  const largeArc = (endAngle-startAngle) > 180 ? 1 : 0;
-  return `M ${cx} ${cy} L ${startPt.x.toFixed(2)} ${startPt.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${endPt.x.toFixed(2)} ${endPt.y.toFixed(2)} Z`;
-}
-function pieSvgHtml(data){
-  const total = data.reduce((s,d)=>s+d.value,0);
-  const size = 150, r = 62, cx = size/2, cy = size/2;
-  if(total <= 0){
-    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line-strong)" stroke-width="2" stroke-dasharray="4 4"/></svg>`;
+// ---- Resumen: hero total, ranked category bars, who-paid split, month trend ----
+function renderResumenHero(list, total){
+  const [vy,vm] = viewMonth.split('-').map(Number);
+  const prevD = new Date(vy, vm-2, 1);
+  const prevKey = `${prevD.getFullYear()}-${String(prevD.getMonth()+1).padStart(2,'0')}`;
+  const prevTotal = expenses.filter(x=>monthKey(x.date)===prevKey).reduce((s,x)=>s+x.amount,0);
+  let deltaHtml = '';
+  if(prevTotal > 0){
+    const pct = Math.round((total-prevTotal)/prevTotal*100);
+    const cls = pct > 0 ? 'up' : pct < 0 ? 'down' : '';
+    const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '·';
+    deltaHtml = `<span class="rs-hero-delta ${cls}">${arrow} ${Math.abs(pct)}% vs. mes anterior</span>`;
   }
-  const nonZero = data.filter(d=>d.value>0);
-  if(nonZero.length === 1){
-    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${nonZero[0].color}"/></svg>`;
-  }
-  let cumulative = 0;
-  const slices = nonZero.map(d=>{
-    const angle = d.value/total*360;
-    const path = arcPath(cx,cy,r,cumulative,cumulative+angle);
-    cumulative += angle;
-    return `<path d="${path}" fill="${d.color}" stroke="var(--card)" stroke-width="1.5"/>`;
-  }).join('');
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${slices}</svg>`;
+  $('resumenHero').innerHTML = `<span class="rs-hero-amt">${fmt(total)}</span>${deltaHtml}`;
 }
-function pieLegendHtml(data){
-  const total = data.reduce((s,d)=>s+d.value,0);
-  if(total <= 0) return '<div class="income-note">Todavía no hay gastos en este mes.</div>';
-  return `<div class="pie-legend">${data.filter(d=>d.value>0).map(d=>`
-    <div class="pie-legend-row">
-      <span class="pie-legend-label"><span class="dot" style="background:${d.color}"></span><span>${escapeHtml(d.label)}</span></span>
-      <span class="pie-legend-val">${fmt(d.value)} · ${Math.round(d.value/total*100)}%</span>
-    </div>`).join('')}</div>`;
-}
-function renderCharts(list){
+
+function renderCategoryRank(list){
   const byCategory = {};
   list.forEach(ex=>{ byCategory[ex.category] = (byCategory[ex.category]||0) + ex.amount; });
-  const categoryData = Object.keys(byCategory).map(cat=>({
+  const total = list.reduce((s,x)=>s+x.amount,0);
+  const data = Object.keys(byCategory).map(cat=>({
     label: cat, value: byCategory[cat], color: catColor(cat)
   })).sort((a,b)=>b.value-a.value);
-  $('categoryChart').innerHTML = pieSvgHtml(categoryData) + pieLegendHtml(categoryData);
+  if(!data.length){
+    $('categoryRank').innerHTML = '<div class="income-note">Todavía no hay gastos en este mes.</div>';
+    return;
+  }
+  const peak = Math.max(...data.map(d=>d.value));
+  $('categoryRank').innerHTML = data.map(d=>{
+    const pct = Math.round(d.value/total*100);
+    const w = Math.round(d.value/peak*100);
+    return `<div class="rank-row">
+      <div class="rank-h">
+        <span class="rank-label"><span class="dot" style="background:${d.color}"></span><span>${escapeHtml(d.label)}</span></span>
+        <span class="rank-val"><b>${fmt(d.value)}</b> · ${pct}%</span>
+      </div>
+      <div class="rank-track"><i style="width:${w}%;background:${d.color}"></i></div>
+    </div>`;
+  }).join('');
+}
 
+function renderPersonSplit(list){
   let paidA = 0, paidB = 0;
   list.forEach(ex=>{ if(ex.paidBy==='A') paidA += ex.amount; else paidB += ex.amount; });
-  // the person-identity accents (--a-gold / --a-clay), not category colours
-  const personData = [
-    { label: names.A, value: paidA, color: '#B4862B' },
-    { label: names.B, value: paidB, color: '#9C4B3C' }
-  ];
-  $('personChart').innerHTML = pieSvgHtml(personData) + pieLegendHtml(personData);
+  const total = paidA + paidB;
+  if(total <= 0){
+    $('personSplit').innerHTML = '<div class="income-note">Todavía no hay gastos en este mes.</div>';
+    return;
+  }
+  const wA = Math.round(paidA/total*100);
+  $('personSplit').innerHTML = `
+    <div class="split-bar"><span style="width:${wA}%;background:var(--a-gold)"></span><span style="width:${100-wA}%;background:var(--a-clay)"></span></div>
+    <div class="split-legend">
+      <span class="split-legend-item"><span class="dot" style="background:var(--a-gold)"></span><span class="split-legend-name">${escapeHtml(names.A)}</span><span class="split-legend-val"><b>${fmt(paidA)}</b> · ${wA}%</span></span>
+      <span class="split-legend-item"><span class="dot" style="background:var(--a-clay)"></span><span class="split-legend-name">${escapeHtml(names.B)}</span><span class="split-legend-val"><b>${fmt(paidB)}</b> · ${100-wA}%</span></span>
+    </div>`;
+}
+
+function renderMonthTrend(){
+  const months = [...new Set(expenses.map(e=>monthKey(e.date)).filter(Boolean))].sort().slice(-6);
+  if(!months.length){
+    $('monthTrend').innerHTML = '<div class="income-note">Todavía no hay gastos cargados en ningún mes.</div>';
+    return;
+  }
+  const rows = months.map(m=>({ m, total: expenses.filter(x=>monthKey(x.date)===m).reduce((s,x)=>s+x.amount,0) }));
+  const peak = Math.max(1, ...rows.map(r=>r.total));
+  $('monthTrend').innerHTML = rows.map(r=>{
+    const w = Math.round(r.total/peak*100);
+    const current = r.m === viewMonth;
+    return `<div class="trend-row">
+      <span class="trend-m">${monthShort(r.m)}</span>
+      <span class="trend-bar"><i class="${current?'current':''}" style="width:${w}%"></i></span>
+      <span class="trend-v">${fmt(r.total)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderCharts(list){
+  const total = list.reduce((s,x)=>s+x.amount,0);
+  renderResumenHero(list, total);
+  renderCategoryRank(list);
+  renderPersonSplit(list);
+  renderMonthTrend();
 }
 
 // who owes whom, across every month
@@ -2806,13 +2866,17 @@ function renderBalance(){
     if(ex.paidBy === 'A'){ balance += shareB; } else { balance -= shareA; }
   });
   const el = $('balanceResult');
+  const el2 = $('resumenBalance');
   if(!expenses.length || Math.abs(balance) < 1){
     el.textContent = '';
+    if(el2) el2.textContent = '';
     return;
   }
   const debtor   = balance > 0 ? escapeHtml(names.B) : escapeHtml(names.A);
   const creditor = balance > 0 ? escapeHtml(names.A) : escapeHtml(names.B);
-  el.innerHTML = `${debtor} le debe a ${creditor} <span class="amt">${fmt(Math.abs(balance))}</span>`;
+  const html = `${debtor} le debe a ${creditor} <span class="amt">${fmt(Math.abs(balance))}</span>`;
+  el.innerHTML = html;
+  if(el2) el2.innerHTML = html;
 }
 
 viewMonth = monthNow();
