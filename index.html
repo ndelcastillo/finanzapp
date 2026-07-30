@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 <style>
   :root{
     --ink:#1d1d1f;
@@ -201,11 +202,12 @@
   .btn-add:active{transform:scale(0.985);}
   .btn-add:focus-visible{outline:2px solid var(--primary-focus);outline-offset:2px;}
 
-  /* ---- save banner ---- */
-  .save-banner{position:fixed;top:0;left:0;right:0;z-index:100;display:none;
-    background:#b3261e;color:#fff;text-align:center;font-size:13px;font-weight:600;
-    padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));}
-  .save-banner.show{display:block;}
+  /* ---- toasts (Notyf), tinted to match the app palette ---- */
+  .notyf__toast{border-radius:12px;}
+  .notyf__message{font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;}
+  .notyf__icon{display:none;}
+  .notyf__toast--success{background:var(--good);}
+  .notyf__toast--error{background:var(--a-clay);}
 
   /* ---- modal ---- */
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:50;
@@ -278,6 +280,8 @@
   .fixed-actions .del:disabled{opacity:0.2;cursor:not-allowed;}
   .fixed-actions .del:disabled:hover{color:var(--body-muted);}
   .fixed-add{display:flex;gap:8px;margin-top:14px;}
+  .fixed-save-btn{display:block;margin-left:auto;margin-top:20px !important;width:auto;}
+  @media(max-width:540px){.fixed-save-btn{width:100%;}}
   .fixed-add input[type=text]{flex:1 1 0;min-width:0;}
   .fixed-add input.f-new-amt{flex:0 0 130px;width:130px;text-align:right;font-variant-numeric:tabular-nums;}
   /* without this the select's inherited width:100% starves the concept field */
@@ -422,9 +426,9 @@
   .code-info p{font-size:12.5px;color:var(--body-muted);line-height:1.5;margin:6px 0 0;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 </head>
 <body>
-<div class="save-banner" id="saveBanner" role="status" aria-live="polite">Guardando…</div>
 <div class="wrap">
   <div class="app-head">
     <h1>FinanzApp</h1>
@@ -582,6 +586,7 @@
         <input type="text" class="f-new-amt ie-money" inputmode="numeric" id="fiAmountInput" placeholder="0">
         <button type="button" onclick="addFixedIncome()" aria-label="Agregar ingreso fijo">+</button>
       </div>
+      <button type="button" class="btn-primary fixed-save-btn" onclick="commitFixedIncome()">Guardar ingresos fijos</button>
     </div>
 
     <div class="card">
@@ -599,6 +604,7 @@
         <input type="text" class="f-new-amt" inputmode="numeric" id="fixedAmountInput" placeholder="0">
         <button type="button" onclick="addFixed()" aria-label="Agregar gasto fijo">+</button>
       </div>
+      <button type="button" class="btn-primary fixed-save-btn" onclick="commitFixed()">Guardar gastos fijos</button>
     </div>
 
     <div class="card">
@@ -864,18 +870,57 @@ function applyCoupleRow(){
   if(normalizeExpenses()) saveExpenses();
 }
 
+// ---- toasts ----
+const notyf = new Notyf({
+  duration: 3200,
+  position: { x: 'center', y: 'top' },
+  dismissible: true,
+  types: [
+    { type: 'success', background: '#1c7a3d', icon: false },
+    { type: 'error', background: '#9C4B3C', icon: false, duration: 5000 }
+  ]
+});
+
+// ---- local cache: mirrors the couple row per-key so a refresh (or a save
+// that hasn't reached Supabase yet) still has something to show instantly,
+// instead of a blank screen or lost data. Supabase stays the source of truth
+// — this is only read on first paint and as a fallback when a write fails.
+const LOCAL_CACHE_PREFIX = 'cache_';
+function localCacheKey(code, key){ return `${LOCAL_CACHE_PREFIX}${code}_${key}`; }
+function readLocalCache(code, key){
+  try{ return localStorage.getItem(localCacheKey(code, key)); }catch(e){ return null; }
+}
+function writeLocalCache(code, key, value){
+  try{ localStorage.setItem(localCacheKey(code, key), value); }catch(e){}
+}
+
+// paints whatever was last cached for this couple code before Supabase has
+// even responded, so a refresh never shows a blank screen — loadAll() runs
+// right after and overwrites everything with the real (possibly newer) data
+function paintFromLocalCache(code){
+  try{
+    const e = readLocalCache(code, STORE_KEY);
+    if(e) expenses = JSON.parse(e);
+    const n = readLocalCache(code, NAMES_KEY);
+    if(n) names = JSON.parse(n);
+    const i = readLocalCache(code, INCOME_KEY);
+    if(i) income = migrateIncome(JSON.parse(i));
+    const f = readLocalCache(code, FIXED_KEY);
+    if(f) fixed = JSON.parse(f);
+    const fi = readLocalCache(code, FIXED_INCOME_KEY);
+    if(fi) fixedIncome = JSON.parse(fi);
+    if(normalizeExpenses()){ /* fixed up in-memory; loadAll()'s real save will persist it */ }
+    render();
+    renderFixed();
+    renderFixedIncome();
+  }catch(e){}
+}
+
 // tracks writes that haven't been confirmed by Supabase yet, so we can warn
-// on tab close/refresh and show a banner instead of silently dropping data
+// on tab close/refresh instead of silently dropping data
 let pendingSaves = 0;
 const SAVE_RETRY_DELAYS = [1000, 3000, 8000]; // ms — a few attempts before giving up
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-function updateSaveBanner(retrying){
-  const el = $('saveBanner');
-  if(!el) return;
-  el.textContent = retrying ? 'No se pudo guardar — reintentando…' : 'Guardando…';
-  el.classList.toggle('show', pendingSaves > 0);
-}
 
 window.addEventListener('beforeunload', (e)=>{
   if(pendingSaves > 0){ e.preventDefault(); e.returnValue = ''; }
@@ -895,8 +940,8 @@ const store = {
   },
   async set(key, value){
     if(!coupleCode) return false;
+    if(!MIGRATION_FLAG_KEYS.has(key)) writeLocalCache(coupleCode, key, value);
     pendingSaves++;
-    updateSaveBanner();
     try{
       let patch;
       if(MIGRATION_FLAG_KEYS.has(key)){
@@ -909,7 +954,7 @@ const store = {
       }
       let lastError = null;
       for(let attempt = 0; attempt <= SAVE_RETRY_DELAYS.length; attempt++){
-        if(attempt > 0){ updateSaveBanner(true); await sleep(SAVE_RETRY_DELAYS[attempt - 1]); }
+        if(attempt > 0) await sleep(SAVE_RETRY_DELAYS[attempt - 1]);
         try{
           const { data, error } = await sb.from('couples').update(patch).eq('code', coupleCode).select().single();
           if(error) throw error;
@@ -921,14 +966,18 @@ const store = {
           lastError = e;
         }
       }
-      if(lastError){ storageMode = 'error'; return false; }
+      if(lastError){
+        storageMode = 'error';
+        notyf.error('No se pudo guardar — revisá tu conexión. Tu cambio quedó guardado en este dispositivo.');
+        return false;
+      }
       return true;
     }catch(e){
       storageMode = 'error';
+      notyf.error('No se pudo guardar — revisá tu conexión. Tu cambio quedó guardado en este dispositivo.');
       return false;
     }finally{
       pendingSaves--;
-      updateSaveBanner();
       if(storageMode === 'error') describeStorage();
     }
   }
@@ -1019,6 +1068,7 @@ async function initCouple(){
   let saved = null;
   try{ saved = localStorage.getItem(COUPLE_CODE_LOCAL_KEY); }catch(e){}
   if(saved){
+    paintFromLocalCache(saved);
     fetchCoupleRow(saved).then(async (row)=>{
       try{
         coupleRow = row || await ensureCoupleRow(saved);
@@ -1304,10 +1354,22 @@ async function loadAll(){
 async function saveExpenses(){ await store.set(STORE_KEY, JSON.stringify(expenses)); }
 async function saveNames(){ await store.set(NAMES_KEY, JSON.stringify(names)); }
 async function saveIncome(){ await store.set(INCOME_KEY, JSON.stringify(income)); }
-async function saveFixed(){ await store.set(FIXED_KEY, JSON.stringify(fixed)); }
+async function saveFixed(){ return await store.set(FIXED_KEY, JSON.stringify(fixed)); }
+
+// "Guardar gastos fijos" button in Ajustes — fixed already autosaves on every
+// edit, this just forces an immediate write and confirms it with a toast
+async function commitFixed(){
+  const ok = await saveFixed();
+  if(ok) notyf.success('Gastos fijos guardados');
+}
 
 // ---- fixed incomes ----
-async function saveFixedIncome(){ await store.set(FIXED_INCOME_KEY, JSON.stringify(fixedIncome)); }
+async function saveFixedIncome(){ return await store.set(FIXED_INCOME_KEY, JSON.stringify(fixedIncome)); }
+
+async function commitFixedIncome(){
+  const ok = await saveFixedIncome();
+  if(ok) notyf.success('Ingresos fijos guardados');
+}
 
 let editingFixedIncomeId = null;
 
@@ -1419,6 +1481,7 @@ function removeFixedIncome(id){
   saveFixedIncome();
   renderFixedIncome();
   renderIncomeChips();
+  notyf.success(`"${item.label}" eliminado`);
 }
 
 // rows are re-stringified on every render, so these live on the panel
@@ -1590,6 +1653,7 @@ function removeFixed(id){
   saveFixed();
   renderFixed();
   renderChips();
+  notyf.success(`"${item.label}" eliminado`);
 }
 
 // ---- tabs ----
@@ -1947,6 +2011,7 @@ function deleteExpense(id){
   expenses = expenses.filter(x=>x.id!==id);
   saveExpenses();
   render();
+  notyf.success('Gasto eliminado');
 }
 
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
