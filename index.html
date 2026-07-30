@@ -38,13 +38,34 @@
   body.modal-open{overflow:hidden;}
   .wrap{max-width:900px;margin:0 auto;padding:32px 20px 64px;}
   h1{font-weight:600;font-size:34px;margin:0;letter-spacing:-0.374px;line-height:1.15;}
-  .app-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;}
-  .head-right{display:flex;align-items:center;gap:14px;flex:0 0 auto;}
-  .today-box{text-align:right;line-height:1.4;flex:0 0 auto;}
-  .today-date{font-size:12px;color:var(--body-muted);font-weight:500;white-space:nowrap;}
-  .today-usd{font-size:12px;color:var(--body-muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .today-usd strong{color:var(--body-muted);font-weight:500;}
-  .today-usd.err{color:var(--ink-muted-48);}
+  .app-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;margin-bottom:20px;}
+  .app-head h1{justify-self:start;}
+  .app-head .month-nav{justify-self:center;}
+  .head-right{display:flex;align-items:center;justify-self:end;gap:10px;flex:0 0 auto;}
+
+  .session-menu,.popover-menu{position:relative;flex:0 0 auto;}
+  .icon-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line-strong);
+    background:var(--card);color:var(--body-muted);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:background-color .15s ease,color .15s ease;flex:0 0 auto;
+    font-size:15px;font-weight:600;font-family:inherit;}
+  .icon-btn:hover{background:var(--pearl);color:var(--ink);}
+  .icon-btn:focus-visible{outline:2px solid var(--primary-focus);outline-offset:1px;}
+  .session-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:200px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:40;}
+  .session-dropdown.open{display:block;}
+  .session-code{font-size:11.5px;color:var(--body-muted);padding:6px 10px 8px;border-bottom:1px solid var(--line);
+    margin-bottom:6px;word-break:break-all;}
+  .session-dropdown button{width:100%;text-align:left;padding:9px 10px;border:none;background:none;
+    border-radius:8px;font-size:13.5px;color:var(--ink);cursor:pointer;font-family:inherit;}
+  .session-dropdown button:hover{background:var(--pearl);}
+  .usd-dropdown-body{padding:6px 10px;font-size:13px;color:var(--ink);}
+  .usd-dropdown-body .usd-title{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--body-muted);font-weight:600;margin-bottom:8px;}
+  .usd-dropdown-body .usd-row{display:flex;justify-content:space-between;gap:16px;padding:3px 0;
+    font-variant-numeric:tabular-nums;}
+  .usd-dropdown-body .usd-row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:7px;font-weight:600;}
+  .usd-dropdown-body.err{color:var(--ink-muted-48);}
   .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:16px;}
   @media(max-width:540px){.card{padding:18px 16px;}}
 
@@ -76,12 +97,14 @@
   .month-nav .today{flex:0 0 auto;width:auto;padding:0 10px;font-size:13px;color:var(--primary);background:none;}
   .month-nav .today:hover{background:var(--pearl);}
   @media(max-width:600px){
-    .app-head{flex-direction:column;align-items:stretch;gap:14px;}
+    .app-head{grid-template-columns:1fr;gap:14px;}
+    .app-head h1{justify-self:stretch;}
+    .app-head .month-nav{justify-self:stretch;}
     h1{font-size:28px;}
-    .head-right{flex-direction:column;align-items:stretch;gap:10px;}
+    .head-right{justify-self:stretch;justify-content:center;gap:10px;}
     .month-nav{justify-content:space-between;}
     .month-nav .m{flex:1;min-width:0;}
-    .today-box{display:flex;justify-content:space-between;gap:10px;text-align:left;}
+    .session-dropdown{right:0;left:auto;}
   }
 
   /* ---- month totals strip ---- */
@@ -326,14 +349,14 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   @media(max-width:540px){.row2{grid-template-columns:1fr;}}
   label{font-size:14px;color:var(--body-muted);display:block;margin-bottom:6px;letter-spacing:-0.224px;}
-  input[type=text],input[type=number],input[type=date],select{
+  input[type=text],input[type=number],input[type=date],input[type=password],select{
     width:100%;border:1px solid var(--line-strong);background:var(--card);border-radius:8px;
     padding:10px 12px;font-size:16px;font-family:'Inter',system-ui,sans-serif;color:var(--ink);
     transition:border-color .15s ease, box-shadow .15s ease;
   }
   /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
   @media(max-width:540px){
-    input[type=text],input[type=number],input[type=date],select{font-size:16px;}
+    input[type=text],input[type=number],input[type=date],input[type=password],select{font-size:16px;}
   }
   input:focus,select:focus{outline:none;border-color:var(--primary-focus);box-shadow:0 0 0 3px rgba(0,113,227,0.15);}
 
@@ -375,7 +398,7 @@
   .hint{font-size:12px;color:var(--ink-muted-48);margin-top:10px;line-height:1.5;letter-spacing:-0.12px;}
 
   .income-person{background:var(--pearl);border:1px solid var(--line);border-radius:12px;padding:16px;}
-  .who-label{font-weight:600;font-size:14px;margin-bottom:2px;letter-spacing:-0.224px;}
+  .who-label{font-weight:600;font-size:14px;margin-bottom:10px;letter-spacing:-0.224px;}
   .income-big{font-size:26px;font-weight:600;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;margin-bottom:14px;line-height:1.15;}
   .income-entries{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
   .income-entry-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;gap:6px;}
@@ -424,6 +447,31 @@
   .code-info summary .i-badge{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--line-strong);font-size:10.5px;font-style:italic;font-family:Georgia,serif;flex:0 0 auto;}
   .code-info[open] summary{color:var(--ink);}
   .code-info p{font-size:12.5px;color:var(--body-muted);line-height:1.5;margin:6px 0 0;}
+
+  .auth-tabs{display:flex;gap:4px;background:rgba(0,0,0,0.045);padding:4px;border-radius:12px;margin:0 0 18px;}
+  .auth-tabs .auth-tab{flex:1;padding:9px 10px;border:none;background:transparent;border-radius:9px;
+    font-size:13.5px;font-weight:600;color:var(--body-muted);cursor:pointer;font-family:inherit;}
+  .auth-tabs .auth-tab.active{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.07);}
+  .auth-tabs .auth-tab:focus-visible{outline:2px solid var(--primary-focus);outline-offset:1px;}
+
+  .guest-btn{width:100%;margin-top:14px;padding:10px 12px;border:none;background:none;
+    font-size:13px;color:var(--body-muted);text-decoration:underline;cursor:pointer;font-family:inherit;}
+  .guest-btn:hover{color:var(--ink);}
+
+  .onboarding-modal{text-align:center;max-width:420px;}
+  .onboarding-slide{display:none;}
+  .onboarding-slide.active{display:block;}
+  .onboarding-icon{font-size:40px;line-height:1;margin-bottom:14px;}
+  .onboarding-modal .modal-title{margin-bottom:10px;}
+  .onboarding-text{font-size:14.5px;color:var(--body-muted);line-height:1.55;margin:0 0 10px;}
+  .onboarding-dots{display:flex;justify-content:center;gap:6px;margin:18px 0 16px;}
+  .onboarding-dots .dot{width:7px;height:7px;border-radius:50%;background:var(--line-strong);transition:background-color .15s ease;}
+  .onboarding-dots .dot.active{background:var(--primary);}
+  .onboarding-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .onboarding-actions .btn-primary{flex:1;}
+  .onboarding-skip{border:none;background:none;color:var(--body-muted);font-size:13.5px;cursor:pointer;
+    font-family:inherit;padding:10px 6px;}
+  .onboarding-skip:hover{color:var(--ink);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
@@ -432,16 +480,39 @@
 <div class="wrap">
   <div class="app-head">
     <h1>FinanzApp</h1>
+    <!-- global month selector: drives the expense list, the "what's left" numbers and the charts -->
+    <div class="month-nav">
+      <button type="button" onclick="shiftMonth(-1)" aria-label="Mes anterior">‹</button>
+      <span class="m" id="monthLabel"></span>
+      <button type="button" onclick="shiftMonth(1)" aria-label="Mes siguiente">›</button>
+    </div>
     <div class="head-right">
-      <!-- global month selector: drives the expense list, the "what's left" numbers and the charts -->
-      <div class="month-nav">
-        <button type="button" onclick="shiftMonth(-1)" aria-label="Mes anterior">‹</button>
-        <span class="m" id="monthLabel"></span>
-        <button type="button" onclick="shiftMonth(1)" aria-label="Mes siguiente">›</button>
+      <div class="popover-menu">
+        <button type="button" class="icon-btn" id="dateBtn" onclick="toggleDatePopover()" aria-label="Fecha de hoy" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </button>
+        <div class="session-dropdown" id="dateDropdown">
+          <div id="todayDate" class="usd-dropdown-body"></div>
+        </div>
       </div>
-      <div class="today-box">
-        <div class="today-date" id="todayDate"></div>
-        <div class="today-usd" id="todayUsd">Dólar blue…</div>
+      <div class="popover-menu">
+        <button type="button" class="icon-btn" id="usdBtn" onclick="toggleUsdPopover()" aria-label="Cotización del dólar blue" aria-haspopup="true" aria-expanded="false">$</button>
+        <div class="session-dropdown" id="usdDropdown">
+          <div id="usdDropdownBody" class="usd-dropdown-body">Cargando…</div>
+        </div>
+      </div>
+      <button type="button" class="icon-btn" id="settingsBtn" onclick="switchTab('ajustes')" aria-label="Ajustes">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <div class="session-menu">
+        <button type="button" class="icon-btn" id="sessionBtn" onclick="toggleSessionMenu()" aria-label="Cuenta y sesión" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
+        <div class="session-dropdown" id="sessionDropdown">
+          <div class="session-code" id="sessionCodeLabel"></div>
+          <button type="button" onclick="changeCoupleCode()">Cambiar de espacio</button>
+          <button type="button" onclick="logoutCouple()">Cerrar sesión</button>
+        </div>
       </div>
     </div>
   </div>
@@ -451,7 +522,6 @@
     <button type="button" data-tab="gastos" role="tab">Gastos</button>
     <button type="button" data-tab="ahorro" role="tab">Ahorro</button>
     <button type="button" data-tab="resumen" role="tab">Resumen</button>
-    <button type="button" data-tab="ajustes" role="tab">Ajustes</button>
   </div>
 
   <!-- ============ TAB: INGRESOS ============ -->
@@ -461,12 +531,12 @@
       <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuánto entra por mes en cada lado. Podés cargar más de uno (ej: sueldo + un freelance). Si es en USD, guardás la cotización de ese día.</p>
       <div class="row2">
         <div class="income-person" data-person="A">
-          <div class="who-label" id="incomeLabelA">Nicolas</div>
+          <div class="who-label" id="incomeLabelA">Juan</div>
           <div class="income-big" id="incomeTotalA">$0</div>
           <div class="income-entries" id="incomeListA"></div>
         </div>
         <div class="income-person" data-person="B">
-          <div class="who-label" id="incomeLabelB">Valentina</div>
+          <div class="who-label" id="incomeLabelB">Maria</div>
           <div class="income-big" id="incomeTotalB">$0</div>
           <div class="income-entries" id="incomeListB"></div>
         </div>
@@ -498,8 +568,8 @@
   <!-- ============ TAB: AHORRO ============ -->
   <div class="tab-panel" id="panel-ahorro" role="tabpanel">
     <div class="seg" id="ahorroPersonSeg" style="margin-bottom:14px;">
-      <button type="button" data-person="A" class="active" id="ahorroPersonA">Nicolas</button>
-      <button type="button" data-person="B" id="ahorroPersonB">Valentina</button>
+      <button type="button" data-person="A" class="active" id="ahorroPersonA">Juan</button>
+      <button type="button" data-person="B" id="ahorroPersonB">Maria</button>
     </div>
     <div class="card">
       <div class="section-title" id="ahorroTitle">Tu ahorro</div>
@@ -610,20 +680,45 @@
     <div class="card">
       <div class="section-title">Datos guardados</div>
       <p class="income-note" id="storageInfo" style="margin-top:-4px;"></p>
-      <button type="button" class="btn-primary" style="background:transparent;color:var(--body-muted);border:1px solid var(--line-strong);" onclick="changeCoupleCode()">Entrar a otro espacio</button>
+      <button type="button" class="btn-primary" style="background:transparent;color:var(--body-muted);border:1px solid var(--line-strong);" onclick="changeCoupleCode()">Iniciar sesión en otro espacio</button>
     </div>
     <div class="card">
       <div class="section-title">Contraseña del espacio</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cambiá el código de este espacio sin perder los datos. El código viejo deja de funcionar al instante — avisale a tu pareja el nuevo para que lo reingrese en su dispositivo.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cambiá la contraseña de este espacio sin perder los datos. La contraseña vieja deja de funcionar al instante — avisale a tu pareja la nueva para que la reingrese en su dispositivo.</p>
       <div class="row2">
         <div>
-          <input type="text" id="renameCodeInput" placeholder="Nuevo código" autocomplete="off" autocapitalize="off">
+          <input type="password" id="renameCodeInput" placeholder="Nueva contraseña" autocomplete="off" autocapitalize="off">
         </div>
         <button type="button" class="btn-primary" id="renameCodeBtn" onclick="renameCoupleCode()">Cambiar</button>
       </div>
       <p class="code-hint" id="renameCodeError" style="color:#b3261e;"></p>
     </div>
     <p class="hint">Quien tenga el código de tu espacio ve y edita los mismos datos. No lo compartas con nadie más.</p>
+  </div>
+</div>
+
+<!-- ============ MODAL: onboarding (solo primera vez en el dispositivo) ============ -->
+<div class="modal-backdrop" id="onboardingModal" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+  <div class="modal onboarding-modal">
+    <div class="onboarding-slide active" data-slide="0">
+      <div class="onboarding-icon">👋</div>
+      <div class="modal-title" id="onboardingTitle">Bienvenido a FinanzApp</div>
+      <p class="onboarding-text">Una app para llevar las cuentas en pareja: gastos, ingresos y cuánto le corresponde a cada uno, todo sincronizado entre los dos celulares en tiempo real.</p>
+    </div>
+    <div class="onboarding-slide" data-slide="1">
+      <div class="onboarding-icon">🔑</div>
+      <div class="modal-title">Un espacio, código y contraseña</div>
+      <p class="onboarding-text">Cada pareja tiene un <strong>espacio</strong> propio, identificado por un código que inventan ustedes (ej: <em>villate956216</em>) y protegido por una contraseña. Quien tenga ambos datos entra y ve la misma información — no hace falta registrarse con email.</p>
+      <p class="onboarding-text">Guardá bien la contraseña: no hay forma de recuperarla si se olvida.</p>
+    </div>
+    <div class="onboarding-dots" id="onboardingDots">
+      <span class="dot active" data-dot="0"></span>
+      <span class="dot" data-dot="1"></span>
+    </div>
+    <div class="onboarding-actions">
+      <button type="button" class="onboarding-skip" onclick="finishOnboarding()">Saltar</button>
+      <button type="button" class="btn-primary" id="onboardingNextBtn" onclick="onboardingNext()">Siguiente</button>
+    </div>
   </div>
 </div>
 
@@ -634,19 +729,32 @@
     <div class="modal-head">
       <div class="modal-title" id="coupleModalTitle">Entrá a tu espacio</div>
     </div>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" class="auth-tab active" id="authTabLogin" onclick="setCoupleAuthMode('login')" role="tab" aria-selected="true">Iniciar sesión</button>
+      <button type="button" class="auth-tab" id="authTabSignup" onclick="setCoupleAuthMode('signup')" role="tab" aria-selected="false">Crear espacio</button>
+    </div>
     <form class="add-form" id="coupleForm">
       <div>
         <label for="coupleCodeInput">Código de pareja</label>
         <input type="text" id="coupleCodeInput" placeholder="Ej: villate956216" required autocomplete="off" autocapitalize="off">
-        <p class="code-hint">Inventá un código y compartilo con tu pareja: quien lo ingrese ve y edita los mismos datos. Si ya tenías uno, escribilo de nuevo tal cual.</p>
-        <details class="code-info">
-          <summary><span class="i-badge">i</span> ¿Es seguro?</summary>
-          <p>Si alguien escribe por casualidad el mismo código que otra pareja, entra directo a esos datos ajenos. No hay contraseña, así que mientras más difícil de adivinar (agregar números al azar, por ejemplo), mejor.</p>
-        </details>
       </div>
+      <div>
+        <label for="couplePasswordInput">Contraseña</label>
+        <input type="password" id="couplePasswordInput" placeholder="Tu contraseña" required autocomplete="off">
+      </div>
+      <div id="couplePasswordConfirmWrap" style="display:none;">
+        <label for="couplePasswordConfirmInput">Confirmar contraseña</label>
+        <input type="password" id="couplePasswordConfirmInput" placeholder="Repetí la contraseña" autocomplete="off">
+      </div>
+      <p class="code-hint" id="coupleAuthHint">Ingresá el código y la contraseña de tu espacio.</p>
+      <details class="code-info">
+        <summary><span class="i-badge">i</span> ¿Es seguro?</summary>
+        <p>El código identifica tu espacio y la contraseña lo protege: sin la contraseña correcta no se puede entrar, aunque alguien adivine el código. Igual, no lo compartas con nadie fuera de tu pareja. No hay email ni recuperación automática: si se olvidan la contraseña, no vamos a poder restaurarla ni recuperar los datos.</p>
+      </details>
       <button type="submit" class="btn-primary" id="coupleSubmitBtn">Entrar</button>
       <p class="code-hint" id="coupleError" style="color:#b3261e;"></p>
     </form>
+    <button type="button" class="guest-btn" id="guestBtn" onclick="loginAsGuest()">Entrar como invitado, solo para probar</button>
   </div>
 </div>
 
@@ -660,8 +768,8 @@
       <div>
         <label>¿De quién es?</label>
         <div class="seg" id="iWhoSeg">
-          <button type="button" data-who="A" class="active" id="iWhoA">Nicolas</button>
-          <button type="button" data-who="B" id="iWhoB">Valentina</button>
+          <button type="button" data-who="A" class="active" id="iWhoA">Juan</button>
+          <button type="button" data-who="B" id="iWhoB">Maria</button>
         </div>
       </div>
       <div>
@@ -704,8 +812,8 @@
       <div>
         <label>¿Quién lo paga?</label>
         <div class="seg" id="paidBySeg">
-          <button type="button" data-paid="A" class="active" id="paidLabelA">Nicolas</button>
-          <button type="button" data-paid="B" id="paidLabelB">Valentina</button>
+          <button type="button" data-paid="A" class="active" id="paidLabelA">Juan</button>
+          <button type="button" data-paid="B" id="paidLabelB">Maria</button>
         </div>
       </div>
       <div>
@@ -729,8 +837,8 @@
         <div class="seg" id="splitToggle">
           <button type="button" data-split="50" class="active">50 / 50</button>
           <button type="button" data-split="income">Según ingresos</button>
-          <button type="button" data-split="a-to-b" id="splitAtoB">Nicolas a Valentina</button>
-          <button type="button" data-split="b-to-a" id="splitBtoA">Valentina a Nicolas</button>
+          <button type="button" data-split="a-to-b" id="splitAtoB">Juan a Maria</button>
+          <button type="button" data-split="b-to-a" id="splitBtoA">Maria a Juan</button>
         </div>
         <div class="income-note" id="incomeSplitPreview" style="display:none;"></div>
       </div>
@@ -747,7 +855,7 @@ const FIXED_KEY = 'fixed_v1';
 const FIXED_INCOME_KEY = 'fixedincome_v1';
 
 let expenses = [];
-let names = { A: 'Nicolas', B: 'Valentina' };
+let names = { A: 'Juan', B: 'Maria' };
 let income = { fx: 1500, entries: { A: [], B: [] } };
 // the recurring expenses and their current amount — these drive the modal chips,
 // so updating a value here is what makes next month's entry one tap
@@ -809,6 +917,7 @@ const SUPABASE_URL = 'https://kzdiymdksthukyoaeozr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_QZMQwp5Ba1fqMCrB7xQBhg_9zuRTMRn';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const COUPLE_CODE_LOCAL_KEY = 'couple_code';
+const MIN_PASSWORD_LENGTH = 6;
 
 // logical keys (unchanged call sites elsewhere) map to real `couples` columns;
 // the one-time migration flags collapse into a single jsonb column instead of
@@ -826,17 +935,85 @@ let coupleCode = null;
 let coupleRow = null;          // cached full row, refreshed on load and on every remote change
 let coupleRealtimeSub = null;
 
+// contraseñas nunca viajan ni se guardan en texto plano: se hashean acá con
+// Web Crypto (SHA-256) antes de compararlas o de mandarlas a Supabase. No hay
+// backend propio para hacer esto server-side — la anon key es pública por
+// diseño (ver RLS en CLAUDE.md) — pero un hash sigue siendo mucho mejor que
+// texto plano si alguien llegara a ver la tabla.
+async function hashPassword(password){
+  const bytes = new TextEncoder().encode(password);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
 async function fetchCoupleRow(code){
   const { data, error } = await sb.from('couples').select('*').eq('code', code).maybeSingle();
   if(error) throw error;
   return data;
 }
 
-async function ensureCoupleRow(code){
-  let row = await fetchCoupleRow(code);
-  if(row) return row;
-  const { data, error } = await sb.from('couples').insert({ code }).select().single();
+// signup: crea el espacio si el código no existe. Si ya existe, es un error
+// (no se puede "crear" encima de un espacio ajeno) — usar login en ese caso.
+async function signupCouple(code, password){
+  const existing = await fetchCoupleRow(code);
+  if(existing) throw new Error('CODE_TAKEN');
+  const password_hash = await hashPassword(password);
+  const { data, error } = await sb.from('couples').insert({ code, password_hash, names: { A: 'Juan', B: 'Maria' } }).select().single();
   if(error) throw error;
+  return data;
+}
+
+// login: el código tiene que existir y la contraseña coincidir con el hash
+// guardado. Filas viejas sin password_hash (creadas antes de este cambio)
+// aceptan cualquier contraseña una única vez y quedan asignadas a esa — así
+// no se traba a nadie que ya tenía un espacio sin contraseña.
+async function loginCouple(code, password){
+  const row = await fetchCoupleRow(code);
+  if(!row) throw new Error('NOT_FOUND');
+  const hash = await hashPassword(password);
+  if(!row.password_hash){
+    const { data, error } = await sb.from('couples').update({ password_hash: hash }).eq('code', code).select().single();
+    if(error) throw error;
+    return data;
+  }
+  if(row.password_hash !== hash) throw new Error('BAD_PASSWORD');
+  return row;
+}
+
+// modo invitado: un único espacio demo, fijo y compartido por todos los que
+// prueban la app sin comprometerse a crear la suya. Se siembra con datos de
+// ejemplo la primera vez que alguien entra; después de eso es un espacio
+// normal (cualquier invitado puede editarlo, y otros invitados ven esos cambios).
+const GUEST_CODE = 'demo-invitado';
+const GUEST_PASSWORD = 'probar123';
+function guestSeedData(){
+  const today = defaultDate();
+  return {
+    names: { A: 'Juan', B: 'Maria' },
+    income: {
+      fx: 1500,
+      entries: {
+        A: [{ id: genId(), label: 'Sueldo', amount: 900000, currency: 'ARS' }],
+        B: [{ id: genId(), label: 'Freelance', amount: 650000, currency: 'ARS' }]
+      }
+    },
+    expenses: [
+      { id: genId(), desc: 'Alquiler', amount: 350000, date: today, category: categoryOf('Alquiler'), pctA: 50, splitType: '50', paidBy: 'A', essential: true },
+      { id: genId(), desc: 'Supermercado', amount: 120000, date: today, category: categoryOf('Supermercado'), pctA: 50, splitType: '50', paidBy: 'B', essential: true },
+      { id: genId(), desc: 'Cine', amount: 18000, date: today, category: categoryOf('Cine'), pctA: 50, splitType: '50', paidBy: 'A', essential: false }
+    ]
+  };
+}
+async function enterAsGuest(){
+  const existing = await fetchCoupleRow(GUEST_CODE);
+  if(existing) return existing;
+  const password_hash = await hashPassword(GUEST_PASSWORD);
+  const { data, error } = await sb.from('couples').insert({ code: GUEST_CODE, password_hash, ...guestSeedData() }).select().single();
+  if(error){
+    // otro invitado la creó justo entre el select y el insert — no es un error real
+    if(error.code === '23505') return await fetchCoupleRow(GUEST_CODE);
+    throw error;
+  }
   return data;
 }
 
@@ -1055,12 +1232,69 @@ const store = {
   }
 };
 
-// prompts for the shared couple code, creates the row if it's the first time,
+// prompts for login/signup, validates the password against the stored hash,
 // and blocks until it's ready — everything else (loadAll, render, ...) assumes
 // coupleRow already holds real data by the time it runs
+
+// one-time onboarding for devices that never opened the login modal before —
+// explains the "code + password = shared space" model up front instead of
+// relying on the modal's hint text, which is easy to skip past
+const ONBOARDING_SEEN_KEY = 'onboarding_seen';
+let onboardingSlide = 0;
+const ONBOARDING_SLIDE_COUNT = 2;
+
+function showOnboardingSlide(i){
+  onboardingSlide = i;
+  document.querySelectorAll('.onboarding-slide').forEach(el=>{
+    el.classList.toggle('active', Number(el.dataset.slide) === i);
+  });
+  document.querySelectorAll('#onboardingDots .dot').forEach(el=>{
+    el.classList.toggle('active', Number(el.dataset.dot) === i);
+  });
+  $('onboardingNextBtn').textContent = i === ONBOARDING_SLIDE_COUNT - 1 ? 'Empezar' : 'Siguiente';
+}
+function onboardingNext(){
+  if(onboardingSlide < ONBOARDING_SLIDE_COUNT - 1) showOnboardingSlide(onboardingSlide + 1);
+  else finishOnboarding();
+}
+function finishOnboarding(){
+  try{ localStorage.setItem(ONBOARDING_SEEN_KEY, '1'); }catch(e){}
+  $('onboardingModal').classList.remove('open');
+  openCoupleModal('');
+}
+// returns true if it showed the onboarding (caller should not also open the login modal)
+function maybeShowOnboarding(){
+  let seen = null;
+  try{ seen = localStorage.getItem(ONBOARDING_SEEN_KEY); }catch(e){}
+  if(seen) return false;
+  showOnboardingSlide(0);
+  $('onboardingModal').classList.add('open');
+  return true;
+}
+
+let coupleAuthMode = 'login';
+function setCoupleAuthMode(mode){
+  coupleAuthMode = mode;
+  $('authTabLogin').classList.toggle('active', mode === 'login');
+  $('authTabLogin').setAttribute('aria-selected', mode === 'login');
+  $('authTabSignup').classList.toggle('active', mode === 'signup');
+  $('authTabSignup').setAttribute('aria-selected', mode === 'signup');
+  $('couplePasswordConfirmWrap').style.display = mode === 'signup' ? '' : 'none';
+  $('couplePasswordConfirmInput').required = mode === 'signup';
+  $('coupleModalTitle').textContent = mode === 'signup' ? 'Creá tu espacio' : 'Entrá a tu espacio';
+  $('coupleAuthHint').textContent = mode === 'signup'
+    ? `Elegí un código y una contraseña (mín. ${MIN_PASSWORD_LENGTH} caracteres) para tu espacio, y compartiselos con tu pareja. No hay forma de recuperarla si la olvidan — guardala en un lugar seguro.`
+    : 'Ingresá el código y la contraseña de tu espacio.';
+  $('coupleSubmitBtn').textContent = mode === 'signup' ? 'Crear espacio' : 'Entrar';
+  $('coupleError').textContent = '';
+}
+
 function openCoupleModal(prefill){
   $('coupleModal').classList.add('open');
   $('coupleError').textContent = '';
+  $('couplePasswordInput').value = '';
+  $('couplePasswordConfirmInput').value = '';
+  setCoupleAuthMode('login');
   if(prefill) $('coupleCodeInput').value = prefill;
   $('coupleCodeInput').focus();
 }
@@ -1071,11 +1305,11 @@ function changeCoupleCode(){
   openCoupleModal('');
 }
 
-// shared by the very first entry and by "Cambiar código de pareja" later —
+// shared by the very first entry and by "Entrar a otro espacio" later —
 // after the very first resolve(), further submits just re-run loadAll() so
 // the new couple's data replaces what's on screen
-async function enterCouple(code, onDone){
-  coupleRow = await ensureCoupleRow(code);
+async function enterCouple(row, code, onDone){
+  coupleRow = row;
   coupleCode = code;
   try{ localStorage.setItem(COUPLE_CODE_LOCAL_KEY, code); }catch(e){}
   subscribeCoupleRealtime(code);
@@ -1084,31 +1318,30 @@ async function enterCouple(code, onDone){
   flushPendingWrites();   // replay anything that failed to save in a previous session
 }
 
-// renames the current couple's row in place (code is the primary key) so the
-// same data survives under a new "password" — unlike changeCoupleCode(),
-// which leaves this space and enters/creates a different one
+// changes the password on the current couple's row in place — unlike
+// changeCoupleCode(), which leaves this space and enters/creates a different one
 async function renameCoupleCode(){
   const input = $('renameCodeInput');
   const errorEl = $('renameCodeError');
   const btn = $('renameCodeBtn');
-  const newCode = input.value.trim().toLowerCase();
+  const newPassword = input.value;
   errorEl.textContent = '';
-  if(!newCode) return;
-  if(newCode === coupleCode){ errorEl.textContent = 'Ese ya es el código actual.'; return; }
+  if(!newPassword){ errorEl.textContent = 'Ingresá una contraseña nueva.'; return; }
+  if(newPassword.length < MIN_PASSWORD_LENGTH){
+    errorEl.textContent = `La contraseña tiene que tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`;
+    return;
+  }
   btn.disabled = true;
   try{
-    const existing = await fetchCoupleRow(newCode);
-    if(existing){ errorEl.textContent = 'Ese código ya está en uso por otro espacio. Probá con otro.'; return; }
-    const { data, error } = await sb.from('couples').update({ code: newCode }).eq('code', coupleCode).select().single();
+    const password_hash = await hashPassword(newPassword);
+    const { data, error } = await sb.from('couples').update({ password_hash }).eq('code', coupleCode).select().single();
     if(error) throw error;
     coupleRow = data;
-    coupleCode = newCode;
-    try{ localStorage.setItem(COUPLE_CODE_LOCAL_KEY, newCode); }catch(e){}
-    subscribeCoupleRealtime(newCode);
     input.value = '';
     describeStorage();
+    notyf.success('Contraseña actualizada.');
   }catch(e){
-    errorEl.textContent = 'No se pudo cambiar el código. Revisá tu conexión e intentá de nuevo.';
+    errorEl.textContent = 'No se pudo cambiar la contraseña. Revisá tu conexión e intentá de nuevo.';
   }finally{
     btn.disabled = false;
   }
@@ -1118,24 +1351,54 @@ async function initCouple(){
   let firstResolve = null;
   const firstReady = new Promise((resolve)=>{ firstResolve = resolve; });
 
+  // shared by the password form and the guest button — whichever gets a row
+  // first resolves the app's initial load; later calls just swap the space
+  async function attemptEnter(getRow, code){
+    try{
+      const row = await getRow();
+      if(firstResolve){
+        const resolve = firstResolve; firstResolve = null;
+        await enterCouple(row, code, resolve);
+      }else{
+        await enterCouple(row, code, ()=> loadAll());
+      }
+      return true;
+    }catch(err){
+      if(err && err.message === 'CODE_TAKEN') $('coupleError').textContent = 'Ese código ya está en uso. Probá con otro o iniciá sesión.';
+      else if(err && err.message === 'NOT_FOUND') $('coupleError').textContent = 'No existe un espacio con ese código. ¿Querés crearlo?';
+      else if(err && err.message === 'BAD_PASSWORD') $('coupleError').textContent = 'Código o contraseña incorrectos.';
+      else $('coupleError').textContent = 'No se pudo conectar. Revisá tu conexión e intentá de nuevo.';
+      return false;
+    }
+  }
+
+  window.loginAsGuest = async function(){
+    $('guestBtn').disabled = true;
+    $('coupleError').textContent = '';
+    await attemptEnter(enterAsGuest, GUEST_CODE);
+    $('guestBtn').disabled = false;
+  };
+
   $('coupleForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const code = $('coupleCodeInput').value.trim().toLowerCase();
-    if(!code) return;
+    const password = $('couplePasswordInput').value;
+    if(!code || !password) return;
+    if(coupleAuthMode === 'signup' && password.length < MIN_PASSWORD_LENGTH){
+      $('coupleError').textContent = `La contraseña tiene que tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`;
+      return;
+    }
+    if(coupleAuthMode === 'signup' && password !== $('couplePasswordConfirmInput').value){
+      $('coupleError').textContent = 'Las contraseñas no coinciden.';
+      return;
+    }
     $('coupleSubmitBtn').disabled = true;
     $('coupleError').textContent = '';
-    try{
-      if(firstResolve){
-        const resolve = firstResolve; firstResolve = null;
-        await enterCouple(code, resolve);
-      }else{
-        await enterCouple(code, ()=> loadAll());
-      }
-    }catch(err){
-      $('coupleError').textContent = 'No se pudo conectar. Revisá tu conexión e intentá de nuevo.';
-    }finally{
-      $('coupleSubmitBtn').disabled = false;
-    }
+    await attemptEnter(
+      () => coupleAuthMode === 'signup' ? signupCouple(code, password) : loginCouple(code, password),
+      code
+    );
+    $('coupleSubmitBtn').disabled = false;
   });
 
   let saved = null;
@@ -1144,16 +1407,18 @@ async function initCouple(){
     paintFromLocalCache(saved);
     fetchCoupleRow(saved).then(async (row)=>{
       try{
-        coupleRow = row || await ensureCoupleRow(saved);
+        if(!row) throw new Error('NOT_FOUND');
+        coupleRow = row;
         coupleCode = saved;
         subscribeCoupleRealtime(saved);
+        try{ localStorage.setItem(ONBOARDING_SEEN_KEY, '1'); }catch(e){}
         firstResolve(); firstResolve = null;
       }catch(err){
         openCoupleModal(saved);
       }
     }).catch(()=> openCoupleModal(saved));
   }else{
-    openCoupleModal('');
+    if(!maybeShowOnboarding()) openCoupleModal('');
   }
 
   return firstReady;
@@ -1161,10 +1426,56 @@ async function initCouple(){
 
 function describeStorage(){
   const el = $('storageInfo');
+  const codeLabel = $('sessionCodeLabel');
+  if(codeLabel) codeLabel.textContent = coupleCode ? `Espacio: ${coupleCode}` : '';
   if(!el) return;
   el.textContent = storageMode === 'error'
     ? 'No se pudo guardar el último cambio — revisá tu conexión.'
-    : `Compartido con tu pareja mediante el código "${coupleCode}". Cualquiera que ingrese el mismo código ve y edita estos datos.`;
+    : `Compartido con tu pareja mediante el código "${coupleCode}" y su contraseña. Quien inicie sesión con ambos ve y edita estos datos.`;
+}
+
+function toggleSessionMenu(force){
+  const dropdown = $('sessionDropdown');
+  const btn = $('sessionBtn');
+  const open = typeof force === 'boolean' ? force : !dropdown.classList.contains('open');
+  dropdown.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+function toggleUsdPopover(force){
+  const dropdown = $('usdDropdown');
+  const btn = $('usdBtn');
+  const open = typeof force === 'boolean' ? force : !dropdown.classList.contains('open');
+  dropdown.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+function toggleDatePopover(force){
+  const dropdown = $('dateDropdown');
+  const btn = $('dateBtn');
+  const open = typeof force === 'boolean' ? force : !dropdown.classList.contains('open');
+  dropdown.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+document.addEventListener('click', (e)=>{
+  const sessionMenu = document.querySelector('.session-menu');
+  if(sessionMenu && !sessionMenu.contains(e.target)) toggleSessionMenu(false);
+  document.querySelectorAll('.popover-menu').forEach(menu=>{
+    if(!menu.contains(e.target)){
+      if(menu.querySelector('#usdDropdown')) toggleUsdPopover(false);
+      if(menu.querySelector('#dateDropdown')) toggleDatePopover(false);
+    }
+  });
+});
+
+// closes the current space and returns to the login modal without a full
+// page reload — unsubscribes realtime and clears the remembered code so
+// initCouple()'s "saved code" auto-entry doesn't just log back in
+function logoutCouple(){
+  toggleSessionMenu(false);
+  if(coupleRealtimeSub){ sb.removeChannel(coupleRealtimeSub); coupleRealtimeSub = null; }
+  coupleRow = null;
+  coupleCode = null;
+  try{ localStorage.removeItem(COUPLE_CODE_LOCAL_KEY); }catch(e){}
+  openCoupleModal('');
 }
 
 // ---- amount fields: thousands separators while typing ----
@@ -1266,12 +1577,12 @@ const USD_API = 'https://dolarapi.com/v1/dolares/blue';
 let todayUsdRate = null;   // average of compra/venta, null until it loads
 
 function renderTodayDate(){
-  const s = new Date().toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
-  $('todayDate').textContent = s.charAt(0).toUpperCase() + s.slice(1);
+  const s = new Date().toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  $('todayDate').innerHTML = `<div class="usd-title">Hoy</div>${s.charAt(0).toUpperCase() + s.slice(1)}`;
 }
 
 async function loadUsdToday(){
-  const el = $('todayUsd');
+  const el = $('usdDropdownBody');
   try{
     const r = await fetch(USD_API, {cache:'no-store'});
     if(!r.ok) throw new Error('HTTP ' + r.status);
@@ -1280,12 +1591,13 @@ async function loadUsdToday(){
     if(!(compra > 0) || !(venta > 0)) throw new Error('respuesta inesperada');
     todayUsdRate = Math.round((compra + venta) / 2);
     el.classList.remove('err');
-    el.innerHTML = `Blue prom. <strong>$${fmtNum(todayUsdRate)}</strong>`;
-    el.title = `Compra $${fmtNum(compra)} · Venta $${fmtNum(venta)} — dolarapi.com`;
+    el.innerHTML = `<div class="usd-title">Dólar blue</div>
+      <div class="usd-row"><span>Compra</span><span>$${fmtNum(compra)}</span></div>
+      <div class="usd-row"><span>Venta</span><span>$${fmtNum(venta)}</span></div>
+      <div class="usd-row total"><span>Promedio</span><span>$${fmtNum(todayUsdRate)}</span></div>`;
   }catch(e){
     el.classList.add('err');
-    el.textContent = 'Dólar: sin datos';
-    el.title = 'No se pudo consultar la cotización: ' + e.message;
+    el.textContent = 'No se pudo consultar la cotización del dólar.';
   }
 }
 // the rate a new USD income uses when its field is left blank
@@ -1847,8 +2159,8 @@ function refreshNameLabels(){
   $('ahorroPersonB').textContent = names.B;
 }
 
-$('nameA').addEventListener('change', e=>{ names.A = e.target.value || 'Nicolas'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
-$('nameB').addEventListener('change', e=>{ names.B = e.target.value || 'Valentina'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
+$('nameA').addEventListener('change', e=>{ names.A = e.target.value || 'Juan'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
+$('nameB').addEventListener('change', e=>{ names.B = e.target.value || 'Maria'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
 
 $('ahorroPersonSeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
