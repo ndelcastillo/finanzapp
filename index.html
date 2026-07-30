@@ -938,6 +938,60 @@ window.addEventListener('beforeunload', (e)=>{
   if(pendingSaves > 0){ e.preventDefault(); e.returnValue = ''; }
 });
 
+// last line of defense: a write that exhausts every retry (offline, airplane
+// mode, a dead connection mid-save) is never just dropped — it's parked here
+// so it outlives even a tab close/reload, and gets retried the moment the
+// device is back online. What's cached in localStorage is always the most
+// recent value for that key, so replaying it later can't undo a later edit.
+function pendingWritesLSKey(code){ return `pending_writes_${code}`; }
+function readPendingWrites(code){
+  try{ return JSON.parse(localStorage.getItem(pendingWritesLSKey(code)) || '{}'); }catch(e){ return {}; }
+}
+function markPendingWrite(code, key, value){
+  try{
+    const pending = readPendingWrites(code);
+    pending[key] = value;
+    localStorage.setItem(pendingWritesLSKey(code), JSON.stringify(pending));
+  }catch(e){}
+}
+function clearPendingWrite(code, key){
+  try{
+    const pending = readPendingWrites(code);
+    delete pending[key];
+    localStorage.setItem(pendingWritesLSKey(code), JSON.stringify(pending));
+  }catch(e){}
+}
+async function flushPendingWrites(){
+  if(!coupleCode) return;
+  const pending = readPendingWrites(coupleCode);
+  for(const key of Object.keys(pending)){
+    await store.set(key, pending[key]);
+  }
+}
+window.addEventListener('online', flushPendingWrites);
+// some mobile browsers fire 'online' unreliably in the background; a light
+// poll while a tab is open catches the rest without waiting for the user to
+// notice something didn't save
+setInterval(flushPendingWrites, 15000);
+
+// serializes writes per column: a fast tap on "Guardar" right after an
+// autosave (or two autosaves in a row, e.g. one keystroke's change event
+// plus a button tap that blurs the same field) fires two overlapping
+// store.set() calls for the same key. Two in-flight UPDATEs race on the
+// network, and on a slow/variable mobile connection the one carrying the
+// STALE value (e.g. a first keystroke's partial amount) can reach Postgres
+// after the real one and silently overwrite it there — not just in memory,
+// in the actual saved row. Queuing each key's writes one at a time makes
+// requests land in the order they were made, so the last edit always wins
+// for real, regardless of individual response timing.
+const writeQueues = {};
+function queueWrite(key, fn){
+  const prior = writeQueues[key] || Promise.resolve();
+  const mine = prior.then(fn, fn);   // run even if the previous write failed
+  writeQueues[key] = mine.catch(()=>{});
+  return mine;
+}
+
 const store = {
   async get(key){
     if(!coupleRow) return null;
@@ -953,6 +1007,9 @@ const store = {
   async set(key, value){
     if(!coupleCode) return false;
     if(!MIGRATION_FLAG_KEYS.has(key)) writeLocalCache(coupleCode, key, value);
+    return queueWrite(key, () => this._writeNow(key, value));
+  },
+  async _writeNow(key, value){
     pendingSaves++;
     try{
       let patch;
@@ -980,13 +1037,16 @@ const store = {
       }
       if(lastError){
         storageMode = 'error';
-        notyf.error('No se pudo guardar — revisá tu conexión. Tu cambio quedó guardado en este dispositivo.');
+        markPendingWrite(coupleCode, key, value);
+        notyf.error('No se pudo guardar ahora — se reintentará solo apenas vuelva la conexión. Tu cambio no se pierde.');
         return false;
       }
+      clearPendingWrite(coupleCode, key);
       return true;
     }catch(e){
       storageMode = 'error';
-      notyf.error('No se pudo guardar — revisá tu conexión. Tu cambio quedó guardado en este dispositivo.');
+      markPendingWrite(coupleCode, key, value);
+      notyf.error('No se pudo guardar ahora — se reintentará solo apenas vuelva la conexión. Tu cambio no se pierde.');
       return false;
     }finally{
       pendingSaves--;
@@ -1021,6 +1081,7 @@ async function enterCouple(code, onDone){
   subscribeCoupleRealtime(code);
   closeCoupleModal();
   onDone();
+  flushPendingWrites();   // replay anything that failed to save in a previous session
 }
 
 // renames the current couple's row in place (code is the primary key) so the
