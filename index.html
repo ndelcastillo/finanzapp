@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinanzApp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1d1d1f;
+    --body-muted:#6e6e73;
+    --ink-muted-48:#7a7a7a;
+    --paper:#f5f5f7;
+    --card:#ffffff;
+    --pearl:#fafafc;
+    --line: rgba(0,0,0,0.08);
+    --line-strong: rgba(0,0,0,0.14);
+    --muted:#6e6e73;
+    --primary:#0066cc;
+    --primary-focus:#0071e3;
+    --primary-active:#0058b3;
+
+    /* person-identity accents (data coding, not UI actions) */
+    --a-gold:#B4862B;
+    --a-gold-bg:#F1E5C9;
+    --a-gold-ink:#8a5f13;
+    --a-clay:#9C4B3C;
+    --a-clay-bg:#F0DAD3;
+    --a-clay-ink:#8a3624;
+    --good:#1c7a3d;
+    --good-bg:#dcf3e3;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;}
+  body.modal-open{overflow:hidden;}
+  .wrap{max-width:900px;margin:0 auto;padding:32px 20px 64px;}
+  h1{font-weight:600;font-size:34px;margin:0;letter-spacing:-0.374px;line-height:1.15;}
+  .app-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;}
+  .head-right{display:flex;align-items:center;gap:14px;flex:0 0 auto;}
+  .today-box{text-align:right;line-height:1.4;flex:0 0 auto;}
+  .today-date{font-size:12px;color:var(--body-muted);font-weight:500;white-space:nowrap;}
+  .today-usd{font-size:12px;color:var(--body-muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .today-usd strong{color:var(--ink);font-weight:600;}
+  .today-usd.err{color:var(--ink-muted-48);}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:16px;}
+
+  .name-a{color:var(--a-gold-ink);}
+  .name-b{color:var(--a-clay-ink);}
+
+  /* ---- tabs ---- */
+  .tabs{display:flex;gap:4px;background:rgba(0,0,0,0.045);padding:4px;border-radius:12px;margin:0 0 24px;}
+  .tabs button{flex:1;padding:9px 10px;border:none;background:transparent;border-radius:9px;
+    font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--body-muted);
+    cursor:pointer;transition:background-color .15s ease,color .15s ease;}
+  .tabs button.active{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.07);}
+  .tabs button:focus-visible{outline:2px solid var(--primary-focus);outline-offset:1px;}
+  @media(max-width:420px){.tabs{gap:2px;}.tabs button{font-size:12.5px;padding:9px 3px;}}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* ---- global month navigator (lives in the header, drives every tab) ---- */
+  .month-nav{display:flex;align-items:center;gap:4px;flex:0 0 auto;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px;}
+  .month-nav button{width:32px;height:32px;flex:0 0 32px;border:none;background:var(--pearl);
+    border-radius:9px;font-size:16px;color:var(--ink);cursor:pointer;font-family:inherit;
+    transition:background-color .15s ease;}
+  .month-nav button:hover{background:rgba(0,0,0,0.07);}
+  .month-nav button:active{transform:scale(0.92);}
+  .month-nav button:focus-visible{outline:2px solid var(--primary-focus);outline-offset:1px;}
+  /* fixed width so the arrows don't shift as month names change length */
+  .month-nav .m{font-weight:600;font-size:14px;letter-spacing:-0.224px;min-width:132px;text-align:center;}
+  .month-nav .today{flex:0 0 auto;width:auto;padding:0 10px;font-size:13px;color:var(--primary);background:none;}
+  .month-nav .today:hover{background:var(--pearl);}
+  @media(max-width:600px){
+    .app-head{flex-direction:column;align-items:stretch;gap:14px;}
+    h1{font-size:28px;}
+    .head-right{flex-direction:column;align-items:stretch;gap:10px;}
+    .month-nav{justify-content:space-between;}
+    .month-nav .m{flex:1;min-width:0;}
+    .today-box{display:flex;justify-content:space-between;gap:10px;text-align:left;}
+  }
+
+  /* ---- month totals strip ---- */
+  .totals{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px;}
+  .totals-cell{padding:16px 12px;text-align:center;border-right:1px solid var(--line);}
+  .totals-cell:last-child{border-right:none;}
+  .totals-k{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);font-weight:600;}
+  .totals-v{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.3px;margin-top:5px;line-height:1.15;}
+  .totals-v.save{color:var(--good);}
+  .totals-v.neg{color:var(--a-clay);}
+  @media(max-width:480px){.totals-cell{padding:14px 6px;}.totals-v{font-size:16px;}.totals-k{font-size:10px;}}
+
+  /* ---- savings history bars ---- */
+  .sv-row{display:flex;align-items:center;gap:10px;padding:7px 0;}
+  .sv-m{flex:0 0 96px;font-size:12.5px;color:var(--body-muted);}
+  .sv-bar{flex:1;height:8px;background:var(--paper);border-radius:9999px;overflow:hidden;min-width:30px;}
+  .sv-bar i{display:block;height:100%;border-radius:9999px;background:var(--good);}
+  .sv-bar i.neg{background:var(--a-clay);}
+  .sv-v{flex:0 0 104px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .sv-v.neg{color:var(--a-clay);}
+  .sv-total{display:flex;justify-content:space-between;align-items:baseline;
+    border-top:1px solid var(--line-strong);margin-top:8px;padding-top:10px;font-size:15px;font-weight:600;}
+  .sv-total .v{font-variant-numeric:tabular-nums;}
+  @media(max-width:480px){.sv-m{flex:0 0 68px;font-size:11.5px;}.sv-v{flex:0 0 86px;font-size:12px;}}
+
+  /* ---- 50/30/20 rule ---- */
+  .rule-row{padding:12px 0;border-bottom:1px solid var(--line);}
+  .rule-row:last-child{border-bottom:none;}
+  .rule-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .rule-n{font-size:14px;font-weight:600;letter-spacing:-0.224px;}
+  .rule-cmp{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .rule-cmp .rule-t{color:var(--body-muted);font-weight:400;}
+  .rule-cmp.ok{color:var(--good);}
+  .rule-cmp.over{color:var(--a-clay);}
+  .rule-track{position:relative;height:9px;background:var(--paper);border-radius:9999px;margin:9px 0 7px;overflow:hidden;}
+  .rule-track i{display:block;height:100%;border-radius:9999px;background:var(--good);}
+  .rule-track i.over{background:var(--a-clay);}
+  /* the target marker sits inside the track, so it can't be clipped away */
+  .rule-mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-muted-48);}
+  .rule-d{font-size:11.5px;color:var(--body-muted);font-variant-numeric:tabular-nums;}
+
+  /* ---- compound-interest projection ---- */
+  .proj-row{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .proj-row:last-child{border-bottom:none;}
+  .proj-t{flex:0 0 76px;font-size:13px;font-weight:600;}
+  .proj-v{flex:1;text-align:right;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .proj-s{flex:0 0 100%;font-size:11px;color:var(--body-muted);font-variant-numeric:tabular-nums;margin-top:-4px;}
+  @media(max-width:480px){.proj-t{flex:0 0 62px;font-size:12px;}.proj-v{font-size:14px;}}
+
+  /* ---- the five plan numbers ---- */
+  .plan-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .plan-row:last-child{border-bottom:none;}
+  .plan-op{flex:0 0 54px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;
+    background:var(--pearl);border:1px solid var(--line-strong);border-radius:8px;
+    padding:5px 0;text-align:center;color:var(--body-muted);}
+  .plan-main{flex:1;min-width:0;}
+  .plan-n{font-size:13.5px;font-weight:600;letter-spacing:-0.224px;}
+  .plan-d{font-size:11.5px;color:var(--body-muted);line-height:1.45;margin-top:2px;}
+  .plan-v{flex:0 0 auto;text-align:right;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.3px;}
+  @media(max-width:480px){
+    .plan-row{flex-wrap:wrap;gap:8px;}
+    .plan-main{flex:1 1 100%;order:2;}
+    .plan-v{order:1;flex:1;font-size:15px;}
+    .plan-op{order:0;}
+  }
+
+  /* ---- accumulation goals ---- */
+  .goal{padding:14px 0;border-bottom:1px solid var(--line);}
+  .goal:last-child{border-bottom:none;}
+  .goal-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .goal-n{font-size:14px;font-weight:600;letter-spacing:-0.224px;}
+  .goal-t{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .goal-track{height:10px;background:var(--paper);border-radius:9999px;overflow:hidden;margin:10px 0 7px;}
+  .goal-track i{display:block;height:100%;border-radius:9999px;background:var(--good);}
+  .goal-track i.part{background:var(--a-gold);}
+  .goal-d{font-size:11.5px;color:var(--body-muted);line-height:1.5;font-variant-numeric:tabular-nums;}
+  .goal-pct{font-weight:600;color:var(--ink);}
+
+  /* ---- instrument reference cards ---- */
+  .inst{display:flex;flex-direction:column;gap:10px;}
+  .inst-item{background:var(--pearl);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+  .inst-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;}
+  .inst-n{font-size:14px;font-weight:600;letter-spacing:-0.224px;}
+  .inst-tag{font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;
+    padding:2px 8px;border-radius:9999px;white-space:nowrap;flex:0 0 auto;}
+  .risk-1{background:var(--good-bg);color:var(--good);}
+  .risk-2{background:#fdf3e3;color:#7a5410;}
+  .risk-3{background:var(--a-clay-bg);color:var(--a-clay-ink);}
+  .inst-d{font-size:12.5px;color:var(--body-muted);margin-top:6px;line-height:1.5;}
+  .inst-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--ink-muted-48);}
+  .inst-meta b{color:var(--body-muted);font-weight:600;}
+
+  /* ---- "what's left" hero ---- */
+  .avail{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .avail-col{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;text-align:center;}
+  .avail-who{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);font-weight:600;}
+  .avail-amt{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.5px;margin-top:6px;line-height:1.1;}
+  .avail-amt.neg{color:var(--a-clay);}
+  .avail-sub{font-size:11.5px;color:var(--body-muted);margin-top:8px;line-height:1.4;font-variant-numeric:tabular-nums;}
+  .avail-cap{font-size:12px;color:var(--body-muted);text-align:center;margin:10px 0 0;letter-spacing:-0.12px;}
+  .bal-line{font-size:13px;text-align:center;margin:12px 0 0;color:var(--body-muted);font-variant-numeric:tabular-nums;}
+  .bal-line .amt{font-weight:600;color:var(--ink);}
+  @media(max-width:480px){.avail{grid-template-columns:1fr;}}
+
+  .btn-add{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--primary);color:#fff;border:none;border-radius:14px;padding:15px;
+    font-family:'Inter',system-ui,sans-serif;font-size:16px;font-weight:500;cursor:pointer;
+    margin:22px 0 24px;transition:background-color .15s ease,transform .1s ease;}
+  .btn-add:hover{background:var(--primary-active);}
+  .btn-add:active{transform:scale(0.985);}
+  .btn-add:focus-visible{outline:2px solid var(--primary-focus);outline-offset:2px;}
+
+  /* ---- modal ---- */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:50;
+    display:none;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto;}
+  .modal-backdrop.open{display:flex;}
+  .modal{background:var(--card);border-radius:18px;padding:24px;width:100%;max-width:520px;margin:auto;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
+  .modal-title{font-size:21px;font-weight:600;letter-spacing:0.231px;}
+  .modal-close{background:none;border:none;color:var(--body-muted);font-size:20px;line-height:1;
+    cursor:pointer;padding:4px 6px;border-radius:8px;transition:color .15s ease;}
+  .modal-close:hover{color:var(--ink);}
+  @media(max-width:540px){
+    .modal-backdrop{padding:0;align-items:flex-end;}
+    .modal{border-radius:18px 18px 0 0;max-width:none;margin:0;padding:20px 18px 28px;}
+  }
+
+  /* ---- quick-pick chips under Descripción ---- */
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .chips button{background:var(--pearl);border:1px solid var(--line-strong);border-radius:9999px;
+    padding:6px 12px;font-size:13px;cursor:pointer;color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;transition:background-color .15s ease,border-color .15s ease,color .15s ease;}
+  .chips button:hover{border-color:var(--primary);color:var(--primary);}
+  .chips button.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .chips button:active{transform:scale(0.96);}
+  .chip-amt{opacity:0.6;font-variant-numeric:tabular-nums;margin-left:3px;}
+
+  /* ---- fixed-income table (Ajustes) ---- */
+  .fixed-row select.fi-cur,.fixed-row select.fi-who-sel{flex:0 0 auto;width:auto;min-width:0;padding:8px 4px;font-size:12.5px;}
+  /* an edit row has two buttons instead of three, so it can give back the space */
+  .fixed-actions.two{flex:0 0 52px;}
+  /* the edit row carries two extra selects — let them drop to a second line */
+  .fixed-row.editing{flex-wrap:wrap;}
+  .fixed-row.editing .f-label-edit{flex:1 1 120px;}
+  .cur-badge{font-size:10px;font-weight:600;color:var(--body-muted);background:var(--paper);
+    border-radius:9999px;padding:1px 6px;margin-left:6px;vertical-align:1px;}
+  .who-badge{font-size:10.5px;font-weight:600;color:var(--body-muted);background:var(--paper);
+    border:none;border-radius:9999px;padding:2px 8px;margin-left:8px;cursor:pointer;
+    font-family:'Inter',system-ui,sans-serif;vertical-align:1px;transition:background-color .15s ease,color .15s ease;}
+  .who-badge:hover{background:var(--a-gold-bg);color:var(--a-gold-ink);}
+
+  /* ---- fixed-expense table (Ajustes) ---- */
+  .fixed-head{display:flex;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--body-muted);font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--line-strong);}
+  .fixed-head .h0c{flex:0 0 20px;}
+  .fixed-head .h1c{flex:1;}
+  .fixed-head .h2c{flex:0 0 130px;text-align:right;}
+  .fixed-head .h3c{flex:0 0 84px;}
+  .fixed-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);background:var(--card);}
+  /* drag to reorder — this order is also the chip order in Gastos */
+  .drag-handle{flex:0 0 20px;cursor:grab;color:var(--line-strong);font-size:15px;line-height:1;
+    text-align:center;touch-action:none;user-select:none;-webkit-user-select:none;}
+  .drag-handle:hover{color:var(--body-muted);}
+  .drag-handle:active{cursor:grabbing;}
+  .fixed-row.dragging{opacity:0.65;background:var(--pearl);border-radius:8px;border-bottom-color:transparent;}
+  .fixed-row .f-label{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .fixed-row input.f-amt{flex:0 0 130px;width:130px;text-align:right;font-variant-numeric:tabular-nums;padding:8px 10px;}
+  .fixed-row input.f-label-edit{flex:1;min-width:0;padding:8px 10px;}
+  /* fixed-width action area so rows stay aligned in every state */
+  .fixed-actions{flex:0 0 84px;display:flex;gap:4px;justify-content:flex-end;align-items:center;}
+  .fixed-actions button{background:none;border:none;color:var(--body-muted);cursor:pointer;
+    font-size:14px;padding:0 2px;line-height:1;}
+  .fixed-actions .edit:hover,.fixed-actions .ok:hover{color:var(--primary);}
+  .fixed-actions .ok{color:var(--primary);font-weight:600;}
+  .fixed-actions .del:hover{color:var(--a-clay);}
+  .fixed-actions .lock{font-size:12px;filter:grayscale(1);opacity:0.55;}
+  .fixed-actions .lock:hover{filter:none;opacity:1;}
+  /* locked: the delete stays in place but is inert, so nothing shifts */
+  .fixed-actions .del:disabled{opacity:0.2;cursor:not-allowed;}
+  .fixed-actions .del:disabled:hover{color:var(--body-muted);}
+  .fixed-add{display:flex;gap:8px;margin-top:14px;}
+  .fixed-add input[type=text]{flex:1 1 0;min-width:0;}
+  .fixed-add input.f-new-amt{flex:0 0 130px;width:130px;text-align:right;font-variant-numeric:tabular-nums;}
+  /* without this the select's inherited width:100% starves the concept field */
+  .fixed-add select{flex:0 0 62px;width:62px;min-width:0;padding:8px 2px;font-size:13px;}
+  .fixed-add button{flex:0 0 34px;background:var(--primary);color:#fff;border:none;border-radius:9999px;
+    width:34px;height:34px;font-size:16px;cursor:pointer;transition:background-color .15s ease,transform .1s ease;}
+  .fixed-add button:hover{background:var(--primary-active);}
+  .fixed-add button:active{transform:scale(0.9);}
+  @media(max-width:480px){
+    .fixed-row input.f-amt,.fixed-add input.f-new-amt,.fixed-head .h2c{flex:0 0 108px;width:108px;}
+  }
+
+  .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .chart-col{display:flex;flex-direction:column;align-items:center;}
+  .chart-title{font-size:12px;color:var(--body-muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
+  .pie-legend{display:flex;flex-direction:column;gap:5px;margin-top:12px;width:100%;}
+  .pie-legend-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:6px;}
+  .pie-legend-label{display:flex;align-items:center;color:var(--ink);min-width:0;}
+  .pie-legend-label .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0;}
+  .pie-legend-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pie-legend-val{color:var(--body-muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  @media(max-width:480px){.charts-grid{grid-template-columns:1fr;}}
+
+  .section-title{font-size:21px;font-weight:600;letter-spacing:0.231px;margin:32px 0 12px;display:flex;align-items:center;gap:8px;}
+  .section-title .count{font-weight:600;font-size:12px;letter-spacing:0;color:var(--body-muted);background:var(--paper);padding:2px 9px;border-radius:9999px;}
+  .card .section-title{margin-top:0;}
+
+  .list-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;}
+  .list-head .t{font-size:21px;font-weight:600;letter-spacing:0.231px;}
+  .list-head .tot{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
+
+  form.add-form{display:flex;flex-direction:column;gap:14px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  label{font-size:14px;color:var(--body-muted);display:block;margin-bottom:6px;letter-spacing:-0.224px;}
+  input[type=text],input[type=number],input[type=date],select{
+    width:100%;border:1px solid var(--line-strong);background:var(--card);border-radius:8px;
+    padding:10px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--primary-focus);box-shadow:0 0 0 3px rgba(0,113,227,0.15);}
+
+  /* segmented controls */
+  .seg{display:flex;flex-wrap:wrap;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;}
+  .seg button{flex:1 1 40%;padding:10px 6px;border:none;background:var(--card);font-size:13px;cursor:pointer;
+    font-family:'Inter',system-ui,sans-serif;color:var(--body-muted);
+    border-right:1px solid var(--line);
+    transition:background-color .15s ease,color .15s ease;}
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .seg button:active{transform:scale(0.97);}
+
+  .income-note{font-size:12px;color:var(--body-muted);margin-top:2px;line-height:1.43;letter-spacing:-0.224px;}
+  .income-preview{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;font-size:13px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
+  .btn-primary{margin-top:4px;background:var(--primary);color:#fff;border:none;border-radius:9999px;padding:12px 22px;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',system-ui,sans-serif;transition:background-color .15s ease, transform .1s ease;}
+  .btn-primary:hover{background:var(--primary-active);}
+  .btn-primary:active{transform:scale(0.97);}
+  .btn-primary:focus-visible{outline:2px solid var(--primary-focus);outline-offset:2px;}
+  .btn-link{background:none;border:none;color:var(--primary);font-family:'Inter',system-ui,sans-serif;font-size:14px;cursor:pointer;padding:0;text-decoration:underline;}
+
+  .bill{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px;}
+  .bill-main{flex:1;min-width:0;}
+  .bill-name{font-size:15px;font-weight:600;letter-spacing:-0.224px;}
+  .bill-meta{font-size:12px;color:var(--body-muted);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .tag{font-size:11px;padding:2px 8px;border-radius:9999px;font-weight:600;}
+  .tag-a{background:var(--a-gold-bg);color:var(--a-gold-ink);}
+  .tag-b{background:var(--a-clay-bg);color:var(--a-clay-ink);}
+  .bill-amt{font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;white-space:nowrap;}
+  .bill-edit,.bill-del{background:none;border:none;color:var(--body-muted);cursor:pointer;font-size:16px;padding:2px 4px;flex-shrink:0;border-radius:6px;transition:color .15s ease, transform .1s ease;}
+  .bill-edit:hover{color:var(--primary);}
+  .bill-del:hover{color:var(--a-clay);}
+  .bill-edit:active,.bill-del:active{transform:scale(0.9);}
+  .empty{color:var(--body-muted);font-size:14px;padding:14px 0;text-align:center;line-height:1.5;}
+
+  .settings-row{display:flex;gap:10px;}
+  .settings-row > div{flex:1;}
+  .hint{font-size:12px;color:var(--ink-muted-48);margin-top:10px;line-height:1.5;letter-spacing:-0.12px;}
+
+  .income-person{background:var(--pearl);border:1px solid var(--line);border-radius:12px;padding:16px;}
+  .who-label{font-weight:600;font-size:14px;margin-bottom:2px;letter-spacing:-0.224px;}
+  .income-big{font-size:26px;font-weight:600;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;margin-bottom:14px;line-height:1.15;}
+  .income-entries{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+  .income-entry-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;gap:6px;}
+  .income-entry-row .ie-main{display:flex;flex-direction:column;min-width:0;flex:1;}
+  .income-entry-row .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);}
+  .income-entry-row .ie-sub{font-size:10.5px;color:var(--body-muted);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;}
+  .income-entry-row .amt-cur{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--body-muted);}
+  .income-entry-row .edit,.income-entry-row .del{background:none;border:none;color:var(--body-muted);
+    cursor:pointer;font-size:13px;flex-shrink:0;padding:2px 3px;line-height:1;}
+  .income-entry-row .edit:hover{color:var(--primary);}
+  .income-entry-row .del:hover{color:var(--a-clay);}
+
+  /* an income row swapped into edit mode */
+  .income-entry-row.editing{display:block;padding:8px;border-color:var(--primary);}
+  .ie-edit{display:flex;flex-direction:column;gap:6px;}
+  .ie-edit-r1,.ie-edit-r2{display:flex;gap:6px;align-items:center;}
+  .ie-edit input,.ie-edit select{min-width:0;padding:7px 8px;font-size:13px;}
+  .ie-edit .e-label{flex:1.4 1 0;}
+  .ie-edit .e-amount{flex:1 1 0;text-align:right;font-variant-numeric:tabular-nums;}
+  .ie-edit .e-cur{flex:0 0 62px;padding:7px 2px;}
+  .ie-edit .e-fx{flex:1 1 0;text-align:right;font-variant-numeric:tabular-nums;}
+  .ie-edit .ok,.ie-edit .cancel{flex:0 0 28px;width:28px;height:28px;border:none;border-radius:9999px;
+    cursor:pointer;font-size:13px;font-family:inherit;transition:transform .1s ease;}
+  .ie-edit .ok{background:var(--primary);color:#fff;}
+  .ie-edit .cancel{background:var(--pearl);color:var(--body-muted);}
+  .ie-edit .ok:active,.ie-edit .cancel:active{transform:scale(0.9);}
+  /* single row, never wraps — inputs compress instead */
+  .income-add-row{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;}
+  .income-add-row input,.income-add-row select{min-width:0;padding:9px 8px;}
+  .income-add-row .ie-label{flex:1.5 1 0;}
+  .income-add-row .ie-amount{flex:1 1 0;text-align:right;font-variant-numeric:tabular-nums;}
+  .income-add-row select{flex:0 0 62px;padding:9px 2px;font-size:13px;}
+  .income-add-row button{background:var(--primary);color:#fff;border:none;border-radius:9999px;width:32px;height:32px;font-size:16px;cursor:pointer;flex:0 0 32px;transition:background-color .15s ease, transform .1s ease;}
+  .income-add-row button:hover{background:var(--primary-active);}
+  .income-add-row button:active{transform:scale(0.9);}
+  /* revealed under the add row when the currency is USD — same look as the row inputs */
+  .income-person input.fx-input{width:100%;margin-top:6px;padding:9px 8px;font-variant-numeric:tabular-nums;}
+
+  .warn{background:#fdf3e3;border:1px solid #e8c98a;color:#7a5410;border-radius:12px;
+    padding:12px 14px;font-size:12.5px;line-height:1.5;margin-bottom:16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="app-head">
+    <h1>Gastos en pareja</h1>
+    <div class="head-right">
+      <!-- global month selector: drives the expense list, the "what's left" numbers and the charts -->
+      <div class="month-nav">
+        <button type="button" onclick="shiftMonth(-1)" aria-label="Mes anterior">‹</button>
+        <span class="m" id="monthLabel"></span>
+        <button type="button" onclick="shiftMonth(1)" aria-label="Mes siguiente">›</button>
+      </div>
+      <div class="today-box">
+        <div class="today-date" id="todayDate"></div>
+        <div class="today-usd" id="todayUsd">Dólar blue…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs" role="tablist">
+    <button type="button" data-tab="ingresos" class="active" role="tab">Ingresos</button>
+    <button type="button" data-tab="gastos" role="tab">Gastos</button>
+    <button type="button" data-tab="ahorro" role="tab">Ahorro</button>
+    <button type="button" data-tab="resumen" role="tab">Resumen</button>
+    <button type="button" data-tab="ajustes" role="tab">Ajustes</button>
+  </div>
+
+  <!-- ============ TAB: INGRESOS ============ -->
+  <div class="tab-panel active" id="panel-ingresos" role="tabpanel">
+    <div class="card">
+      <div class="section-title">Ingresos mensuales</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuánto entra por mes en cada lado. Podés cargar más de uno (ej: sueldo + un freelance). Si es en USD, guardás la cotización de ese día.</p>
+      <div class="row2">
+        <div class="income-person" data-person="A">
+          <div class="who-label" id="incomeLabelA">Nicolas</div>
+          <div class="income-big" id="incomeTotalA">$0</div>
+          <div class="income-entries" id="incomeListA"></div>
+        </div>
+        <div class="income-person" data-person="B">
+          <div class="who-label" id="incomeLabelB">Valentina</div>
+          <div class="income-big" id="incomeTotalB">$0</div>
+          <div class="income-entries" id="incomeListB"></div>
+        </div>
+      </div>
+      <button type="button" class="btn-add" style="margin:18px 0 0;" onclick="openIncomeModal()">+ Agregar ingreso</button>
+      <div class="income-preview" id="incomePreview" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: GASTOS ============ -->
+  <div class="tab-panel" id="panel-gastos" role="tabpanel">
+    <!-- household totals for the selected month -->
+    <div class="totals" id="totalsStrip"></div>
+
+    <div class="avail" id="availGrid"></div>
+    <p class="avail-cap">Te queda esto después de pagar tu parte de todos los gastos cargados en el mes.</p>
+    <div class="bal-line" id="balanceResult"></div>
+
+    <button type="button" class="btn-add" onclick="openModal()">+ Agregar gasto</button>
+
+    <div class="list-head">
+      <span class="t" id="listTitle">Gastos</span>
+      <span class="tot" id="listTotal"></span>
+    </div>
+    <div id="expenseList"></div>
+  </div>
+
+  <!-- ============ TAB: AHORRO ============ -->
+  <div class="tab-panel" id="panel-ahorro" role="tabpanel">
+    <div class="card">
+      <div class="section-title" id="ahorroTitle">Tu ahorro</div>
+      <div class="totals" id="ahorroStrip"></div>
+      <p class="income-note" style="margin-top:12px;" id="ahorroNote"></p>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Tu plan en 5 números</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cinco cuentas sobre lo que entra por mes en el hogar. Las tres de arriba son plata por mes; las dos de abajo son capital a juntar.</p>
+      <div id="planBox"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Cómo venís este mes</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Un reparto de referencia de lo que entra: la mitad a lo que no podés dejar de pagar, un 30% a lo que te querés dar, y un 20% que no se toca. La marca gris en cada barra es el objetivo; la barra, cómo venís este mes.</p>
+      <div id="ruleBox"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Si lo invertís al 6% anual</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Qué pasa si todos los meses guardás lo que te sobró este mes y eso rinde 6% anual, el ROI de referencia. Interés compuesto: lo que ganás también empieza a generar.</p>
+      <div id="projBox"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Mes a mes</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cuánto te sobró en cada mes que tenés cargado. Ojo: usa tus ingresos de hoy para todos los meses, porque la app guarda un solo ingreso mensual, no el histórico.</p>
+      <div id="savingsHistory"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Tus dos metas</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Se van en orden: primero el fondo de emergencia, después el capital que te paga el sueldo solo. El avance se mide contra tu ahorro acumulado.</p>
+      <div id="goalsBox"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Dónde puede ir la plata</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Qué es cada instrumento, en qué moneda queda tu plata y qué tan rápido podés sacarla. Ordenados de menos a más riesgo.</p>
+      <div class="inst" id="instrumentList"></div>
+    </div>
+
+    <p class="hint">Esto es información general para que entiendas las opciones, no una recomendación de inversión — no soy asesor financiero y no conozco tu situación completa. Las tasas y condiciones cambian seguido: confirmá siempre en tu banco o broker antes de decidir.</p>
+  </div>
+
+  <!-- ============ TAB: RESUMEN ============ -->
+  <div class="tab-panel" id="panel-resumen" role="tabpanel">
+    <div class="card">
+      <div class="section-title" id="resumenTitle">Gastos del mes</div>
+      <div class="charts-grid">
+        <div class="chart-col">
+          <div class="chart-title">Por categoría</div>
+          <div id="categoryChart"></div>
+        </div>
+        <div class="chart-col">
+          <div class="chart-title">Quién pagó</div>
+          <div id="personChart"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: AJUSTES ============ -->
+  <div class="tab-panel" id="panel-ajustes" role="tabpanel">
+    <div class="card">
+      <div class="section-title">Quiénes son</div>
+      <div class="settings-row" id="names-row">
+        <div>
+          <label for="nameA">Nombre 1</label>
+          <input type="text" id="nameA" placeholder="Ej: Vos">
+        </div>
+        <div>
+          <label for="nameB">Nombre 2</label>
+          <input type="text" id="nameB" placeholder="Ej: Tu pareja">
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Ingresos fijos</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los que entran todos los meses. Actualizá el monto acá y en Ingresos te aparecen como etiqueta para cargarlos de un toque. Arrastrá de ⠿ para reordenar — ese orden es el de las etiquetas. Tocá el nombre para pasarlo a la otra persona; la moneda se cambia con el lápiz.</p>
+      <div class="fixed-head">
+        <span class="h0c"></span>
+        <span class="h1c">Concepto</span>
+        <span class="h2c">Monto</span>
+        <span class="h3c"></span>
+      </div>
+      <div id="fixedIncomeTable"></div>
+      <div class="fixed-add">
+        <input type="text" id="fiLabelInput" placeholder="Ej: Sueldo, Freelance">
+        <input type="text" class="f-new-amt ie-money" inputmode="numeric" id="fiAmountInput" placeholder="0">
+        <button type="button" onclick="addFixedIncome()" aria-label="Agregar ingreso fijo">+</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Gastos fijos</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Los que se repiten todos los meses. Actualizá el monto acá cuando cambie y al cargar el gasto ya te lo trae puesto. Arrastrá de ⠿ para reordenar — ese orden es el de las etiquetas en Gastos.</p>
+      <div class="fixed-head">
+        <span class="h0c"></span>
+        <span class="h1c">Concepto</span>
+        <span class="h2c">Monto</span>
+        <span class="h3c"></span>
+      </div>
+      <div id="fixedTable"></div>
+      <div class="fixed-add">
+        <input type="text" id="fixedLabelInput" placeholder="Ej: Luz, Gas, Cochera">
+        <input type="text" class="f-new-amt" inputmode="numeric" id="fixedAmountInput" placeholder="0">
+        <button type="button" onclick="addFixed()" aria-label="Agregar gasto fijo">+</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Datos guardados</div>
+      <p class="income-note" id="storageInfo" style="margin-top:-4px;"></p>
+    </div>
+    <p class="hint">Si abrís esto como artifact compartido, la info se guarda en el almacenamiento compartido y tu pareja ve lo mismo. Evitá compartir el link con más gente.</p>
+  </div>
+</div>
+
+<!-- ============ MODAL: agregar ingreso ============ -->
+<div class="modal-backdrop" id="incomeModal" role="dialog" aria-modal="true" aria-labelledby="incomeModalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="incomeModalTitle">Agregar un ingreso</div>
+      <button type="button" class="modal-close" onclick="closeIncomeModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <form class="add-form" id="incomeForm">
+      <div>
+        <label for="iDesc">Descripción</label>
+        <input type="text" class="ie-letters" id="iDesc" placeholder="Ej: Sueldo, freelance" required>
+        <!-- the usual ones: picking a chip fills description, amount and currency -->
+        <div class="chips" id="incomeChips"></div>
+      </div>
+      <div class="row2">
+        <div>
+          <label for="iAmount">Monto</label>
+          <input type="text" inputmode="numeric" class="ie-money" id="iAmount" placeholder="0" required>
+        </div>
+        <div>
+          <label>Moneda</label>
+          <div class="seg" id="iCurSeg">
+            <button type="button" data-cur="ARS" class="active">ARS</button>
+            <button type="button" data-cur="USD">USD</button>
+          </div>
+        </div>
+      </div>
+      <!-- only shown for USD: the rate for THAT income -->
+      <div id="iFxWrap" style="display:none;">
+        <label for="iFx">Cotización del dólar</label>
+        <input type="text" inputmode="numeric" class="ie-money" id="iFx" placeholder="Dólar a">
+      </div>
+      <div>
+        <label>¿De quién es?</label>
+        <div class="seg" id="iWhoSeg">
+          <button type="button" data-who="A" class="active" id="iWhoA">Nicolas</button>
+          <button type="button" data-who="B" id="iWhoB">Valentina</button>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" id="iSubmitBtn">Agregar ingreso</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: agregar gasto ============ -->
+<div class="modal-backdrop" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="addModalTitle">Agregar un gasto</div>
+      <button type="button" class="modal-close" onclick="closeModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <form class="add-form" id="addForm">
+      <div>
+        <label for="fDesc">Descripción</label>
+        <input type="text" id="fDesc" placeholder="Ej: Sillón, cena de aniversario" required>
+        <!-- the usual ones: picking a chip sets the description AND the category -->
+        <div class="chips" id="descChips"></div>
+      </div>
+      <div class="row2">
+        <div>
+          <label for="fAmount">Monto (ARS)</label>
+          <input type="text" inputmode="numeric" id="fAmount" placeholder="0" required>
+        </div>
+        <div>
+          <label for="fDate">Fecha</label>
+          <input type="date" id="fDate">
+        </div>
+      </div>
+      <div>
+        <label>¿Quién lo paga?</label>
+        <div class="seg" id="paidBySeg">
+          <button type="button" data-paid="A" class="active" id="paidLabelA">Nicolas</button>
+          <button type="button" data-paid="B" id="paidLabelB">Valentina</button>
+        </div>
+      </div>
+      <div>
+        <label>¿Cómo se divide?</label>
+        <div class="seg" id="splitToggle">
+          <button type="button" data-split="50" class="active">50 / 50</button>
+          <button type="button" data-split="income">Según ingresos</button>
+        </div>
+        <div class="income-note" id="incomeSplitPreview" style="display:none;"></div>
+      </div>
+      <button type="submit" class="btn-primary" id="submitBtn">Agregar gasto</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'expenses_v1';
+const NAMES_KEY = 'names_v1';
+const INCOME_KEY = 'income_v2';
+const FIXED_KEY = 'fixed_v1';
+const FIXED_INCOME_KEY = 'fixedincome_v1';
+
+let expenses = [];
+let names = { A: 'Nicolas', B: 'Valentina' };
+let income = { fx: 1500, entries: { A: [], B: [] } };
+// the recurring expenses and their current amount — these drive the modal chips,
+// so updating a value here is what makes next month's entry one tap
+let fixed = [];
+// the recurring incomes and their current amount — same idea as `fixed`, but per person
+let fixedIncome = [];
+let currentSplit = '50';
+let currentPaidBy = 'A';
+let viewMonth = '';           // 'YYYY-MM' — the month being planned
+let storageMode = 'ninguno';
+
+// what the table starts with on a first run; amounts are yours to fill in
+const FIXED_SEED = ['Alquiler','Edenor','Aysa','Metrogas','Wifi','Supermercado','Limpieza','Jardinería','Mantenimiento'];
+// currency defaults to ARS — set it per row in Ajustes if one of these is in USD
+const FIXED_INCOME_SEED = [
+  { person:'A', label:'Howdy',       amount:0, currency:'ARS', locked:true },
+  { person:'B', label:'Estudio Arq', amount:0, currency:'ARS', locked:true }
+];
+// one-time: lock the seeded rows on tables created before the padlock existed
+const FIXED_INCOME_LOCK_KEY = 'fixedincome_m1';
+
+// one-time list update for tables that were already seeded with the old set
+const FIXED_MIGRATION_KEY = 'fixed_m1';
+// one-time: Alquiler back at the top and the standard rows protected from deletion
+const FIXED_LOCK_KEY = 'fixed_m2';
+
+const CATEGORY_COLORS = {
+  'Alquiler':'#B4862B','Wifi':'#3D6B4C','Limpieza':'#5C7A8A',
+  'Supermercado':'#8A5C74','Jardinería':'#6B8A3D','Jardineria':'#6B8A3D',
+  'Mantenimiento':'#8A6B3D','Otro':'#8A8578',
+  'Edenor':'#7A6BA8','Aysa':'#2F6F8F','Metrogas':'#A85B3D',
+  'Expensas':'#9C4B3C'   // kept so older expenses filed under it keep their colour
+};
+// fixed expenses you invent yourself still need a stable slice colour
+const PALETTE = ['#7A6BA8','#3D7A8A','#A86B3D','#4C7A5E','#8A4C6B','#6B7A3D','#5E5EA8','#A8823D'];
+function catColor(cat){
+  if(CATEGORY_COLORS[cat]) return CATEGORY_COLORS[cat];
+  let h = 0;
+  for(let i=0;i<cat.length;i++) h = (h*31 + cat.charCodeAt(i)) | 0;
+  return PALETTE[Math.abs(h) % PALETTE.length];
+}
+
+const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const fmt = (n) => new Intl.NumberFormat('es-AR', {style:'currency', currency:'ARS', maximumFractionDigits:0}).format(Math.round(n||0));
+const fmtNum = (n) => new Intl.NumberFormat('es-AR', {maximumFractionDigits:0}).format(Math.round(n||0));
+const fmtUsd = (n) => 'US$ ' + fmtNum(n);
+const fmtCur = (n,cur) => cur === 'USD' ? fmtUsd(n) : fmt(n);
+const $ = (id) => document.getElementById(id);
+
+// ---- persistence -------------------------------------------------------
+// window.storage is the Artifacts shared key-value store and only exists there.
+// Opened as a plain file it's undefined, which is why a refresh used to wipe
+// everything — so every read falls back to localStorage and every write goes
+// to both (shared truth + local cache).
+const store = {
+  async get(key){
+    try{
+      if(window.storage && window.storage.get){
+        const r = await window.storage.get(key, true);
+        if(r && r.value != null) return r.value;
+      }
+    }catch(e){}
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  },
+  async set(key, value){
+    let shared = false, local = false;
+    try{
+      if(window.storage && window.storage.set){ await window.storage.set(key, value, true); shared = true; }
+    }catch(e){}
+    try{ localStorage.setItem(key, value); local = true; }catch(e){}
+    storageMode = shared && local ? 'compartido + local'
+      : shared ? 'compartido' : local ? 'este navegador (localStorage)' : 'ninguno — no se está guardando';
+    return shared || local;
+  }
+};
+function describeStorage(){
+  const el = $('storageInfo');
+  if(!el) return;
+  const hasShared = !!(window.storage && window.storage.get);
+  el.textContent = hasShared
+    ? 'Se guarda en el almacenamiento compartido del artifact y también como copia en este navegador.'
+    : 'Se guarda en este navegador (localStorage). Si abrís el archivo en otra compu o en modo incógnito, no vas a ver estos datos.';
+}
+
+// ---- amount fields: thousands separators while typing ----
+// these are type=text (a number input can't render "1.500.000" or move the caret),
+// so every read goes through numVal() instead of parseFloat on .value
+const digitsOnly = (s) => (s||'').replace(/\D/g,'');
+function groupThousands(s){
+  const d = digitsOnly(s);
+  return d ? new Intl.NumberFormat('es-AR').format(parseInt(d,10)) : '';
+}
+function numVal(id){
+  const d = digitsOnly($(id).value);
+  return d ? parseInt(d,10) : NaN;
+}
+function attachThousands(id){
+  const el = $(id);
+  el.addEventListener('input', ()=>{
+    // keep the caret the same distance from the end, so inserted dots don't jump it
+    const fromEnd = el.value.length - (el.selectionStart ?? el.value.length);
+    el.value = groupThousands(el.value);
+    const pos = Math.max(0, el.value.length - fromEnd);
+    el.setSelectionRange(pos, pos);
+  });
+}
+// the modal fields carry .ie-money / .ie-letters and are handled by the delegated
+// listeners below, so only the plain ones need their own listener
+['fAmount','fixedAmountInput'].forEach(attachThousands);
+
+// the income name is a label, not a value — digits are stripped so it can't be
+// mistaken for the amount field sitting right beside it
+function attachLettersOnly(id){
+  const el = $(id);
+  el.addEventListener('input', ()=>{
+    const clean = el.value.replace(/\d/g,'');
+    if(clean === el.value) return;
+    const pos = Math.max(0, (el.selectionStart ?? clean.length) - (el.value.length - clean.length));
+    el.value = clean;
+    el.setSelectionRange(pos, pos);
+  });
+}
+
+// rows that get re-stringified (income entries, fixed rows) can't hold their own
+// listeners, so these two run delegated off the document by class
+function reformat(el, transform){
+  const fromEnd = el.value.length - (el.selectionStart ?? el.value.length);
+  const next = transform(el.value);
+  if(next === el.value) return;
+  el.value = next;
+  const pos = Math.max(0, el.value.length - fromEnd);
+  el.setSelectionRange(pos, pos);
+}
+document.addEventListener('input', (e)=>{
+  const el = e.target;
+  if(!(el instanceof HTMLInputElement)) return;
+  if(el.classList.contains('ie-money')) reformat(el, groupThousands);
+  else if(el.classList.contains('ie-letters')) reformat(el, v=>v.replace(/\d/g,''));
+});
+
+// ---- dates / months ----
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function monthNow(){ return todayStr().slice(0,7); }
+function monthKey(dateStr){ return dateStr ? dateStr.slice(0,7) : ''; }
+function monthLabel(key){
+  const [y,m] = key.split('-');
+  const d = new Date(parseInt(y), parseInt(m)-1, 1);
+  const s = d.toLocaleDateString('es-AR', {month:'long', year:'numeric'});
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function monthShort(key){
+  const [y,m] = key.split('-');
+  const d = new Date(parseInt(y), parseInt(m)-1, 1);
+  return d.toLocaleDateString('es-AR', {month:'long'});
+}
+function shiftMonth(n){
+  const [y,m] = viewMonth.split('-').map(Number);
+  const d = new Date(y, m-1+n, 1);
+  viewMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  render();
+}
+// ---- today's date + today's blue dollar ----
+// dolarhoy.com is a plain HTML page with no CORS headers, so a browser can't read
+// it directly. dolarapi.com publishes the same blue quote as CORS-enabled JSON.
+const USD_API = 'https://dolarapi.com/v1/dolares/blue';
+let todayUsdRate = null;   // average of compra/venta, null until it loads
+
+function renderTodayDate(){
+  const s = new Date().toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+  $('todayDate').textContent = s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+async function loadUsdToday(){
+  const el = $('todayUsd');
+  try{
+    const r = await fetch(USD_API, {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const compra = Number(d.compra), venta = Number(d.venta);
+    if(!(compra > 0) || !(venta > 0)) throw new Error('respuesta inesperada');
+    todayUsdRate = Math.round((compra + venta) / 2);
+    el.classList.remove('err');
+    el.innerHTML = `Blue prom. <strong>$${fmtNum(todayUsdRate)}</strong>`;
+    el.title = `Compra $${fmtNum(compra)} · Venta $${fmtNum(venta)} — dolarapi.com`;
+  }catch(e){
+    el.classList.add('err');
+    el.textContent = 'Dólar: sin datos';
+    el.title = 'No se pudo consultar la cotización: ' + e.message;
+  }
+}
+// the rate a new USD income uses when its field is left blank
+function defaultUsdRate(){ return todayUsdRate || income.fx || 1500; }
+function inViewMonth(dateStr){ return monthKey(dateStr) === viewMonth; }
+// adding while looking at a future month should land in that month
+function defaultDate(){ return viewMonth === monthNow() ? todayStr() : viewMonth + '-01'; }
+
+// ---- income ----
+// each USD income keeps the rate of the day it was loaded; income.fx is only
+// the prefill for the next one (and a fallback for pre-per-entry-rate data)
+function entryRate(e){ return e.fx || income.fx || 1500; }
+function entryArs(e){ return e.currency === 'USD' ? e.amount * entryRate(e) : e.amount; }
+function incomeTotalArs(person){
+  return (income.entries[person]||[]).reduce((s,e)=> s + entryArs(e), 0);
+}
+function incomePctA(){
+  const arsA = incomeTotalArs('A');
+  const arsB = incomeTotalArs('B');
+  if(arsA + arsB <= 0) return null;
+  return (arsA / (arsA + arsB)) * 100;
+}
+
+function migrateIncome(raw){
+  if(raw && raw.entries){
+    // USD entries saved before rates were per-entry inherit the global one
+    const fx = raw.fx || 1500;
+    ['A','B'].forEach(p=>{
+      (raw.entries[p]||[]).forEach(e=>{ if(e.currency === 'USD' && !e.fx) e.fx = fx; });
+    });
+    return raw;
+  }
+  const fx = (raw && raw.fx) || 1500;
+  const entries = { A: [], B: [] };
+  const legacy = (amount, cur) => {
+    const e = { id: genId(), label: 'Ingreso principal', amount, currency: cur || 'ARS' };
+    if(e.currency === 'USD') e.fx = fx;
+    return e;
+  };
+  if(raw && raw.A){ entries.A.push(legacy(raw.A, raw.curA)); }
+  if(raw && raw.B){ entries.B.push(legacy(raw.B, raw.curB)); }
+  return { fx, entries };
+}
+
+// expenses saved before the month view existed could have no date; without one
+// they'd belong to no month and silently vanish from every screen
+function normalizeExpenses(){
+  let changed = false;
+  expenses.forEach(ex=>{
+    if(!ex.date){ ex.date = monthNow() + '-01'; changed = true; }
+    if(typeof ex.pctA !== 'number'){ ex.pctA = 50; changed = true; }
+    if(!ex.category){ ex.category = categoryOf(ex.desc); changed = true; }
+  });
+  return changed;
+}
+
+async function loadAll(){
+  try{
+    const v = await store.get(STORE_KEY);
+    expenses = v ? JSON.parse(v) : [];
+  }catch(e){ expenses = []; }
+  try{
+    const v = await store.get(NAMES_KEY);
+    if(v) names = JSON.parse(v);
+  }catch(e){}
+  try{
+    const v = await store.get(INCOME_KEY);
+    income = migrateIncome(v ? JSON.parse(v) : null);
+  }catch(e){ income = { fx: 1500, entries: { A: [], B: [] } }; }
+  try{
+    const v = await store.get(FIXED_KEY);
+    fixed = v ? JSON.parse(v) : null;
+  }catch(e){ fixed = null; }
+  if(!Array.isArray(fixed)){
+    // first run: lay out the usual suspects so the table isn't empty
+    fixed = FIXED_SEED.map(l=>({ id: genId(), label: l, amount: 0, locked: true }));
+    saveFixed();
+    await store.set(FIXED_MIGRATION_KEY, '1');   // seed is already current
+    await store.set(FIXED_LOCK_KEY, '1');
+  }else{
+    // a table seeded before this change still lists Expensas and lacks the services
+    try{
+      if(!(await store.get(FIXED_MIGRATION_KEY))){
+        const at = fixed.findIndex(f=>f.label.toLowerCase() === 'expensas');
+        if(at >= 0) fixed.splice(at, 1);
+        ['Edenor','Aysa','Metrogas'].forEach((l,i)=>{
+          if(fixed.some(f=>f.label.toLowerCase() === l.toLowerCase())) return;
+          fixed.splice(at >= 0 ? at + i : fixed.length, 0, { id: genId(), label: l, amount: 0 });
+        });
+        await store.set(FIXED_MIGRATION_KEY, '1');
+        saveFixed();
+      }
+    }catch(e){}
+    // Alquiler goes back on top, and the standard rows get the padlock
+    try{
+      if(!(await store.get(FIXED_LOCK_KEY))){
+        const at = fixed.findIndex(f=>f.label.toLowerCase() === 'alquiler');
+        if(at < 0) fixed.unshift({ id: genId(), label: 'Alquiler', amount: 0, locked: true });
+        else if(at > 0) fixed.unshift(fixed.splice(at, 1)[0]);
+        const std = FIXED_SEED.map(l=>l.toLowerCase());
+        fixed.forEach(f=>{ if(std.includes(f.label.toLowerCase())) f.locked = true; });
+        await store.set(FIXED_LOCK_KEY, '1');
+        saveFixed();
+      }
+    }catch(e){}
+  }
+
+  try{
+    const v = await store.get(FIXED_INCOME_KEY);
+    fixedIncome = v ? JSON.parse(v) : null;
+  }catch(e){ fixedIncome = null; }
+  if(!Array.isArray(fixedIncome)){
+    fixedIncome = FIXED_INCOME_SEED.map(s=>({ id: genId(), ...s }));
+    saveFixedIncome();
+    await store.set(FIXED_INCOME_LOCK_KEY, '1');   // seed is already locked
+  }else{
+    try{
+      if(!(await store.get(FIXED_INCOME_LOCK_KEY))){
+        const std = FIXED_INCOME_SEED.map(s=>s.label.toLowerCase());
+        fixedIncome.forEach(f=>{ if(std.includes(f.label.toLowerCase())) f.locked = true; });
+        await store.set(FIXED_INCOME_LOCK_KEY, '1');
+        saveFixedIncome();
+      }
+    }catch(e){}
+  }
+
+  if(normalizeExpenses()) saveExpenses();
+
+  $('nameA').value = names.A;
+  $('nameB').value = names.B;
+  refreshNameLabels();
+  describeStorage();
+  renderFixed();
+  renderChips();
+  renderFixedIncome();
+  renderIncomeChips();
+  renderIncomeLists();
+  render();
+}
+
+async function saveExpenses(){ await store.set(STORE_KEY, JSON.stringify(expenses)); }
+async function saveNames(){ await store.set(NAMES_KEY, JSON.stringify(names)); }
+async function saveIncome(){ await store.set(INCOME_KEY, JSON.stringify(income)); }
+async function saveFixed(){ await store.set(FIXED_KEY, JSON.stringify(fixed)); }
+
+// ---- fixed incomes ----
+async function saveFixedIncome(){ await store.set(FIXED_INCOME_KEY, JSON.stringify(fixedIncome)); }
+
+let editingFixedIncomeId = null;
+
+function renderFixedIncome(){
+  $('fixedIncomeTable').innerHTML = fixedIncome.length
+    ? fixedIncome.map(f=>fixedIncomeRow(f)).join('')
+    : '<div class="income-note" style="padding:12px 0;">Todavía no cargaste ingresos fijos.</div>';
+}
+
+function fixedIncomeRow(f){
+  const amt = `<input type="text" class="f-amt fi-amt ie-money" inputmode="numeric" data-id="${f.id}"
+      value="${f.amount ? groupThousands(String(f.amount)) : ''}" placeholder="0"
+      aria-label="Monto de ${escapeHtml(f.label)}">`;
+  // owner and currency only surface while editing, so the resting table reads
+  // Concepto / Monto exactly like the fixed-expense one
+  const cur = `<select class="fi-cur" aria-label="Moneda">
+      <option value="ARS"${f.currency !== 'USD' ? ' selected' : ''}>ARS</option>
+      <option value="USD"${f.currency === 'USD' ? ' selected' : ''}>USD</option>
+    </select>`;
+  const who = `<select class="fi-who-sel" aria-label="De quién es">
+      <option value="A"${f.person !== 'B' ? ' selected' : ''}>${escapeHtml(names.A)}</option>
+      <option value="B"${f.person === 'B' ? ' selected' : ''}>${escapeHtml(names.B)}</option>
+    </select>`;
+  const handle = `<span class="drag-handle" aria-hidden="true">⠿</span>`;
+  if(editingFixedIncomeId === f.id){
+    return `<div class="fixed-row editing" data-id="${f.id}">
+      ${handle}
+      <input type="text" class="f-label-edit" value="${escapeHtml(f.label)}" aria-label="Concepto">
+      ${amt}${who}${cur}
+      <span class="fixed-actions two">
+        <button type="button" class="ok" onclick="saveEditFixedIncome('${f.id}')" aria-label="Guardar">✓</button>
+        <button type="button" class="del" onclick="cancelEditFixedIncome()" aria-label="Cancelar">✕</button>
+      </span>
+    </div>`;
+  }
+  const locked = !!f.locked;
+  const usd = f.currency === 'USD' ? '<span class="cur-badge">US$</span>' : '';
+  // tap the name to hand the income to the other person
+  const owner = `<button type="button" class="who-badge" onclick="toggleFixedIncomeOwner('${f.id}')"
+      title="Tocá para pasarlo a ${escapeHtml(f.person === 'B' ? names.A : names.B)}">${escapeHtml(names[f.person] || names.A)}</button>`;
+  return `<div class="fixed-row" data-id="${f.id}">
+    ${handle}
+    <span class="f-label">${escapeHtml(f.label)}${owner}${usd}</span>
+    ${amt}
+    <span class="fixed-actions">
+      <button type="button" class="edit" onclick="startEditFixedIncome('${f.id}')" aria-label="Editar">✎</button>
+      <button type="button" class="lock" onclick="toggleLockFixedIncome('${f.id}')"
+              aria-label="${locked ? 'Desbloquear para poder borrar' : 'Bloquear'}"
+              title="${locked ? 'Protegido: tocá para poder borrarlo' : 'Tocá para protegerlo'}">${locked ? '🔒' : '🔓'}</button>
+      <button type="button" class="del" onclick="removeFixedIncome('${f.id}')"
+              aria-label="Eliminar" ${locked ? 'disabled' : ''}>✕</button>
+    </span>
+  </div>`;
+}
+function toggleLockFixedIncome(id){
+  const item = fixedIncome.find(f=>f.id === id);
+  if(!item) return;
+  item.locked = !item.locked;
+  saveFixedIncome();
+  renderFixedIncome();
+}
+function toggleFixedIncomeOwner(id){
+  const item = fixedIncome.find(f=>f.id === id);
+  if(!item) return;
+  item.person = item.person === 'B' ? 'A' : 'B';
+  saveFixedIncome();
+  renderFixedIncome();
+  renderIncomeChips();
+}
+
+function startEditFixedIncome(id){ editingFixedIncomeId = id; renderFixedIncome(); }
+function cancelEditFixedIncome(){ editingFixedIncomeId = null; renderFixedIncome(); }
+function saveEditFixedIncome(id){
+  const row = document.querySelector(`#panel-ajustes .fixed-row[data-id="${id}"]`);
+  const item = fixedIncome.find(f=>f.id === id);
+  if(!row || !item) return;
+  const label = row.querySelector('.f-label-edit').value.trim();
+  if(!label) return;                      // don't let a rename blank the concept
+  const d = digitsOnly(row.querySelector('.f-amt').value);
+  item.label = label;
+  item.amount = d ? parseInt(d,10) : 0;
+  item.currency = row.querySelector('.fi-cur').value;
+  item.person = row.querySelector('.fi-who-sel').value;
+  editingFixedIncomeId = null;
+  saveFixedIncome();
+  renderFixedIncome();
+  renderIncomeChips();
+}
+
+function addFixedIncome(){
+  const label = $('fiLabelInput').value.trim();
+  if(!label) return;
+  // defaults to the first person in ARS; both are changed with the pencil
+  fixedIncome.push({
+    id: genId(), person: 'A', label,
+    amount: numVal('fiAmountInput') || 0,
+    currency: 'ARS'
+  });
+  $('fiLabelInput').value = '';
+  $('fiAmountInput').value = '';
+  saveFixedIncome();
+  renderFixedIncome();
+  renderIncomeChips();
+}
+function removeFixedIncome(id){
+  const item = fixedIncome.find(f=>f.id === id);
+  if(!item || item.locked) return;   // protected rows need the padlock opened first
+  fixedIncome = fixedIncome.filter(f=>f.id !== id);
+  saveFixedIncome();
+  renderFixedIncome();
+  renderIncomeChips();
+}
+
+// rows are re-stringified on every render, so these live on the panel
+$('panel-ajustes').addEventListener('change', (e)=>{
+  const el = e.target;
+  const item = el.dataset && el.dataset.id ? fixedIncome.find(f=>f.id === el.dataset.id) : null;
+  if(!item) return;
+  if(!el.classList.contains('fi-amt')) return;
+  const d = digitsOnly(el.value);
+  item.amount = d ? parseInt(d,10) : 0;
+  saveFixedIncome();
+  renderIncomeChips();   // the chip carries the amount
+});
+
+// ---- fixed expenses ----
+let editingFixedId = null;
+
+function renderFixed(){
+  $('fixedTable').innerHTML = fixed.length ? fixed.map(f=>{
+    const amt = `<input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${f.id}"
+             value="${f.amount ? groupThousands(String(f.amount)) : ''}" placeholder="0"
+             aria-label="Monto de ${escapeHtml(f.label)}">`;
+    // the amount is always editable in place; the pencil is for renaming
+    const handle = `<span class="drag-handle" aria-hidden="true">⠿</span>`;
+    if(editingFixedId === f.id){
+      return `<div class="fixed-row" data-id="${f.id}">
+        ${handle}
+        <input type="text" class="f-label-edit" value="${escapeHtml(f.label)}" aria-label="Concepto">
+        ${amt}
+        <span class="fixed-actions two">
+          <button type="button" class="ok" onclick="saveEditFixed('${f.id}')" aria-label="Guardar">✓</button>
+          <button type="button" class="del" onclick="cancelEditFixed()" aria-label="Cancelar">✕</button>
+        </span>
+      </div>`;
+    }
+    const locked = !!f.locked;
+    return `<div class="fixed-row" data-id="${f.id}">
+      ${handle}
+      <span class="f-label">${escapeHtml(f.label)}</span>
+      ${amt}
+      <span class="fixed-actions">
+        <button type="button" class="edit" onclick="startEditFixed('${f.id}')" aria-label="Editar">✎</button>
+        <button type="button" class="lock" onclick="toggleLockFixed('${f.id}')"
+                aria-label="${locked ? 'Desbloquear para poder borrar' : 'Bloquear'}"
+                title="${locked ? 'Protegido: tocá para poder borrarlo' : 'Tocá para protegerlo'}">${locked ? '🔒' : '🔓'}</button>
+        <button type="button" class="del" onclick="removeFixed('${f.id}')"
+                aria-label="Eliminar" ${locked ? 'disabled' : ''}>✕</button>
+      </span>
+    </div>`;
+  }).join('') : '<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos fijos.</div>';
+}
+// ---- drag to reorder ----
+// pointer events rather than HTML5 drag-and-drop, so this works with a finger too.
+// the DOM node is moved live and the array is only rewritten on release.
+let dragRow = null, dragBox = null, dragCommit = null, dragRerender = null;
+
+function onDragMove(e){
+  if(!dragRow) return;
+  e.preventDefault();
+  const others = [...dragBox.querySelectorAll('.fixed-row')].filter(r=>r !== dragRow);
+  let after = null;
+  for(const r of others){
+    const box = r.getBoundingClientRect();
+    if(e.clientY > box.top + box.height/2) after = r;
+  }
+  if(after) after.after(dragRow);
+  else dragBox.prepend(dragRow);
+}
+function endDrag(commit){
+  if(!dragRow) return;
+  dragRow.classList.remove('dragging');
+  const commitFn = dragCommit, rerender = dragRerender;
+  dragRow = null; dragBox = null; dragCommit = null; dragRerender = null;
+  window.removeEventListener('pointermove', onDragMove);
+  window.removeEventListener('pointerup', onDragUp);
+  window.removeEventListener('pointercancel', onDragCancel);
+  if(commit && commitFn) commitFn();
+  if(rerender) rerender();   // also snaps back to the stored order when cancelled
+}
+function onDragUp(){ endDrag(true); }
+function onDragCancel(){ endDrag(false); }
+
+// container gets the pointerdown; commit rewrites the array from the DOM order
+function enableDrag(container, commitFn, rerender){
+  container.addEventListener('pointerdown', (e)=>{
+    const handle = e.target.closest('.drag-handle');
+    if(!handle) return;
+    const row = handle.closest('.fixed-row');
+    if(!row || !container.contains(row)) return;
+    dragRow = row; dragBox = container; dragCommit = commitFn; dragRerender = rerender;
+    row.classList.add('dragging');
+    // listen on window so the drag survives the pointer leaving the table
+    window.addEventListener('pointermove', onDragMove);
+    window.addEventListener('pointerup', onDragUp);
+    window.addEventListener('pointercancel', onDragCancel);
+    e.preventDefault();
+  });
+}
+
+// sort `arr` in place to match the ids laid out across the given containers
+function commitOrder(arr, containers){
+  const order = containers.flatMap(c=>[...c.querySelectorAll('.fixed-row')].map(r=>r.dataset.id));
+  arr.sort((a,b)=> order.indexOf(a.id) - order.indexOf(b.id));
+}
+
+enableDrag($('fixedTable'), ()=>{
+  commitOrder(fixed, [$('fixedTable')]);
+  saveFixed();
+  renderChips();       // chips follow this order
+}, renderFixed);
+
+enableDrag($('fixedIncomeTable'), ()=>{
+  commitOrder(fixedIncome, [$('fixedIncomeTable')]);
+  saveFixedIncome();
+  renderIncomeChips();   // chips follow this order
+}, renderFixedIncome);
+
+function toggleLockFixed(id){
+  const item = fixed.find(f=>f.id === id);
+  if(!item) return;
+  item.locked = !item.locked;
+  saveFixed();
+  renderFixed();
+}
+function startEditFixed(id){ editingFixedId = id; renderFixed(); }
+function cancelEditFixed(){ editingFixedId = null; renderFixed(); }
+function saveEditFixed(id){
+  const row = document.querySelector(`.fixed-row[data-id="${id}"]`);
+  const item = fixed.find(f=>f.id === id);
+  if(!row || !item) return;
+  const label = row.querySelector('.f-label-edit').value.trim();
+  if(!label) return;                       // don't let a rename blank the concept
+  const d = digitsOnly(row.querySelector('.f-amt').value);
+  item.label = label;
+  item.amount = d ? parseInt(d,10) : 0;
+  editingFixedId = null;
+  saveFixed();
+  renderFixed();
+  renderChips();
+}
+
+// rows are re-stringified on every render, so this lives on the container
+$('fixedTable').addEventListener('change', (e)=>{
+  const el = e.target;
+  if(!el.classList.contains('f-amt')) return;
+  const item = fixed.find(f=>f.id === el.dataset.id);
+  if(!item) return;
+  const d = digitsOnly(el.value);
+  item.amount = d ? parseInt(d,10) : 0;
+  saveFixed();
+  renderChips();   // the chip carries the amount, so it has to follow
+});
+
+function addFixed(){
+  const label = $('fixedLabelInput').value.trim();
+  if(!label) return;
+  const amount = numVal('fixedAmountInput') || 0;
+  fixed.push({ id: genId(), label, amount });
+  $('fixedLabelInput').value = '';
+  $('fixedAmountInput').value = '';
+  saveFixed();
+  renderFixed();
+  renderChips();
+}
+function removeFixed(id){
+  const item = fixed.find(f=>f.id === id);
+  if(!item || item.locked) return;   // protected rows need the padlock opened first
+  fixed = fixed.filter(f=>f.id !== id);
+  saveFixed();
+  renderFixed();
+  renderChips();
+}
+
+// ---- tabs ----
+function switchTab(name){
+  document.querySelectorAll('#tabs button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+  window.scrollTo({top:0});
+}
+$('tabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(btn) switchTab(btn.dataset.tab);
+});
+
+// ---- modal ----
+// doubles as the edit form: pass an id and it opens prefilled and saves in place
+let editingExpenseId = null;
+
+function openModal(expenseId){
+  resetForm();                       // also clears editingExpenseId
+  const ex = expenseId ? expenses.find(x=>x.id === expenseId) : null;
+  if(ex){
+    editingExpenseId = ex.id;
+    $('fDesc').value = ex.desc;
+    $('fAmount').value = groupThousands(String(ex.amount));
+    $('fDate').value = ex.date;
+    currentPaidBy = ex.paidBy;
+    currentSplit = ex.splitType === 'income' ? 'income' : '50';
+    document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
+    document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
+    syncChips();
+    renderIncomePreview();
+  }
+  $('addModalTitle').textContent = ex ? 'Editar gasto' : 'Agregar un gasto';
+  $('submitBtn').textContent = ex ? 'Guardar cambios' : 'Agregar gasto';
+  $('addModal').classList.add('open');
+  document.body.classList.add('modal-open');
+  $('fDesc').focus();
+}
+function closeModal(){
+  $('addModal').classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+$('addModal').addEventListener('click', (e)=>{ if(e.target === $('addModal')) closeModal(); });
+document.addEventListener('keydown', (e)=>{
+  if(e.key !== 'Escape') return;
+  if($('addModal').classList.contains('open')) closeModal();
+  if($('incomeModal').classList.contains('open')) closeIncomeModal();
+});
+
+// one chip per fixed expense; tapping it fills the description AND its current amount
+function renderChips(){
+  $('descChips').innerHTML = fixed.length
+    ? fixed.map(f=>`<button type="button" data-id="${f.id}">${escapeHtml(f.label)}${
+        f.amount ? `<span class="chip-amt">${fmtNum(f.amount)}</span>` : ''}</button>`).join('')
+    : '<div class="income-note">Cargá tus gastos fijos en Ajustes para tenerlos a un toque.</div>';
+  syncChips();
+}
+$('descChips').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const f = fixed.find(x=>x.id === btn.dataset.id);
+  if(!f) return;
+  $('fDesc').value = f.label;
+  $('fAmount').value = f.amount ? groupThousands(String(f.amount)) : '';
+  syncChips();
+});
+$('fDesc').addEventListener('input', syncChips);
+function syncChips(){
+  const v = $('fDesc').value.trim().toLowerCase();
+  document.querySelectorAll('#descChips button').forEach(b=>{
+    const f = fixed.find(x=>x.id === b.dataset.id);
+    b.classList.toggle('active', !!f && f.label.toLowerCase() === v);
+  });
+}
+// the description doubles as the category when it matches a fixed expense
+function categoryOf(desc){
+  const d = (desc||'').trim().toLowerCase();
+  const hit = fixed.find(f=>f.label.toLowerCase() === d);
+  return hit ? hit.label : 'Otro';
+}
+
+function resetForm(){
+  $('addForm').reset();
+  editingExpenseId = null;
+  $('fDate').value = defaultDate();
+  currentSplit = '50';
+  currentPaidBy = 'A';
+  document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === '50'));
+  document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === 'A'));
+  syncChips();
+  renderIncomePreview();
+}
+
+function refreshNameLabels(){
+  $('paidLabelA').textContent = names.A;
+  $('paidLabelB').textContent = names.B;
+  $('incomeLabelA').textContent = names.A;
+  $('incomeLabelB').textContent = names.B;
+}
+
+$('nameA').addEventListener('change', e=>{ names.A = e.target.value || 'Nicolas'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
+$('nameB').addEventListener('change', e=>{ names.B = e.target.value || 'Valentina'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
+
+// ---- income modal: same flow as the expense one ----
+let currentIncomeCur = 'ARS';
+let currentIncomeWho = 'A';
+let editingIncomeId = null;      // set when the modal is editing an existing entry
+
+function syncIncomeFx(){
+  $('iFxWrap').style.display = currentIncomeCur === 'USD' ? 'block' : 'none';
+}
+$('iCurSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#iCurSeg button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentIncomeCur = btn.dataset.cur;
+  syncIncomeFx();
+});
+$('iWhoSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#iWhoSeg button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentIncomeWho = btn.dataset.who;
+  renderIncomeChips();   // the chips belong to whoever is selected
+});
+
+function resetIncomeForm(){
+  $('incomeForm').reset();
+  editingIncomeId = null;
+  currentIncomeCur = 'ARS';
+  currentIncomeWho = 'A';
+  document.querySelectorAll('#iCurSeg button').forEach(b=>b.classList.toggle('active', b.dataset.cur === 'ARS'));
+  document.querySelectorAll('#iWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === 'A'));
+  syncIncomeFx();
+  renderIncomeChips();
+}
+
+function openIncomeModal(person, entryId){
+  resetIncomeForm();
+  if(person){
+    currentIncomeWho = person;
+    document.querySelectorAll('#iWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === person));
+  }
+  const entry = entryId ? (income.entries[person]||[]).find(e=>e.id === entryId) : null;
+  if(entry){
+    editingIncomeId = entry.id;
+    $('iDesc').value = entry.label;
+    $('iAmount').value = groupThousands(String(entry.amount));
+    currentIncomeCur = entry.currency === 'USD' ? 'USD' : 'ARS';
+    document.querySelectorAll('#iCurSeg button').forEach(b=>b.classList.toggle('active', b.dataset.cur === currentIncomeCur));
+    if(entry.currency === 'USD') $('iFx').value = groupThousands(String(entryRate(entry)));
+    syncIncomeFx();
+  }
+  renderIncomeChips();
+  $('incomeModalTitle').textContent = entry ? 'Editar ingreso' : 'Agregar un ingreso';
+  $('iSubmitBtn').textContent = entry ? 'Guardar cambios' : 'Agregar ingreso';
+  $('incomeModal').classList.add('open');
+  document.body.classList.add('modal-open');
+  $('iDesc').focus();
+}
+function closeIncomeModal(){
+  $('incomeModal').classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+$('incomeModal').addEventListener('click', (e)=>{ if(e.target === $('incomeModal')) closeIncomeModal(); });
+
+// chips for whoever is selected in the modal
+function renderIncomeChips(){
+  const list = fixedIncome.filter(f=>f.person === currentIncomeWho);
+  $('incomeChips').innerHTML = list.length ? list.map(f=>{
+    const tag = f.amount
+      ? `<span class="chip-amt">${f.currency === 'USD' ? 'US$ ' : ''}${fmtNum(f.amount)}</span>` : '';
+    return `<button type="button" data-id="${f.id}">${escapeHtml(f.label)}${tag}</button>`;
+  }).join('') : '<div class="income-note">Cargá los ingresos fijos en Ajustes para tenerlos a un toque.</div>';
+  syncIncomeChips();
+}
+function syncIncomeChips(){
+  const v = $('iDesc').value.trim().toLowerCase();
+  document.querySelectorAll('#incomeChips button').forEach(b=>{
+    const f = fixedIncome.find(x=>x.id === b.dataset.id);
+    b.classList.toggle('active', !!f && f.label.toLowerCase() === v);
+  });
+}
+$('iDesc').addEventListener('input', syncIncomeChips);
+$('incomeChips').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const f = fixedIncome.find(x=>x.id === btn.dataset.id);
+  if(!f) return;
+  $('iDesc').value = f.label;
+  $('iAmount').value = f.amount ? groupThousands(String(f.amount)) : '';
+  currentIncomeCur = f.currency === 'USD' ? 'USD' : 'ARS';
+  document.querySelectorAll('#iCurSeg button').forEach(b=>b.classList.toggle('active', b.dataset.cur === currentIncomeCur));
+  syncIncomeFx();
+  syncIncomeChips();
+});
+
+$('incomeForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const label = $('iDesc').value.trim() || 'Ingreso';
+  const amount = numVal('iAmount');
+  if(!amount) return;
+
+  const fields = { label, amount, currency: currentIncomeCur };
+  if(currentIncomeCur === 'USD'){
+    const rate = numVal('iFx') || defaultUsdRate();
+    if(!(rate > 0)) return;
+    fields.fx = rate;
+    income.fx = rate;   // remember it as the prefill for the next USD income
+  }
+
+  if(editingIncomeId){
+    // the owner can change, so the entry may need to move between people
+    let found = null, from = null;
+    ['A','B'].forEach(p=>{
+      const hit = (income.entries[p]||[]).find(x=>x.id === editingIncomeId);
+      if(hit){ found = hit; from = p; }
+    });
+    if(found){
+      Object.assign(found, fields);
+      if(currentIncomeCur !== 'USD') delete found.fx;
+      if(from !== currentIncomeWho){
+        income.entries[from] = income.entries[from].filter(x=>x.id !== editingIncomeId);
+        income.entries[currentIncomeWho].push(found);
+      }
+    }
+  }else{
+    income.entries[currentIncomeWho].push({ id: genId(), ...fields });
+  }
+
+  saveIncome();
+  closeIncomeModal();
+  resetIncomeForm();
+  renderIncomeLists();
+  render();
+});
+
+function removeIncome(person, id){
+  income.entries[person] = income.entries[person].filter(e=>e.id!==id);
+  saveIncome();
+  renderIncomeLists();
+  render();
+}
+
+function incomeRowHtml(p, e){
+  // show the rate that was locked in for this particular income
+  const sub = e.currency === 'USD'
+    ? `<span class="ie-sub">× ${fmtNum(entryRate(e))} = ${fmt(entryArs(e))}</span>` : '';
+  return `
+  <div class="income-entry-row">
+    <span class="ie-main"><span class="lbl">${escapeHtml(e.label)}</span>${sub}</span>
+    <span class="amt-cur">${fmtCur(e.amount, e.currency)}</span>
+    <button class="edit" onclick="openIncomeModal('${p}','${e.id}')" aria-label="Editar">✎</button>
+    <button class="del" onclick="removeIncome('${p}','${e.id}')" aria-label="Eliminar">✕</button>
+  </div>`;
+}
+
+function renderIncomeLists(){
+  ['A','B'].forEach(p=>{
+    const list = income.entries[p]||[];
+    $('incomeList'+p).innerHTML = list.length
+      ? list.map(e=>incomeRowHtml(p, e)).join('')
+      : '<div class="income-note">Todavía sin ingresos.</div>';
+    $('incomeTotal'+p).textContent = fmt(incomeTotalArs(p));
+  });
+  renderIncomePreview();
+}
+
+function renderIncomePreview(){
+  const pct = incomePctA();
+  const preview = $('incomePreview');
+  const splitPreview = $('incomeSplitPreview');
+  if(pct === null){
+    preview.style.display = 'none';
+    splitPreview.style.display = 'none';
+    return;
+  }
+  preview.style.display = 'block';
+  preview.innerHTML = `<div style="font-size:12px;color:var(--body-muted);margin-bottom:4px;">Si dividís un gasto según ingresos:</div>
+    <div style="display:flex;justify-content:space-between;"><span class="name-a">${escapeHtml(names.A)}: ${Math.round(pct)}%</span><span class="name-b">${escapeHtml(names.B)}: ${Math.round(100-pct)}%</span></div>`;
+  if(currentSplit === 'income'){
+    splitPreview.style.display = 'block';
+    splitPreview.textContent = `${names.A} paga ${Math.round(pct)}% · ${names.B} paga ${Math.round(100-pct)}%`;
+  } else {
+    splitPreview.style.display = 'none';
+  }
+}
+
+$('splitToggle').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSplit = btn.dataset.split;
+  renderIncomePreview();
+});
+
+$('paidBySeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPaidBy = btn.dataset.paid;
+});
+
+$('addForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const desc = $('fDesc').value.trim();
+  const amount = numVal('fAmount');
+  if(!desc || !amount) return;
+  const pctA = currentSplit === 'income' ? (incomePctA() ?? 50) : 50;
+  const fields = {
+    desc, amount,
+    date: $('fDate').value || defaultDate(),
+    category: categoryOf(desc),
+    pctA,
+    splitType: currentSplit,
+    paidBy: currentPaidBy
+  };
+
+  const existing = editingExpenseId ? expenses.find(x=>x.id === editingExpenseId) : null;
+  if(existing) Object.assign(existing, fields);
+  else expenses.push({ id: genId(), ...fields });
+
+  saveExpenses();
+  closeModal();
+  resetForm();
+  render();
+});
+
+function deleteExpense(id){
+  expenses = expenses.filter(x=>x.id!==id);
+  saveExpenses();
+  render();
+}
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function billRow(ex){
+  const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
+  const nA = escapeHtml(names.A), nB = escapeHtml(names.B);
+  const splitLabel = ex.pctA === 50 ? '50/50'
+    : `${nA} ${Math.round(ex.pctA)}% / ${nB} ${Math.round(100-ex.pctA)}%`;
+  return `<div class="bill">
+    <div class="bill-main">
+      <div class="bill-name">${escapeHtml(ex.desc)}</div>
+      <div class="bill-meta">
+        <span>${dateStr}</span><span>·</span><span>${splitLabel}</span>
+        <span class="tag ${ex.paidBy==='A'?'tag-a':'tag-b'}">Paga ${ex.paidBy==='A'?nA:nB}</span>
+      </div>
+    </div>
+    <div class="bill-amt">${fmt(ex.amount)}</div>
+    <button class="bill-edit" onclick="openModal('${ex.id}')" aria-label="Editar">✎</button>
+    <button class="bill-del" onclick="deleteExpense('${ex.id}')" aria-label="Eliminar">✕</button>
+  </div>`;
+}
+
+function render(){
+  if(!viewMonth) viewMonth = monthNow();
+  $('monthLabel').textContent = monthLabel(viewMonth);
+
+  const list = expenses.filter(x=>inViewMonth(x.date))
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const total = list.reduce((s,x)=>s+x.amount,0);
+
+  $('listTitle').textContent = `Gastos de ${monthShort(viewMonth)}` + (list.length ? ` (${list.length})` : '');
+  $('listTotal').textContent = list.length ? fmt(total) : '';
+  $('expenseList').innerHTML = list.length
+    ? list.map(billRow).join('')
+    : `<div class="empty">No hay gastos cargados en ${monthShort(viewMonth)}.<br>Agregá el primero con el botón de arriba.</div>`;
+
+  $('resumenTitle').textContent = 'Gastos de ' + monthShort(viewMonth);
+
+  renderTotals(total);
+  renderAvailable(list);
+  renderCharts(list);
+  renderBalance();
+  renderAhorro();
+}
+
+// household view of the month: what came in, what goes out, what's left over
+function renderTotals(gasto){
+  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
+  const ahorro = ingreso - gasto;
+  const cell = (k, v, cls='') => `<div class="totals-cell">
+      <div class="totals-k">${k}</div>
+      <div class="totals-v ${cls}">${fmt(v)}</div>
+    </div>`;
+  $('totalsStrip').innerHTML =
+    cell('Ingreso', ingreso) +
+    cell('Gasto', gasto) +
+    cell('Ahorro', ahorro, ahorro < 0 ? 'neg' : 'save');
+}
+
+// what's left for extras: income minus your share of everything booked this month
+function renderAvailable(list){
+  let shareA = 0, shareB = 0;
+  list.forEach(ex=>{
+    shareA += ex.amount * ex.pctA/100;
+    shareB += ex.amount * (100-ex.pctA)/100;
+  });
+  const incA = incomeTotalArs('A'), incB = incomeTotalArs('B');
+  const grid = $('availGrid');
+
+  if(incA <= 0 && incB <= 0){
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;">Para saber cuánto te queda, cargá primero los ingresos.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
+    return;
+  }
+
+  const col = (who, inc, share) => {
+    const left = inc - share;
+    return `<div class="avail-col">
+      <div class="avail-who">${escapeHtml(who)}</div>
+      <div class="avail-amt ${left < 0 ? 'neg' : ''}">${fmt(left)}</div>
+      <div class="avail-sub">${fmt(inc)} − ${fmt(share)} de gastos</div>
+    </div>`;
+  };
+  grid.innerHTML = col(names.A, incA, shareA) + col(names.B, incB, shareB);
+}
+
+// ---- Ahorro tab ----
+// neutral reference, ordered least to most risk. descriptive only: what the thing
+// is, what currency it leaves you in, how fast you can get out.
+const INSTRUMENTS = [
+  { n:'Cuenta remunerada / FCI money market', risk:1, r:'Riesgo bajo',
+    d:'La plata queda en tu cuenta de una billetera o broker y rinde una tasa diaria. No se inmoviliza: entra y sale cuando querés.',
+    moneda:'Pesos', plazo:'Sacás en el día' },
+  { n:'Plazo fijo tradicional', risk:1, r:'Riesgo bajo',
+    d:'Le prestás plata al banco a una tasa fija pactada de entrada. Sabés exactamente cuánto vas a cobrar, pero no podés tocarla antes del vencimiento.',
+    moneda:'Pesos', plazo:'30 días mínimo' },
+  { n:'Plazo fijo UVA', risk:2, r:'Riesgo medio',
+    d:'Ajusta por inflación (índice UVA) más una tasa chica. Protege el poder de compra si la inflación sube, pero rinde menos que un plazo fijo común si baja.',
+    moneda:'Pesos ajustados', plazo:'90 días mínimo' },
+  { n:'Dólar MEP', risk:2, r:'Riesgo medio',
+    d:'Comprás dólares legalmente por el mercado de capitales, vía broker. Te deja dolarizado, así que el riesgo pasa a ser el tipo de cambio: el dólar puede quedarse quieto mientras los precios suben.',
+    moneda:'Dólares', plazo:'Inmediato (parking según el caso)' },
+  { n:'Obligaciones negociables (ON)', risk:2, r:'Riesgo medio',
+    d:'Deuda que emiten empresas privadas. Muchas pagan en dólares con renta periódica. El riesgo es que la empresa no pague, y el precio se mueve si querés vender antes.',
+    moneda:'Pesos o dólares', plazo:'Se vende en el mercado' },
+  { n:'CEDEARs', risk:3, r:'Riesgo alto',
+    d:'Acciones de empresas del exterior (Apple, Coca-Cola, etc.) que se compran en pesos. Seguís el precio de la acción y el dólar a la vez. Puede subir mucho y también bajar mucho.',
+    moneda:'Pesos atados al dólar', plazo:'Se vende en el mercado' },
+  { n:'Acciones argentinas', risk:3, r:'Riesgo alto',
+    d:'Participación en empresas locales. Es la opción más volátil de la lista: los movimientos fuertes en pocos días son normales.',
+    moneda:'Pesos', plazo:'Se vende en el mercado' }
+];
+
+// an expense counts as a "need" when it matches one of your fixed expenses;
+// anything typed by hand (category Otro) falls on the "wants" side
+function isNeed(ex){
+  const c = (ex.category||'').toLowerCase();
+  return fixed.some(f=>f.label.toLowerCase() === c);
+}
+
+const RULE_ANNUAL_ROI = 0.06;   // the 6% reference
+
+// the five reference figures, all derived from monthly income.
+// x200 and x0.2 are not arbitrary: 6% a year on 200 salaries pays out
+// 200 * 0.06 / 12 = exactly one salary a month, and 20% of income invested
+// at that same 6% is what gets you to 200 salaries.
+const PLAN = [
+  { op:'÷ 2',   f:0.5, n:'Techo de gastos fijos', flow:true,
+    d:'Lo máximo que deberían costarte alquiler, luz, gas y todo lo que se repite.' },
+  { op:'× 0,3',  f:0.3, n:'Salidas y gustos', flow:true,
+    d:'Lo que podés gastar por mes en lo que quieras, sin culpa.' },
+  { op:'× 0,2',  f:0.2, n:'Invertir por mes', flow:true,
+    d:'Lo que sale a inversión todos los meses. Es el motor de las dos metas de abajo.' },
+  { op:'× 6',    f:6,   n:'Fondo de emergencia', flow:false,
+    d:'La primera meta: seis meses de sueldo guardados y disponibles antes de inmovilizar plata.' },
+  { op:'× 200',  f:200, n:'Vivir de rentas', flow:false,
+    d:'El capital que, rindiendo 6% al año, te deposita un sueldo por mes sin trabajar.' }
+];
+
+function renderPlan(){
+  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
+  const box = $('planBox');
+  if(ingreso <= 0){
+    box.innerHTML = '<div class="empty">Cargá los ingresos para ver tus números.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
+    return;
+  }
+  box.innerHTML = PLAN.map(p=>`
+    <div class="plan-row">
+      <span class="plan-op">${p.op}</span>
+      <span class="plan-main">
+        <span class="plan-n">${p.n}</span>
+        <span class="plan-d">${p.d}</span>
+      </span>
+      <span class="plan-v">${fmt(ingreso * p.f)}${p.flow ? '<span style="font-size:11px;font-weight:400;color:var(--body-muted);"> /mes</span>' : ''}</span>
+    </div>`).join('') +
+    `<p class="income-note" style="margin-top:12px;">Calculado sobre ${fmt(ingreso)} de ingreso mensual del hogar. Es una referencia: cambia según la situación de cada uno.</p>`;
+}
+
+// months of contributions needed to go from `current` to `target` at the 6% rate
+function monthsToTarget(monthly, target, current){
+  const r = RULE_ANNUAL_ROI / 12;
+  if(current >= target) return 0;
+  if(!(monthly > 0)) return Infinity;
+  const a = current + monthly/r;
+  const x = (target + monthly/r) / a;
+  if(x <= 1) return 0;
+  return Math.log(x) / Math.log(1 + r);
+}
+function humanMonths(m){
+  if(!isFinite(m)) return null;
+  if(m < 1) return 'menos de un mes';
+  if(m < 24) return Math.round(m) + (Math.round(m) === 1 ? ' mes' : ' meses');
+  const y = m/12;
+  return (y < 10 ? y.toFixed(1).replace('.', ',') : Math.round(y)) + ' años';
+}
+
+function renderGoals(acumulado, monthlySaving){
+  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
+  const box = $('goalsBox');
+  if(ingreso <= 0){
+    box.innerHTML = '<div class="empty">Cargá los ingresos para ver tus metas.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
+    return;
+  }
+  const saved = Math.max(0, acumulado);
+  const fijosMes = fixed.reduce((s,f)=>s+(f.amount||0), 0);
+
+  const goal = (name, target, extra) => {
+    const pct = Math.min(100, saved/target*100);
+    const done = pct >= 100;
+    const falta = Math.max(0, target - saved);
+    const eta = humanMonths(monthsToTarget(monthlySaving, target, saved));
+    return `<div class="goal">
+      <div class="goal-h"><span class="goal-n">${name}</span><span class="goal-t">${fmt(target)}</span></div>
+      <div class="goal-track"><i class="${done?'':'part'}" style="width:${pct}%"></i></div>
+      <div class="goal-d"><span class="goal-pct">${pct < 1 && pct > 0 ? '<1' : Math.round(pct)}%</span> — tenés ${fmt(saved)}${
+        done ? '. Meta cumplida.' : `, faltan ${fmt(falta)}${eta ? `. A tu ritmo actual: ${eta}.` : '. Todavía no estás ahorrando por mes.'}`
+      }${extra ? '<br>' + extra : ''}</div>
+    </div>`;
+  };
+
+  const runway = fijosMes > 0
+    ? `Tu ahorro de hoy cubre ${(saved/fijosMes).toFixed(1).replace('.', ',')} meses de tus gastos fijos (${fmt(fijosMes)} por mes).`
+    : '';
+
+  box.innerHTML =
+    goal('1 · Fondo de emergencia', ingreso * 6, runway) +
+    goal('2 · Vivir de rentas', ingreso * 200,
+      `Rindiendo 6% al año, ese capital genera ${fmt(ingreso)} por mes — tu ingreso actual.`) +
+    `<p class="income-note" style="margin-top:14px;">El "a tu ritmo actual" asume que seguís ahorrando ${fmt(Math.max(0, monthlySaving))} por mes al 6% anual, en pesos de hoy y sin descontar inflación.</p>`;
+}
+
+function renderRule5030(){
+  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
+  const box = $('ruleBox');
+  if(ingreso <= 0){
+    box.innerHTML = '<div class="empty">Cargá los ingresos para ver el reparto.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
+    return;
+  }
+  const list = expenses.filter(x=>inViewMonth(x.date));
+  const needs = list.filter(isNeed).reduce((s,x)=>s+x.amount,0);
+  const wants = list.filter(x=>!isNeed(x)).reduce((s,x)=>s+x.amount,0);
+  const saved = ingreso - needs - wants;
+
+  // for needs/wants, going over the target is the bad direction; for savings it's under
+  const row = (name, actual, target, lowerIsBetter, hint) => {
+    const pct = actual / ingreso * 100;
+    const bad = lowerIsBetter ? pct > target + 0.5 : pct < target - 0.5;
+    return `<div class="rule-row">
+      <div class="rule-h">
+        <span class="rule-n">${name}</span>
+        <span class="rule-cmp ${bad?'over':'ok'}">${Math.round(pct)}% <span class="rule-t">/ ${target}%</span></span>
+      </div>
+      <div class="rule-track">
+        <i class="${bad?'over':''}" style="width:${Math.max(0, Math.min(100, pct))}%"></i>
+        <span class="rule-mark" style="left:${target}%"></span>
+      </div>
+      <div class="rule-d">${fmt(actual)} · el objetivo son ${fmt(ingreso*target/100)}${hint ? ' · ' + hint : ''}</div>
+    </div>`;
+  };
+
+  box.innerHTML =
+    row('Necesidades', needs, 50, true, 'tus gastos fijos') +
+    row('Deseos', wants, 30, true, 'lo que cargaste a mano') +
+    row('Ahorro', Math.max(0, saved), 20, false, saved < 0 ? 'este mes gastaste más de lo que entró' : '');
+}
+
+function renderProjection(monthly){
+  const box = $('projBox');
+  if(!(monthly > 0)){
+    box.innerHTML = '<div class="empty">Cuando te sobre plata en el mes, acá vas a ver cuánto se convertiría con el tiempo.</div>';
+    return;
+  }
+  const r = RULE_ANNUAL_ROI / 12;
+  // future value of a monthly contribution, compounded
+  const fv = (months) => monthly * ((Math.pow(1+r, months) - 1) / r);
+  const horizons = [[1,'1 año'],[3,'3 años'],[5,'5 años'],[10,'10 años'],[20,'20 años']];
+  box.innerHTML = horizons.map(([y,label])=>{
+    const months = y*12;
+    const total = fv(months);
+    const aportado = monthly * months;
+    return `<div class="proj-row">
+      <span class="proj-t">${label}</span>
+      <span class="proj-v">${fmt(total)}</span>
+      <span class="proj-s">Pusiste ${fmt(aportado)} · el interés sumó ${fmt(total - aportado)}</span>
+    </div>`;
+  }).join('') + `<p class="income-note" style="margin-top:12px;">Calculado sobre ${fmt(monthly)} por mes al 6% anual. Son pesos de hoy sin descontar inflación, así que tomalo como el efecto del interés compuesto y no como poder de compra futuro.</p>`;
+}
+
+function renderInstruments(){
+  $('instrumentList').innerHTML = INSTRUMENTS.map(i=>`
+    <div class="inst-item">
+      <div class="inst-h">
+        <span class="inst-n">${escapeHtml(i.n)}</span>
+        <span class="inst-tag risk-${i.risk}">${escapeHtml(i.r)}</span>
+      </div>
+      <div class="inst-d">${escapeHtml(i.d)}</div>
+      <div class="inst-meta"><span><b>Moneda:</b> ${escapeHtml(i.moneda)}</span><span><b>Disponibilidad:</b> ${escapeHtml(i.plazo)}</span></div>
+    </div>`).join('');
+}
+
+function monthTotal(key){
+  return expenses.filter(x=>monthKey(x.date) === key).reduce((s,x)=>s+x.amount,0);
+}
+
+function renderAhorro(){
+  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
+  const gasto = monthTotal(viewMonth);
+  const ahorro = ingreso - gasto;
+  const tasa = ingreso > 0 ? (ahorro / ingreso) * 100 : 0;
+
+  $('ahorroTitle').textContent = 'Tu ahorro de ' + monthShort(viewMonth);
+  const cell = (k, v, cls='') => `<div class="totals-cell">
+      <div class="totals-k">${k}</div><div class="totals-v ${cls}">${v}</div></div>`;
+  $('ahorroStrip').innerHTML =
+    cell('Ahorro', fmt(ahorro), ahorro < 0 ? 'neg' : 'save') +
+    cell('Tasa de ahorro', (ingreso > 0 ? Math.round(tasa) + '%' : '—'), tasa < 0 ? 'neg' : '') +
+    cell('En dólares', todayUsdRate && ahorro > 0 ? fmtUsd(ahorro / todayUsdRate) : '—');
+
+  $('ahorroNote').textContent = todayUsdRate
+    ? `Convertido al blue promedio de hoy ($${fmtNum(todayUsdRate)}). La tasa de ahorro es qué porcentaje de lo que entra no te lo gastás.`
+    : 'La tasa de ahorro es qué porcentaje de lo que entra no te lo gastás. La conversión a dólares aparece cuando se pueda leer la cotización.';
+
+  renderPlan();
+  renderRule5030();
+  renderProjection(ahorro);
+
+  // ---- month by month ----
+  const months = [...new Set(expenses.map(e=>monthKey(e.date)).filter(Boolean))].sort();
+  const rows = months.map(m=>({ m, ahorro: ingreso - monthTotal(m) }));
+  const peak = Math.max(1, ...rows.map(r=>Math.abs(r.ahorro)));
+  const acumulado = rows.reduce((s,r)=>s+r.ahorro, 0);
+
+  $('savingsHistory').innerHTML = rows.length ? rows.map(r=>{
+    const w = Math.round(Math.abs(r.ahorro)/peak*100);
+    const neg = r.ahorro < 0;
+    return `<div class="sv-row">
+      <span class="sv-m">${monthLabel(r.m)}</span>
+      <span class="sv-bar"><i class="${neg?'neg':''}" style="width:${w}%"></i></span>
+      <span class="sv-v ${neg?'neg':''}">${fmt(r.ahorro)}</span>
+    </div>`;
+  }).join('') + `<div class="sv-total"><span>Acumulado</span><span class="v ${acumulado<0?'neg':''}">${fmt(acumulado)}</span></div>`
+    : '<div class="empty">Todavía no hay gastos cargados en ningún mes.</div>';
+
+  renderGoals(acumulado, ahorro);
+}
+
+// ---- pie charts ----
+function polarToCartesian(cx,cy,r,angleDeg){
+  const rad = (angleDeg-90) * Math.PI/180;
+  return { x: cx + r*Math.cos(rad), y: cy + r*Math.sin(rad) };
+}
+function arcPath(cx,cy,r,startAngle,endAngle){
+  const startPt = polarToCartesian(cx,cy,r,startAngle);
+  const endPt = polarToCartesian(cx,cy,r,endAngle);
+  const largeArc = (endAngle-startAngle) > 180 ? 1 : 0;
+  return `M ${cx} ${cy} L ${startPt.x.toFixed(2)} ${startPt.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${endPt.x.toFixed(2)} ${endPt.y.toFixed(2)} Z`;
+}
+function pieSvgHtml(data){
+  const total = data.reduce((s,d)=>s+d.value,0);
+  const size = 150, r = 62, cx = size/2, cy = size/2;
+  if(total <= 0){
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line-strong)" stroke-width="2" stroke-dasharray="4 4"/></svg>`;
+  }
+  const nonZero = data.filter(d=>d.value>0);
+  if(nonZero.length === 1){
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${nonZero[0].color}"/></svg>`;
+  }
+  let cumulative = 0;
+  const slices = nonZero.map(d=>{
+    const angle = d.value/total*360;
+    const path = arcPath(cx,cy,r,cumulative,cumulative+angle);
+    cumulative += angle;
+    return `<path d="${path}" fill="${d.color}" stroke="var(--card)" stroke-width="1.5"/>`;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${slices}</svg>`;
+}
+function pieLegendHtml(data){
+  const total = data.reduce((s,d)=>s+d.value,0);
+  if(total <= 0) return '<div class="income-note">Todavía no hay gastos en este mes.</div>';
+  return `<div class="pie-legend">${data.filter(d=>d.value>0).map(d=>`
+    <div class="pie-legend-row">
+      <span class="pie-legend-label"><span class="dot" style="background:${d.color}"></span><span>${escapeHtml(d.label)}</span></span>
+      <span class="pie-legend-val">${fmt(d.value)} · ${Math.round(d.value/total*100)}%</span>
+    </div>`).join('')}</div>`;
+}
+function renderCharts(list){
+  const byCategory = {};
+  list.forEach(ex=>{ byCategory[ex.category] = (byCategory[ex.category]||0) + ex.amount; });
+  const categoryData = Object.keys(byCategory).map(cat=>({
+    label: cat, value: byCategory[cat], color: catColor(cat)
+  })).sort((a,b)=>b.value-a.value);
+  $('categoryChart').innerHTML = pieSvgHtml(categoryData) + pieLegendHtml(categoryData);
+
+  let paidA = 0, paidB = 0;
+  list.forEach(ex=>{ if(ex.paidBy==='A') paidA += ex.amount; else paidB += ex.amount; });
+  // the person-identity accents (--a-gold / --a-clay), not category colours
+  const personData = [
+    { label: names.A, value: paidA, color: '#B4862B' },
+    { label: names.B, value: paidB, color: '#9C4B3C' }
+  ];
+  $('personChart').innerHTML = pieSvgHtml(personData) + pieLegendHtml(personData);
+}
+
+// who owes whom, across every month
+function renderBalance(){
+  let balance = 0;
+  expenses.forEach(ex=>{
+    const shareA = ex.amount * ex.pctA/100;
+    const shareB = ex.amount - shareA;
+    if(ex.paidBy === 'A'){ balance += shareB; } else { balance -= shareA; }
+  });
+  const el = $('balanceResult');
+  if(!expenses.length || Math.abs(balance) < 1){
+    el.textContent = '';
+    return;
+  }
+  const debtor   = balance > 0 ? escapeHtml(names.B) : escapeHtml(names.A);
+  const creditor = balance > 0 ? escapeHtml(names.A) : escapeHtml(names.B);
+  el.innerHTML = `${debtor} le debe a ${creditor} <span class="amt">${fmt(Math.abs(balance))}</span>`;
+}
+
+viewMonth = monthNow();
+renderTodayDate();
+renderInstruments();
+resetForm();
+resetIncomeForm();
+loadAll();
+// fire-and-forget: the app works fine without it, and re-render once it lands so
+// the dollar figures on Ahorro fill in
+loadUsdToday().then(()=>render());
+</script>
+</body>
+</html>
