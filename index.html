@@ -637,11 +637,11 @@
     <form class="add-form" id="coupleForm">
       <div>
         <label for="coupleCodeInput">Código de pareja</label>
-        <input type="text" id="coupleCodeInput" placeholder="Ej: nicoyvale" required autocomplete="off" autocapitalize="off">
+        <input type="text" id="coupleCodeInput" placeholder="Ej: villate956216" required autocomplete="off" autocapitalize="off">
         <p class="code-hint">Inventá un código y compartilo con tu pareja: quien lo ingrese ve y edita los mismos datos. Si ya tenías uno, escribilo de nuevo tal cual.</p>
         <details class="code-info">
           <summary><span class="i-badge">i</span> ¿Es seguro?</summary>
-          <p>Si alguien escribe por casualidad el mismo código que otra pareja, entra directo a esos datos ajenos. No hay contraseña, así que usá un código razonablemente único (nombres + año, por ejemplo) para que eso no pase.</p>
+          <p>Si alguien escribe por casualidad el mismo código que otra pareja, entra directo a esos datos ajenos. No hay contraseña, así que mientras más difícil de adivinar (agregar números al azar, por ejemplo), mejor.</p>
         </details>
       </div>
       <button type="submit" class="btn-primary" id="coupleSubmitBtn">Entrar</button>
@@ -840,6 +840,17 @@ async function ensureCoupleRow(code){
   return data;
 }
 
+// true while the user is actively typing into any text field — every render*()
+// call below fully replaces its container's innerHTML, which would yank focus
+// and drop whatever's mid-edit (amount fields especially: on mobile, each
+// keystroke's own save round-trips through Supabase and comes right back as
+// this same UPDATE event, so without this guard a still-focused input gets
+// destroyed and recreated between keystrokes and loses what was just typed)
+function isEditingText(){
+  const el = document.activeElement;
+  return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+}
+
 function subscribeCoupleRealtime(code){
   if(coupleRealtimeSub) sb.removeChannel(coupleRealtimeSub);
   coupleRealtimeSub = sb.channel('couple-' + code)
@@ -848,6 +859,7 @@ function subscribeCoupleRealtime(code){
       (payload) => {
         coupleRow = payload.new;
         applyCoupleRow();
+        if(isEditingText()) return;   // re-render once focus moves away instead
         render();
         renderFixed(); renderChips(); renderFixedIncome(); renderIncomeChips(); renderIncomeLists();
       })
@@ -1148,6 +1160,18 @@ document.addEventListener('input', (e)=>{
   if(!(el instanceof HTMLInputElement)) return;
   if(el.classList.contains('ie-money')) reformat(el, groupThousands);
   else if(el.classList.contains('ie-letters')) reformat(el, v=>v.replace(/\d/g,''));
+});
+// a Realtime push that arrived while this field had focus (see isEditingText()
+// in subscribeCoupleRealtime) was held back to avoid yanking the input out
+// from under the user's keystrokes — catch up once they move on
+document.addEventListener('focusout', (e)=>{
+  const el = e.target;
+  if(!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
+  setTimeout(()=>{
+    if(isEditingText()) return;   // focus just moved to another field, still editing
+    render();
+    renderFixed(); renderChips(); renderFixedIncome(); renderIncomeChips(); renderIncomeLists();
+  }, 0);
 });
 
 // ---- dates / months ----
