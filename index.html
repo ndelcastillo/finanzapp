@@ -45,6 +45,7 @@
   .today-usd strong{color:var(--body-muted);font-weight:500;}
   .today-usd.err{color:var(--ink-muted-48);}
   .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:16px;}
+  @media(max-width:540px){.card{padding:18px 16px;}}
 
   .name-a{color:var(--a-gold-ink);}
   .name-b{color:var(--a-clay-ink);}
@@ -92,6 +93,11 @@
   .totals-v.save{color:var(--good);}
   .totals-v.neg{color:var(--a-clay);}
   @media(max-width:480px){.totals-cell{padding:14px 6px;}.totals-v{font-size:16px;}.totals-k{font-size:10px;}}
+  @media(max-width:480px){
+    #ahorroStrip{grid-template-columns:1fr;}
+    #ahorroStrip .totals-cell{border-right:none;border-bottom:1px solid var(--line);}
+    #ahorroStrip .totals-cell:last-child{border-bottom:none;}
+  }
 
   /* ---- per-person totals under the household strip: 2 accordion items, closed by default ---- */
   .totals-person-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
@@ -195,6 +201,12 @@
   .btn-add:active{transform:scale(0.985);}
   .btn-add:focus-visible{outline:2px solid var(--primary-focus);outline-offset:2px;}
 
+  /* ---- save banner ---- */
+  .save-banner{position:fixed;top:0;left:0;right:0;z-index:100;display:none;
+    background:#b3261e;color:#fff;text-align:center;font-size:13px;font-weight:600;
+    padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));}
+  .save-banner.show{display:block;}
+
   /* ---- modal ---- */
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:50;
     display:none;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto;}
@@ -206,8 +218,10 @@
     cursor:pointer;padding:4px 6px;border-radius:8px;transition:color .15s ease;}
   .modal-close:hover{color:var(--ink);}
   @media(max-width:540px){
-    .modal-backdrop{padding:20px;align-items:flex-end;border-radius:0px;}
-    .modal{border-radius:18px;max-width:none;margin:0;padding:20px 18px 28px;max-height:90vh;overflow-y:auto;}
+    .modal-backdrop{padding:20px;align-items:flex-end;border-radius:0px;max-height:100vh;max-height:100dvh;}
+    .modal{border-radius:18px;max-width:none;margin:0;padding:20px 18px 28px;
+      max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;
+      -webkit-overflow-scrolling:touch;}
   }
 
   /* ---- quick-pick chips under Descripción ---- */
@@ -274,6 +288,10 @@
   .fixed-add button:active{transform:scale(0.9);}
   @media(max-width:480px){
     .fixed-row input.f-amt,.fixed-add input.f-new-amt,.fixed-head .h2c{flex:0 0 108px;width:108px;}
+    /* concepto + monto on one line, actions (pencil/lock/x) wrap to a second line */
+    .fixed-row{flex-wrap:wrap;row-gap:6px;}
+    .fixed-row .f-label,.fixed-row input.f-label-edit{flex:1 1 auto;}
+    .fixed-actions,.fixed-actions.two{flex:1 0 100%;justify-content:flex-end;order:3;}
   }
 
   .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
@@ -286,6 +304,11 @@
   .pie-legend-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .pie-legend-val{color:var(--body-muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
   @media(max-width:480px){.charts-grid{grid-template-columns:1fr;}}
+
+  #panel-resumen{text-align:center;}
+  #panel-resumen .section-title{justify-content:center;}
+  #panel-resumen .pie-legend{align-items:center;}
+  #panel-resumen .pie-legend-row{width:100%;max-width:220px;}
 
   .section-title{font-size:21px;font-weight:600;letter-spacing:0.231px;margin:32px 0 12px;display:flex;align-items:center;gap:8px;}
   .section-title .count{font-weight:600;font-size:12px;letter-spacing:0;color:var(--body-muted);background:var(--paper);padding:2px 9px;border-radius:9999px;}
@@ -301,8 +324,12 @@
   label{font-size:14px;color:var(--body-muted);display:block;margin-bottom:6px;letter-spacing:-0.224px;}
   input[type=text],input[type=number],input[type=date],select{
     width:100%;border:1px solid var(--line-strong);background:var(--card);border-radius:8px;
-    padding:10px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+    padding:10px 12px;font-size:16px;font-family:'Inter',system-ui,sans-serif;color:var(--ink);
     transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
+  @media(max-width:540px){
+    input[type=text],input[type=number],input[type=date],select{font-size:16px;}
   }
   input:focus,select:focus{outline:none;border-color:var(--primary-focus);box-shadow:0 0 0 3px rgba(0,113,227,0.15);}
 
@@ -397,6 +424,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
+<div class="save-banner" id="saveBanner" role="status" aria-live="polite">Guardando…</div>
 <div class="wrap">
   <div class="app-head">
     <h1>FinanzApp</h1>
@@ -836,6 +864,23 @@ function applyCoupleRow(){
   if(normalizeExpenses()) saveExpenses();
 }
 
+// tracks writes that haven't been confirmed by Supabase yet, so we can warn
+// on tab close/refresh and show a banner instead of silently dropping data
+let pendingSaves = 0;
+const SAVE_RETRY_DELAYS = [1000, 3000, 8000]; // ms — a few attempts before giving up
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function updateSaveBanner(retrying){
+  const el = $('saveBanner');
+  if(!el) return;
+  el.textContent = retrying ? 'No se pudo guardar — reintentando…' : 'Guardando…';
+  el.classList.toggle('show', pendingSaves > 0);
+}
+
+window.addEventListener('beforeunload', (e)=>{
+  if(pendingSaves > 0){ e.preventDefault(); e.returnValue = ''; }
+});
+
 const store = {
   async get(key){
     if(!coupleRow) return null;
@@ -850,6 +895,8 @@ const store = {
   },
   async set(key, value){
     if(!coupleCode) return false;
+    pendingSaves++;
+    updateSaveBanner();
     try{
       let patch;
       if(MIGRATION_FLAG_KEYS.has(key)){
@@ -860,14 +907,29 @@ const store = {
         if(!col) return false;
         patch = { [col]: JSON.parse(value) };
       }
-      const { data, error } = await sb.from('couples').update(patch).eq('code', coupleCode).select().single();
-      if(error) throw error;
-      coupleRow = data;
-      storageMode = 'compartido';
+      let lastError = null;
+      for(let attempt = 0; attempt <= SAVE_RETRY_DELAYS.length; attempt++){
+        if(attempt > 0){ updateSaveBanner(true); await sleep(SAVE_RETRY_DELAYS[attempt - 1]); }
+        try{
+          const { data, error } = await sb.from('couples').update(patch).eq('code', coupleCode).select().single();
+          if(error) throw error;
+          coupleRow = data;
+          storageMode = 'compartido';
+          lastError = null;
+          break;
+        }catch(e){
+          lastError = e;
+        }
+      }
+      if(lastError){ storageMode = 'error'; return false; }
       return true;
     }catch(e){
       storageMode = 'error';
       return false;
+    }finally{
+      pendingSaves--;
+      updateSaveBanner();
+      if(storageMode === 'error') describeStorage();
     }
   }
 };
