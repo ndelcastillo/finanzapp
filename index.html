@@ -207,14 +207,46 @@
 
   /* ---- "what's left" hero ---- */
   .avail{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .avail-col{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;text-align:center;}
+  #expenseList + .avail, .bal-line + .avail, #varEstGrid + .avail{margin-top:24px;}
+  .avail-col{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;text-align:center;
+    display:flex;flex-direction:column;}
+  .avail-col .avail-detail-top{flex:1;}
   .avail-who{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);font-weight:600;}
   .avail-amt{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.5px;margin-top:6px;line-height:1.1;}
   .avail-amt.neg{color:var(--a-clay);}
   .avail-sub{font-size:11.5px;color:var(--body-muted);margin-top:8px;line-height:1.4;font-variant-numeric:tabular-nums;}
+  .avail-detail{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);text-align:left;}
+  .avail-detail-top{margin-top:12px;padding-top:0;border-top:none;text-align:left;}
+  .avail-detail-top .bill{padding:10px 12px;margin-bottom:6px;}
+  .avail-detail-top .bill-name{font-size:13.5px;}
+  .avail-detail-top .bill-amt{font-size:13.5px;}
+  .avail-est-row{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--body-muted);
+    padding:4px 0;font-variant-numeric:tabular-nums;}
+  .avail-est-total{border-top:1px solid var(--line);margin-top:4px;padding-top:8px;font-weight:600;color:var(--ink);}
+  .avail-est-total .neg{color:var(--a-clay);}
+  .avail-est-empty{font-size:12px;color:var(--body-muted);text-align:center;line-height:1.5;}
   .avail-cap{font-size:12px;color:var(--body-muted);text-align:center;margin:10px 0 0;letter-spacing:-0.12px;}
-  .bal-line{font-size:13px;text-align:center;margin:12px 0 0;color:var(--body-muted);font-variant-numeric:tabular-nums;}
-  .bal-line .amt{font-weight:600;color:var(--ink);}
+  .budget-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;
+    padding:7px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;}
+  .budget-row:last-child{border-bottom:none;}
+  .budget-cat{color:var(--body-muted);text-align:left;}
+  .budget-amt{font-weight:600;color:var(--ink);white-space:nowrap;}
+  .budget-amt-input{font-family:'Inter',system-ui,sans-serif;font-weight:600;color:var(--ink);
+    white-space:nowrap;font-variant-numeric:tabular-nums;font-size:12px!important;text-align:right;
+    width:104px;flex:0 0 104px;border:1px solid var(--line-strong);background:transparent;border-radius:8px;
+    padding:6px 8px;transition:border-color .15s ease,background-color .15s ease;}
+  .budget-amt-input:hover{border-color:var(--line-strong);}
+  .budget-amt-input:focus{outline:none;border-color:var(--primary);background:var(--card);}
+  .bal-line{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;margin:16px 0 0;
+    padding:16px;background:var(--a-clay-bg);border-radius:16px;font-size:13px;color:var(--a-clay-ink);
+    font-variant-numeric:tabular-nums;}
+  .bal-line:empty{display:none;}
+  .bal-line .bal-who{font-size:13px;font-weight:500;}
+  .bal-line .amt{font-size:24px;font-weight:700;color:var(--a-clay-ink);letter-spacing:-0.5px;}
+  .bal-line.good{background:var(--good-bg);color:var(--good);}
+  .bal-line.good .amt{color:var(--good);}
+  .avail-col .bal-line{margin:14px 0 0;padding:12px;}
+  .avail-col .bal-line .amt{font-size:20px;}
   @media(max-width:480px){.avail{grid-template-columns:1fr;}}
 
   .btn-add{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
@@ -435,6 +467,14 @@
     cursor:pointer;font-size:13px;flex-shrink:0;padding:2px 3px;line-height:1;}
   .income-entry-row .edit:hover{color:var(--primary);}
   .income-entry-row .del:hover{color:var(--a-clay);}
+  .income-entry-row.saldo-row{border-style:dashed;}
+  .income-entry-row.saldo-row.good{background:var(--good-bg);border-color:var(--good);}
+  .income-entry-row.saldo-row.good .lbl,.income-entry-row.saldo-row.good .amt-cur{color:var(--good);}
+  .income-entry-row.saldo-row.neg{background:var(--a-clay-bg);border-color:var(--a-clay);}
+  .income-entry-row.saldo-row.neg .lbl,.income-entry-row.saldo-row.neg .amt-cur{color:var(--a-clay-ink);}
+  .income-entry-row.saldo-row .add{background:none;border:none;color:inherit;
+    cursor:pointer;font-size:15px;font-weight:700;flex-shrink:0;padding:2px 5px;line-height:1;}
+  .income-entry-row.saldo-row .add:hover{opacity:0.7;}
 
   /* an income row swapped into edit mode */
   .income-entry-row.editing{display:block;padding:8px;border-color:var(--primary);}
@@ -552,8 +592,9 @@
   <!-- ============ TAB: INGRESOS ============ -->
   <div class="tab-panel active" id="panel-ingresos" role="tabpanel">
     <div class="card">
-      <div class="section-title">Ingresos mensuales</div>
+      <div class="section-title" id="incomeSectionTitle">Ingresos mensuales</div>
       <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuánto entra por mes en cada lado. Podés cargar más de uno (ej: sueldo + un freelance). Si es en USD, guardás la cotización de ese día.</p>
+      <div id="prevMonthSaldo"></div>
       <div class="row2">
         <div class="income-person" data-person="A">
           <div class="who-label" id="incomeLabelA">Juan</div>
@@ -577,17 +618,26 @@
     <div class="totals" id="totalsStrip"></div>
     <div class="totals-person-grid" id="totalsPersonGrid"></div>
 
-    <div class="avail" id="availGrid"></div>
-    <p class="avail-cap">Te queda esto después de pagar tu parte de todos los gastos cargados en el mes.</p>
-    <div class="bal-line" id="balanceResult"></div>
-
-    <button type="button" class="btn-add" onclick="openModal()">+ Agregar gasto</button>
+    <button type="button" class="btn-add" onclick="openModal()">+ Agregar gasto fijo</button>
 
     <div class="list-head">
       <span class="t" id="listTitle">Gastos</span>
       <span class="tot" id="listTotal"></span>
     </div>
     <div id="expenseList"></div>
+
+    <div class="bal-line" id="balanceResult"></div>
+
+    <div class="avail" id="availGrid"></div>
+    <p class="avail-cap">Te queda esto después de pagar tu parte de todos los gastos fijos cargados en el mes.</p>
+
+    <div class="list-head" id="varEstListHead" style="margin-top:24px;">
+      <span class="t">Gastos Variables de <span id="varEstMonthLabel"></span></span>
+    </div>
+    <button type="button" class="btn-add" onclick="openVarExpenseModal()">+ Agregar gasto variable</button>
+    <div class="avail" id="varEstGrid" style="margin-top:14px;"></div>
+
+    <div class="avail" id="budgetGrid" style="margin-top:14px;"></div>
   </div>
 
   <!-- ============ TAB: AHORRO ============ -->
@@ -701,12 +751,34 @@
         <span class="h3c"></span>
       </div>
       <div id="fixedTable"></div>
+      <div class="bal-line" id="fixedDebtRow"></div>
       <div class="fixed-add">
         <input type="text" id="fixedLabelInput" placeholder="Ej: Luz, Gas, Cochera">
         <input type="text" class="f-new-amt" inputmode="numeric" id="fixedAmountInput" placeholder="0">
         <button type="button" onclick="addFixed()" aria-label="Agregar gasto fijo">+</button>
       </div>
       <button type="button" class="btn-primary fixed-save-btn" onclick="commitFixed()">Guardar gastos fijos</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Gastos variables estimados</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Una estimación personal de lo que pensás gastar este mes en cosas variables (nafta, salidas, compras). No es un gasto cargado, es un presupuesto — se descuenta de lo que te queda en la tarjeta de Ahorro de Gastos.</p>
+      <div class="seg" id="varEstPersonSeg" style="margin-bottom:14px;">
+        <button type="button" data-person="A" class="active" id="varEstPersonA">Juan</button>
+        <button type="button" data-person="B" id="varEstPersonB">Maria</button>
+      </div>
+      <div class="fixed-head">
+        <span class="h1c">Concepto</span>
+        <span class="h2c">Monto</span>
+        <span class="h3c"></span>
+      </div>
+      <div id="varEstTable"></div>
+      <div class="fixed-add">
+        <input type="text" id="varEstLabelInput" placeholder="Ej: Nafta, Salidas">
+        <input type="text" class="f-new-amt ie-money" inputmode="numeric" id="varEstAmountInput" placeholder="0">
+        <button type="button" onclick="addVarEstimate()" aria-label="Agregar gasto variable estimado">+</button>
+      </div>
+      <button type="button" class="btn-primary fixed-save-btn" onclick="commitVarEstimates()">Guardar gastos variables</button>
     </div>
 
     <div class="card">
@@ -823,6 +895,10 @@
           </div>
         </div>
       </div>
+      <div>
+        <label for="iDate">Mes</label>
+        <input type="date" id="iDate">
+      </div>
       <!-- only shown for USD: the rate for THAT income -->
       <div id="iFxWrap" style="display:none;">
         <label for="iFx">Cotización del dólar</label>
@@ -879,12 +955,50 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="varExpenseModal" role="dialog" aria-modal="true" aria-labelledby="varExpenseModalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="varExpenseModalTitle">Agregar gasto variable</div>
+      <button type="button" class="modal-close" onclick="closeVarExpenseModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <form class="add-form" id="varExpenseForm">
+      <div>
+        <label>¿De quién es?</label>
+        <div class="seg" id="vxPaidBySeg">
+          <button type="button" data-paid="A" class="active" id="vxPaidLabelA">Juan</button>
+          <button type="button" data-paid="B" id="vxPaidLabelB">Maria</button>
+        </div>
+      </div>
+      <div>
+        <label for="vxDesc">Descripción</label>
+        <input type="text" id="vxDesc" placeholder="Ej: Nafta, salida con amigos" required>
+        <!-- one chip per variable-expense estimate for whoever's picked above -->
+        <div class="chips" id="vxDescChips"></div>
+      </div>
+      <div class="row2">
+        <div>
+          <label for="vxAmount">Monto (ARS)</label>
+          <input type="text" inputmode="numeric" class="ie-money" id="vxAmount" placeholder="0" required>
+        </div>
+        <div>
+          <label for="vxDate">Fecha</label>
+          <input type="date" id="vxDate">
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" id="vxSubmitBtn">Agregar gasto variable</button>
+    </form>
+  </div>
+</div>
+
 <script>
 const STORE_KEY = 'expenses_v1';
 const NAMES_KEY = 'names_v1';
 const INCOME_KEY = 'income_v2';
 const FIXED_KEY = 'fixed_v1';
 const FIXED_INCOME_KEY = 'fixedincome_v1';
+const VAR_ESTIMATES_KEY = 'varestimates_v1';
+const VAR_EXPENSES_KEY = 'varexpenses_v1';
+const BUDGET_OVERRIDES_KEY = 'budgetoverrides_v1';
 
 let expenses = [];
 let names = { A: 'Juan', B: 'Maria' };
@@ -894,6 +1008,19 @@ let income = { fx: 1500, entries: { A: [], B: [] } };
 let fixed = [];
 // the recurring incomes and their current amount — same idea as `fixed`, but per person
 let fixedIncome = [];
+// personal budget estimates for variable spending (nafta, salidas, etc) — not an
+// actual logged expense, just narrows down "what's left for me" per person
+let varEstimates = { A: [], B: [] };
+let currentVarEstPerson = 'A';
+// real, dated, personal expenses (nafta today, a night out) — flat array like
+// `expenses`, but with no split: 100% attributed to whoever's in `paidBy`
+let varExpenses = [];
+let currentVxPaidBy = 'A';
+let editingVarExpenseId = null;
+// per-person, per-category planned-spend overrides for the "Podés gastar" cards —
+// {A:{salidas:120000,...}, B:{...}}; a category missing from the map falls back
+// to its default suggested-percentage amount
+let budgetOverrides = { A: {}, B: {} };
 let currentSplit = '50';
 let currentPaidBy = 'A';
 let currentAhorroPerson = 'A';   // which person's individual breakdown Ahorro shows
@@ -959,7 +1086,10 @@ const COLUMN_FOR_KEY = {
   names_v1: 'names',
   income_v2: 'income',
   fixed_v1: 'fixed',
-  fixedincome_v1: 'fixed_income'
+  fixedincome_v1: 'fixed_income',
+  varestimates_v1: 'variable_estimates',
+  varexpenses_v1: 'variable_expenses',
+  budgetoverrides_v1: 'budget_overrides'
 };
 const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1']);
 
@@ -990,7 +1120,7 @@ async function signupCouple(code, password){
   const existing = await fetchCoupleRow(code);
   if(existing) throw new Error('CODE_TAKEN');
   const password_hash = await hashPassword(password);
-  const { data, error } = await sb.from('couples').insert({ code, password_hash, names: { A: 'Juan', B: 'Maria' } }).select().single();
+  const { data, error } = await sb.from('couples').insert({ code, password_hash, names: { A: 'Persona 1', B: 'Persona 2' } }).select().single();
   if(error) throw error;
   return data;
 }
@@ -1013,27 +1143,20 @@ async function loginCouple(code, password){
 }
 
 // modo invitado: un único espacio demo, fijo y compartido por todos los que
-// prueban la app sin comprometerse a crear la suya. Se siembra con datos de
-// ejemplo la primera vez que alguien entra; después de eso es un espacio
-// normal (cualquier invitado puede editarlo, y otros invitados ven esos cambios).
+// prueban la app sin comprometerse a crear la suya. Arranca vacío, igual que
+// un espacio creado por signupCouple — nada de gastos/ingresos de ejemplo
+// precargados, para no mostrar datos falsos como si fueran reales.
 const GUEST_CODE = 'demo-invitado';
 const GUEST_PASSWORD = 'probar123';
 function guestSeedData(){
-  const today = defaultDate();
   return {
-    names: { A: 'Juan', B: 'Maria' },
-    income: {
-      fx: 1500,
-      entries: {
-        A: [{ id: genId(), label: 'Sueldo', amount: 900000, currency: 'ARS' }],
-        B: [{ id: genId(), label: 'Freelance', amount: 650000, currency: 'ARS' }]
-      }
-    },
-    expenses: [
-      { id: genId(), desc: 'Alquiler', amount: 350000, date: today, category: categoryOf('Alquiler'), pctA: 50, splitType: '50', paidBy: 'A', essential: true },
-      { id: genId(), desc: 'Supermercado', amount: 120000, date: today, category: categoryOf('Supermercado'), pctA: 50, splitType: '50', paidBy: 'B', essential: true },
-      { id: genId(), desc: 'Cine', amount: 18000, date: today, category: categoryOf('Cine'), pctA: 50, splitType: '50', paidBy: 'A', essential: false }
-    ]
+    names: { A: 'Persona 1', B: 'Persona 2' },
+    expenses: [],
+    income: { fx: 1500, entries: { A: [], B: [] } },
+    fixed: [],
+    fixed_income: [],
+    variable_estimates: { A: [], B: [] },
+    variable_expenses: []
   };
 }
 async function enterAsGuest(){
@@ -1066,6 +1189,11 @@ function subscribeCoupleRealtime(code){
     .on('postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'couples', filter: `code=eq.${code}` },
       (payload) => {
+        // realtime events for concurrent writes to different columns can arrive
+        // out of order (two saves land close together, the network reorders the
+        // notifications) — a stale payload.new would otherwise clobber every
+        // column with an older snapshot than what's already applied locally
+        if(coupleRow && payload.new.updated_at && coupleRow.updated_at && payload.new.updated_at <= coupleRow.updated_at) return;
         coupleRow = payload.new;
         applyCoupleRow();
         if(isEditingText()) return;   // re-render once focus moves away instead
@@ -1088,6 +1216,9 @@ function applyCoupleRow(){
   income = migrateIncome(coupleRow.income);
   if(Array.isArray(coupleRow.fixed)) fixed = coupleRow.fixed;
   if(Array.isArray(coupleRow.fixed_income)) fixedIncome = coupleRow.fixed_income;
+  if(coupleRow.variable_estimates && Array.isArray(coupleRow.variable_estimates.A) && Array.isArray(coupleRow.variable_estimates.B)) varEstimates = coupleRow.variable_estimates;
+  if(Array.isArray(coupleRow.variable_expenses)) varExpenses = coupleRow.variable_expenses;
+  if(coupleRow.budget_overrides && typeof coupleRow.budget_overrides === 'object') budgetOverrides = coupleRow.budget_overrides;
   if(normalizeExpenses()) saveExpenses();
 }
 
@@ -1130,10 +1261,15 @@ function paintFromLocalCache(code){
     if(f) fixed = JSON.parse(f);
     const fi = readLocalCache(code, FIXED_INCOME_KEY);
     if(fi) fixedIncome = JSON.parse(fi);
+    const ve = readLocalCache(code, VAR_ESTIMATES_KEY);
+    if(ve) varEstimates = JSON.parse(ve);
+    const vx = readLocalCache(code, VAR_EXPENSES_KEY);
+    if(vx) varExpenses = JSON.parse(vx);
     if(normalizeExpenses()){ /* fixed up in-memory; loadAll()'s real save will persist it */ }
     render();
     renderFixed();
     renderFixedIncome();
+    renderVarEstimates();
   }catch(e){}
 }
 
@@ -1236,7 +1372,13 @@ const store = {
         try{
           const { data, error } = await sb.from('couples').update(patch).eq('code', coupleCode).select().single();
           if(error) throw error;
-          coupleRow = data;
+          // same out-of-order guard as the realtime handler: this request's own
+          // response can land after a newer write/realtime push already applied
+          // the cache (but never re-derive app state here — that would stomp
+          // whatever the user is mid-editing in an unrelated field right now)
+          if(!(coupleRow && data.updated_at && coupleRow.updated_at && data.updated_at <= coupleRow.updated_at)){
+            coupleRow = data;
+          }
           storageMode = 'compartido';
           lastError = null;
           break;
@@ -1500,14 +1642,27 @@ document.addEventListener('click', (e)=>{
 
 // closes the current space and returns to the login modal without a full
 // page reload — unsubscribes realtime and clears the remembered code so
-// initCouple()'s "saved code" auto-entry doesn't just log back in
+// initCouple()'s "saved code" auto-entry doesn't just log back in.
+// leaving the shared guest space wipes it back to guestSeedData() so the
+// next person in (or the same person re-entering) always starts from zero.
 function logoutCouple(){
   toggleSessionMenu(false);
+  const wasGuest = coupleCode === GUEST_CODE;
   if(coupleRealtimeSub){ sb.removeChannel(coupleRealtimeSub); coupleRealtimeSub = null; }
   coupleRow = null;
   coupleCode = null;
   try{ localStorage.removeItem(COUPLE_CODE_LOCAL_KEY); }catch(e){}
+  if(wasGuest) resetGuestSpace();
   openCoupleModal('');
+}
+
+// fire-and-forget: overwrite the shared demo row back to its empty seed state
+async function resetGuestSpace(){
+  try{
+    await sb.from('couples').update(guestSeedData()).eq('code', GUEST_CODE);
+  }catch(e){
+    console.error('no se pudo resetear el espacio invitado', e);
+  }
 }
 
 // ---- amount fields: thousands separators while typing ----
@@ -1643,8 +1798,13 @@ function defaultDate(){ return viewMonth === monthNow() ? todayStr() : viewMonth
 // the prefill for the next one (and a fallback for pre-per-entry-rate data)
 function entryRate(e){ return e.fx || income.fx || 1500; }
 function entryArs(e){ return e.currency === 'USD' ? e.amount * entryRate(e) : e.amount; }
-function incomeTotalArs(person){
-  return (income.entries[person]||[]).reduce((s,e)=> s + entryArs(e), 0);
+// entries are dated like expenses; default to the month currently being viewed
+function incomeTotalArs(person, key){
+  key = key || viewMonth;
+  return (income.entries[person]||[]).filter(e=>monthKey(e.date) === key).reduce((s,e)=> s + entryArs(e), 0);
+}
+function variableEstimatesTotal(person){
+  return (varEstimates[person]||[]).reduce((s,e)=>s+(e.amount||0),0);
 }
 function incomePctA(){
   const arsA = incomeTotalArs('A');
@@ -1658,14 +1818,18 @@ function migrateIncome(raw){
     // USD entries saved before rates were per-entry inherit the global one
     const fx = raw.fx || 1500;
     ['A','B'].forEach(p=>{
-      (raw.entries[p]||[]).forEach(e=>{ if(e.currency === 'USD' && !e.fx) e.fx = fx; });
+      (raw.entries[p]||[]).forEach(e=>{
+        if(e.currency === 'USD' && !e.fx) e.fx = fx;
+        // entries saved before income had a month of its own belong to the current month
+        if(!e.date) e.date = monthNow() + '-01';
+      });
     });
     return raw;
   }
   const fx = (raw && raw.fx) || 1500;
   const entries = { A: [], B: [] };
   const legacy = (amount, cur) => {
-    const e = { id: genId(), label: 'Ingreso principal', amount, currency: cur || 'ARS' };
+    const e = { id: genId(), label: 'Ingreso principal', amount, currency: cur || 'ARS', date: monthNow() + '-01' };
     if(e.currency === 'USD') e.fx = fx;
     return e;
   };
@@ -1766,6 +1930,33 @@ async function loadAll(){
     }catch(e){}
   }
 
+  try{
+    const v = await store.get(VAR_ESTIMATES_KEY);
+    varEstimates = v ? JSON.parse(v) : null;
+  }catch(e){ varEstimates = null; }
+  if(!varEstimates || !Array.isArray(varEstimates.A) || !Array.isArray(varEstimates.B)){
+    varEstimates = { A: [], B: [] };
+    saveVarEstimates();
+  }
+
+  try{
+    const v = await store.get(VAR_EXPENSES_KEY);
+    varExpenses = v ? JSON.parse(v) : null;
+  }catch(e){ varExpenses = null; }
+  if(!Array.isArray(varExpenses)){
+    varExpenses = [];
+    saveVarExpenses();
+  }
+
+  try{
+    const v = await store.get(BUDGET_OVERRIDES_KEY);
+    budgetOverrides = v ? JSON.parse(v) : null;
+  }catch(e){ budgetOverrides = null; }
+  if(!budgetOverrides || typeof budgetOverrides !== 'object' || Array.isArray(budgetOverrides)){
+    budgetOverrides = { A: {}, B: {} };
+    saveBudgetOverrides();
+  }
+
   if(normalizeExpenses()) saveExpenses();
 
   $('nameA').value = names.A;
@@ -1777,6 +1968,7 @@ async function loadAll(){
   renderFixedIncome();
   renderIncomeChips();
   renderIncomeLists();
+  renderVarEstimates();
   render();
 }
 
@@ -1784,12 +1976,20 @@ async function saveExpenses(){ await store.set(STORE_KEY, JSON.stringify(expense
 async function saveNames(){ await store.set(NAMES_KEY, JSON.stringify(names)); }
 async function saveIncome(){ await store.set(INCOME_KEY, JSON.stringify(income)); }
 async function saveFixed(){ return await store.set(FIXED_KEY, JSON.stringify(fixed)); }
+async function saveVarEstimates(){ return await store.set(VAR_ESTIMATES_KEY, JSON.stringify(varEstimates)); }
+async function saveVarExpenses(){ return await store.set(VAR_EXPENSES_KEY, JSON.stringify(varExpenses)); }
+async function saveBudgetOverrides(){ return await store.set(BUDGET_OVERRIDES_KEY, JSON.stringify(budgetOverrides)); }
 
 // "Guardar gastos fijos" button in Ajustes — fixed already autosaves on every
 // edit, this just forces an immediate write and confirms it with a toast
 async function commitFixed(){
   const ok = await saveFixed();
   if(ok) notyf.success('Gastos fijos guardados');
+}
+
+async function commitVarEstimates(){
+  const ok = await saveVarEstimates();
+  if(ok) notyf.success('Gastos variables guardados');
 }
 
 // ---- fixed incomes ----
@@ -1961,6 +2161,26 @@ function renderFixed(){
       </span>
     </div>`;
   }).join('') : '<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos fijos.</div>';
+  renderFixedDebt();
+}
+
+// balance card at the end of the fixed list, so it nets the section to $0 between A and B
+function renderFixedDebt(){
+  const el = $('fixedDebtRow');
+  if(!el) return;
+  let balance = 0;
+  expenses.forEach(ex=>{
+    const shareA = ex.amount * ex.pctA/100;
+    const shareB = ex.amount - shareA;
+    if(ex.paidBy === 'A'){ balance += shareB; } else { balance -= shareA; }
+  });
+  if(!expenses.length || Math.abs(balance) < 1){
+    el.innerHTML = '';
+    return;
+  }
+  const debtor   = balance > 0 ? escapeHtml(names.B) : escapeHtml(names.A);
+  const creditor = balance > 0 ? escapeHtml(names.A) : escapeHtml(names.B);
+  el.innerHTML = `<span class="bal-who">${debtor} le debe a ${creditor}</span><span class="amt">${fmt(Math.abs(balance))}</span>`;
 }
 // ---- drag to reorder ----
 // pointer events rather than HTML5 drag-and-drop, so this works with a finger too.
@@ -2085,6 +2305,84 @@ function removeFixed(id){
   notyf.success(`"${item.label}" eliminado`);
 }
 
+// ---- variable expense estimates (personal budget, not shared, no chips) ----
+let editingVarEstId = null;
+
+function renderVarEstimates(){
+  const list = varEstimates[currentVarEstPerson] || [];
+  $('varEstTable').innerHTML = list.length ? list.map(f=>{
+    const amt = `<input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${f.id}"
+             value="${f.amount ? groupThousands(String(f.amount)) : ''}" placeholder="0"
+             aria-label="Monto de ${escapeHtml(f.label)}">`;
+    if(editingVarEstId === f.id){
+      return `<div class="fixed-row" data-id="${f.id}">
+        <input type="text" class="f-label-edit" value="${escapeHtml(f.label)}" aria-label="Concepto">
+        ${amt}
+        <span class="fixed-actions two">
+          <button type="button" class="ok" onclick="saveEditVarEstimate('${f.id}')" aria-label="Guardar">✓</button>
+          <button type="button" class="del" onclick="cancelEditVarEstimate()" aria-label="Cancelar">✕</button>
+        </span>
+      </div>`;
+    }
+    return `<div class="fixed-row" data-id="${f.id}">
+      <span class="f-label">${escapeHtml(f.label)}</span>
+      ${amt}
+      <span class="fixed-actions two">
+        <button type="button" class="edit" onclick="startEditVarEstimate('${f.id}')" aria-label="Editar">✎</button>
+        <button type="button" class="del" onclick="removeVarEstimate('${f.id}')" aria-label="Eliminar">✕</button>
+      </span>
+    </div>`;
+  }).join('') : '<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos variables estimados.</div>';
+}
+
+$('varEstTable').addEventListener('change', (e)=>{
+  const el = e.target;
+  if(!el.classList.contains('f-amt')) return;
+  const item = (varEstimates[currentVarEstPerson]||[]).find(f=>f.id === el.dataset.id);
+  if(!item) return;
+  const d = digitsOnly(el.value);
+  item.amount = d ? parseInt(d,10) : 0;
+  saveVarEstimates();
+  render();
+});
+
+function addVarEstimate(){
+  const label = $('varEstLabelInput').value.trim();
+  if(!label) return;
+  const amount = numVal('varEstAmountInput') || 0;
+  varEstimates[currentVarEstPerson].push({ id: genId(), label, amount });
+  $('varEstLabelInput').value = '';
+  $('varEstAmountInput').value = '';
+  saveVarEstimates();
+  renderVarEstimates();
+  render();
+}
+function startEditVarEstimate(id){ editingVarEstId = id; renderVarEstimates(); }
+function cancelEditVarEstimate(){ editingVarEstId = null; renderVarEstimates(); }
+function saveEditVarEstimate(id){
+  const row = document.querySelector(`#varEstTable .fixed-row[data-id="${id}"]`);
+  const item = (varEstimates[currentVarEstPerson]||[]).find(f=>f.id === id);
+  if(!row || !item) return;
+  const label = row.querySelector('.f-label-edit').value.trim();
+  if(!label) return;
+  const d = digitsOnly(row.querySelector('.f-amt').value);
+  item.label = label;
+  item.amount = d ? parseInt(d,10) : 0;
+  editingVarEstId = null;
+  saveVarEstimates();
+  renderVarEstimates();
+  render();
+}
+function removeVarEstimate(id){
+  const item = (varEstimates[currentVarEstPerson]||[]).find(f=>f.id === id);
+  if(!item) return;
+  varEstimates[currentVarEstPerson] = varEstimates[currentVarEstPerson].filter(f=>f.id !== id);
+  saveVarEstimates();
+  renderVarEstimates();
+  render();
+  notyf.success(`"${item.label}" eliminado`);
+}
+
 // ---- tabs ----
 function switchTab(name){
   document.querySelectorAll('#tabs button').forEach(b=>{
@@ -2134,7 +2432,103 @@ document.addEventListener('keydown', (e)=>{
   if(e.key !== 'Escape') return;
   if($('addModal').classList.contains('open')) closeModal();
   if($('incomeModal').classList.contains('open')) closeIncomeModal();
+  if($('varExpenseModal').classList.contains('open')) closeVarExpenseModal();
 });
+
+// ---- real, dated, personal variable expenses (mirrors openModal/closeModal/
+// resetForm above, minus the split block) ----
+function openVarExpenseModal(expenseId){
+  resetVarExpenseForm();
+  const ex = expenseId ? varExpenses.find(x=>x.id === expenseId) : null;
+  if(ex){
+    editingVarExpenseId = ex.id;
+    $('vxDesc').value = ex.desc;
+    $('vxAmount').value = groupThousands(String(ex.amount));
+    $('vxDate').value = ex.date;
+    currentVxPaidBy = ex.paidBy;
+    document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentVxPaidBy));
+    renderVxChips();
+  }
+  $('varExpenseModalTitle').textContent = ex ? 'Editar gasto variable' : 'Agregar gasto variable';
+  $('vxSubmitBtn').textContent = ex ? 'Guardar cambios' : 'Agregar gasto variable';
+  $('varExpenseModal').classList.add('open');
+  document.body.classList.add('modal-open');
+  $('vxDesc').focus();
+}
+function closeVarExpenseModal(){
+  $('varExpenseModal').classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+function resetVarExpenseForm(){
+  $('varExpenseForm').reset();
+  editingVarExpenseId = null;
+  $('vxDate').value = defaultDate();
+  currentVxPaidBy = 'A';
+  document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === 'A'));
+  renderVxChips();
+}
+$('varExpenseModal').addEventListener('click', (e)=>{ if(e.target === $('varExpenseModal')) closeVarExpenseModal(); });
+$('vxPaidBySeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentVxPaidBy = btn.dataset.paid;
+  renderVxChips();
+});
+// one chip per variable-expense estimate the currently-selected person set up
+// in Ajustes; tapping it fills description AND their estimated amount
+function renderVxChips(){
+  const estimates = varEstimates[currentVxPaidBy] || [];
+  $('vxDescChips').innerHTML = estimates.length
+    ? estimates.map(e=>`<button type="button" data-id="${e.id}">${escapeHtml(e.label)}${
+        e.amount ? `<span class="chip-amt">${fmtNum(e.amount)}</span>` : ''}</button>`).join('')
+    : '<div class="income-note">Cargá tus gastos variables estimados en Ajustes para tenerlos a un toque.</div>';
+  syncVxChips();
+}
+$('vxDescChips').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const est = (varEstimates[currentVxPaidBy]||[]).find(x=>x.id === btn.dataset.id);
+  if(!est) return;
+  $('vxDesc').value = est.label;
+  $('vxAmount').value = est.amount ? groupThousands(String(est.amount)) : '';
+  syncVxChips();
+});
+$('vxDesc').addEventListener('input', syncVxChips);
+function syncVxChips(){
+  const v = $('vxDesc').value.trim().toLowerCase();
+  document.querySelectorAll('#vxDescChips button').forEach(b=>{
+    const est = (varEstimates[currentVxPaidBy]||[]).find(x=>x.id === b.dataset.id);
+    b.classList.toggle('active', !!est && est.label.toLowerCase() === v);
+  });
+}
+$('varExpenseForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const desc = $('vxDesc').value.trim();
+  const amount = numVal('vxAmount');
+  if(!desc || !amount) return;
+  const fields = {
+    desc, amount,
+    date: $('vxDate').value || defaultDate(),
+    category: categoryOf(desc),
+    paidBy: currentVxPaidBy
+  };
+  const existing = editingVarExpenseId ? varExpenses.find(x=>x.id === editingVarExpenseId) : null;
+  if(existing) Object.assign(existing, fields);
+  else varExpenses.push({ id: genId(), ...fields });
+
+  saveVarExpenses();
+  closeVarExpenseModal();
+  resetVarExpenseForm();
+  render();
+});
+function deleteVarExpense(id){
+  varExpenses = varExpenses.filter(x=>x.id!==id);
+  saveVarExpenses();
+  render();
+  notyf.success('Gasto variable eliminado');
+}
 
 // one chip per fixed expense; tapping it fills the description AND its current amount
 function renderChips(){
@@ -2185,10 +2579,16 @@ function refreshNameLabels(){
   $('paidLabelB').textContent = names.B;
   $('incomeLabelA').textContent = names.A;
   $('incomeLabelB').textContent = names.B;
+  $('iWhoA').textContent = names.A;
+  $('iWhoB').textContent = names.B;
   $('splitAtoB').textContent = `${names.A} a ${names.B}`;
   $('splitBtoA').textContent = `${names.B} a ${names.A}`;
   $('ahorroPersonA').textContent = names.A;
   $('ahorroPersonB').textContent = names.B;
+  $('varEstPersonA').textContent = names.A;
+  $('varEstPersonB').textContent = names.B;
+  $('vxPaidLabelA').textContent = names.A;
+  $('vxPaidLabelB').textContent = names.B;
 }
 
 $('nameA').addEventListener('change', e=>{ names.A = e.target.value || 'Juan'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
@@ -2201,6 +2601,15 @@ $('ahorroPersonSeg').addEventListener('click', (e)=>{
   btn.classList.add('active');
   currentAhorroPerson = btn.dataset.person;
   renderAhorro();
+});
+
+$('varEstPersonSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#varEstPersonSeg button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentVarEstPerson = btn.dataset.person;
+  renderVarEstimates();
 });
 
 // ---- income modal: same flow as the expense one ----
@@ -2236,6 +2645,7 @@ function resetIncomeForm(){
   currentIncomeWho = 'A';
   document.querySelectorAll('#iCurSeg button').forEach(b=>b.classList.toggle('active', b.dataset.cur === 'ARS'));
   document.querySelectorAll('#iWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === 'A'));
+  $('iDate').value = defaultDate();
   syncIncomeFx();
   renderIncomeChips();
 }
@@ -2254,6 +2664,7 @@ function openIncomeModal(person, entryId){
     currentIncomeCur = entry.currency === 'USD' ? 'USD' : 'ARS';
     document.querySelectorAll('#iCurSeg button').forEach(b=>b.classList.toggle('active', b.dataset.cur === currentIncomeCur));
     if(entry.currency === 'USD') $('iFx').value = groupThousands(String(entryRate(entry)));
+    $('iDate').value = entry.date || defaultDate();
     syncIncomeFx();
   }
   renderIncomeChips();
@@ -2306,7 +2717,7 @@ $('incomeForm').addEventListener('submit', (e)=>{
   const amount = numVal('iAmount');
   if(!amount) return;
 
-  const fields = { label, amount, currency: currentIncomeCur };
+  const fields = { label, amount, currency: currentIncomeCur, date: $('iDate').value || defaultDate() };
   if(currentIncomeCur === 'USD'){
     const rate = numVal('iFx') || defaultUsdRate();
     if(!(rate > 0)) return;
@@ -2360,15 +2771,74 @@ function incomeRowHtml(p, e){
   </div>`;
 }
 
+// previous month's leftover: what each person actually kept after their share
+// of that month's expenses — same formula as the Ahorro tab's savings history
+function prevMonthKey(key){
+  const [y,m] = key.split('-').map(Number);
+  const d = new Date(y, m-2, 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function prevMonthLeftover(person){
+  const prevKey = prevMonthKey(viewMonth);
+  return incomeTotalArs(person, prevKey) - monthTotalForPerson(prevKey, person);
+}
+
 function renderIncomeLists(){
+  const title = $('incomeSectionTitle');
+  if(title) title.textContent = `Ingresos de ${monthShort(viewMonth)}`;
+
   ['A','B'].forEach(p=>{
-    const list = income.entries[p]||[];
+    const list = (income.entries[p]||[]).filter(e=>monthKey(e.date) === viewMonth);
     $('incomeList'+p).innerHTML = list.length
       ? list.map(e=>incomeRowHtml(p, e)).join('')
       : '<div class="income-note">Todavía sin ingresos.</div>';
     $('incomeTotal'+p).textContent = fmt(incomeTotalArs(p));
   });
+
+  renderPrevMonthSaldo();
   renderIncomePreview();
+}
+
+function renderPrevMonthSaldo(){
+  const box = $('prevMonthSaldo');
+  if(!box) return;
+  const prevKey = prevMonthKey(viewMonth);
+  // nothing to carry over before any expenses/income have ever been logged
+  if(!expenses.some(x=>monthKey(x.date) === prevKey) && !['A','B'].some(p=>(income.entries[p]||[]).some(e=>monthKey(e.date) === prevKey))){
+    box.innerHTML = '';
+    return;
+  }
+  const cols = ['A','B'].map(p=>{
+    const left = prevMonthLeftover(p);
+    if(Math.abs(left) < 1) return '<div></div>';
+    // already carried over into this month? don't offer it twice
+    const alreadyUsed = (income.entries[p]||[]).some(e=>e.fromMonth === prevKey);
+    return `<div class="income-entry-row saldo-row ${left > 0 ? 'good' : 'neg'}">
+      <span class="ie-main"><span class="lbl">Saldo de ${monthShort(prevKey)}</span></span>
+      <span class="amt-cur">${fmt(left)}</span>
+      ${left > 0 && !alreadyUsed ? `<button type="button" class="add" onclick="usePrevMonthSaldo('${p}')" aria-label="Sumar como ingreso de este mes" title="Sumar como ingreso de este mes">+</button>` : ''}
+    </div>`;
+  });
+  // both columns empty means nothing worth showing this month
+  box.innerHTML = cols.every(c=>c==='<div></div>') ? '' : `<div class="row2" style="margin-bottom:10px;">${cols.join('')}</div>`;
+}
+
+function usePrevMonthSaldo(person){
+  const prevKey = prevMonthKey(viewMonth);
+  if((income.entries[person]||[]).some(e=>e.fromMonth === prevKey)) return;   // already added
+  const amount = Math.round(prevMonthLeftover(person));
+  if(amount <= 0) return;
+  income.entries[person].push({
+    id: genId(),
+    label: `Saldo de ${monthShort(prevKey)}`,
+    amount,
+    currency: 'ARS',
+    date: defaultDate(),
+    fromMonth: prevKey
+  });
+  saveIncome();
+  renderIncomeLists();
+  render();
 }
 
 function renderIncomePreview(){
@@ -2448,8 +2918,10 @@ function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; 
 function billRow(ex){
   const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
   const nA = escapeHtml(names.A), nB = escapeHtml(names.B);
+  const amtA = ex.amount * ex.pctA/100, amtB = ex.amount - amtA;
+  const initA = nA.charAt(0).toUpperCase(), initB = nB.charAt(0).toUpperCase();
   const splitLabel = ex.pctA === 50 ? '50/50'
-    : `${nA} ${Math.round(ex.pctA)}% / ${nB} ${Math.round(100-ex.pctA)}%`;
+    : `${initA} ${fmt(amtA)} / ${initB} ${fmt(amtB)}`;
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(ex.desc)}</div>
@@ -2464,15 +2936,32 @@ function billRow(ex){
   </div>`;
 }
 
+// same card design as billRow(), no split (personal, not shared)
+function varExpenseBillRow(ex){
+  const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
+  return `<div class="bill">
+    <div class="bill-main">
+      <div class="bill-name">${escapeHtml(ex.desc)}</div>
+      <div class="bill-meta">
+        <span>${dateStr}</span>
+      </div>
+    </div>
+    <div class="bill-amt">${fmt(ex.amount)}</div>
+    <button class="bill-edit" onclick="openVarExpenseModal('${ex.id}')" aria-label="Editar">✎</button>
+    <button class="bill-del" onclick="deleteVarExpense('${ex.id}')" aria-label="Eliminar">✕</button>
+  </div>`;
+}
+
 function render(){
   if(!viewMonth) viewMonth = monthNow();
   $('monthLabel').textContent = monthLabel(viewMonth);
+  renderIncomeLists();
 
   const list = expenses.filter(x=>inViewMonth(x.date))
     .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const total = list.reduce((s,x)=>s+x.amount,0);
 
-  $('listTitle').textContent = `Gastos de ${monthShort(viewMonth)}` + (list.length ? ` (${list.length})` : '');
+  $('listTitle').textContent = `Gastos Fijos de ${monthShort(viewMonth)}` + (list.length ? ` (${list.length})` : '');
   $('listTotal').textContent = list.length ? fmt(total) : '';
   $('expenseList').innerHTML = list.length
     ? list.map(billRow).join('')
@@ -2483,8 +2972,11 @@ function render(){
   renderTotals(total);
   renderTotalsPerPerson(list);
   renderAvailable(list);
+  renderBudgetCategories(list);
+  renderVarEstimatesGrid(list);
   renderCharts(list);
   renderBalance();
+  renderFixedDebt();
   renderAhorro();
 }
 
@@ -2543,12 +3035,125 @@ function renderAvailable(list){
   const col = (who, inc, share) => {
     const left = inc - share;
     return `<div class="avail-col">
-      <div class="avail-who">${escapeHtml(who)}</div>
+      <div class="avail-who">Saldo ${escapeHtml(who)}</div>
       <div class="avail-amt ${left < 0 ? 'neg' : ''}">${fmt(left)}</div>
-      <div class="avail-sub">${fmt(inc)} − ${fmt(share)} de gastos</div>
+      <div class="avail-sub">${fmt(inc)} de ingresos − ${fmt(share)} de gastos</div>
     </div>`;
   };
   grid.innerHTML = col(names.A, incA, shareA) + col(names.B, incB, shareB);
+}
+
+// splits each person's Saldo (renderAvailable's "left") into suggested caps per
+// discretionary category — same idea as the Ahorro tab's PLAN %, but applied to
+// what's actually left after this month's expenses rather than gross income.
+// Every category is independently editable per person (budgetOverrides); the
+// defaults leave a slice unallocated on purpose so Ahorro starts out positive.
+const BUDGET_CATEGORIES = [
+  { key:'salidas', label:'Salidas',       f:0.30 },
+  { key:'regalos', label:'Regalos',       f:0.10 },
+  { key:'hogar',   label:'Compras Hogar', f:0.20 },
+  { key:'deudas',  label:'Deudas',        f:0.20 },
+  { key:'diaria',  label:'Diaria',        f:0.15 }
+];
+const AHORRO_IDEAL_PCT = 0.2; // same 20% used as "Invertir por mes" in the Ahorro tab's PLAN
+
+function renderBudgetCategories(list){
+  let shareA = 0, shareB = 0;
+  list.forEach(ex=>{
+    shareA += ex.amount * ex.pctA/100;
+    shareB += ex.amount * (100-ex.pctA)/100;
+  });
+  const incA = incomeTotalArs('A'), incB = incomeTotalArs('B');
+  const grid = $('budgetGrid');
+  if(!grid) return;
+
+  if(incA <= 0 && incB <= 0){ grid.innerHTML = ''; return; }
+
+  const col = (who, inc, share, person) => {
+    const left = Math.max(0, inc - share);
+    const overrides = budgetOverrides[person] || {};
+    let allocated = 0;
+    const rows = BUDGET_CATEGORIES.map(c=>{
+      const val = overrides[c.key] != null ? overrides[c.key] : left * c.f;
+      allocated += val;
+      return `
+      <div class="budget-row">
+        <span class="budget-cat">${c.label}</span>
+        <input type="text" inputmode="numeric" class="budget-amt-input" value="${groupThousands(String(Math.round(val)))}"
+          data-person="${person}" data-cat="${c.key}"
+          oninput="groupThousandsInPlace(this)" onchange="setBudgetOverride(this)">
+      </div>`;
+    }).join('');
+    const ahorro = left - allocated;
+    const ahorroIdeal = left * AHORRO_IDEAL_PCT;
+
+    return `<div class="avail-col">
+      <div class="avail-who">Podés gastar — ${escapeHtml(who)}</div>
+      <div class="avail-detail-top">${rows}</div>
+      <div class="bal-line ${ahorro < 0 ? '' : 'good'}"><span class="bal-who">Ahorro</span><span class="amt">${fmt(ahorro)}</span></div>
+      <div class="avail-sub">Ideal: ahorrar ${fmt(ahorroIdeal)} (${Math.round(AHORRO_IDEAL_PCT*100)}% de lo disponible)</div>
+    </div>`;
+  };
+  grid.innerHTML = col(names.A, incA, shareA, 'A') + col(names.B, incB, shareB, 'B');
+}
+
+// mirrors attachThousands()'s caret-preserving reformat, but as an inline
+// handler since these inputs are re-created on every render() via innerHTML
+function groupThousandsInPlace(el){
+  const fromEnd = el.value.length - (el.selectionStart ?? el.value.length);
+  el.value = groupThousands(el.value);
+  const pos = Math.max(0, el.value.length - fromEnd);
+  el.setSelectionRange(pos, pos);
+}
+
+function setBudgetOverride(el){
+  const person = el.dataset.person, cat = el.dataset.cat;
+  const d = digitsOnly(el.value);
+  if(!budgetOverrides[person]) budgetOverrides[person] = {};
+  if(!d){
+    delete budgetOverrides[person][cat];
+  } else {
+    budgetOverrides[person][cat] = parseInt(d,10);
+  }
+  saveBudgetOverrides();
+  render();
+}
+
+// two columns, one per person, listing their personal variable-expense
+// estimates and what's really left after subtracting them from renderAvailable()'s "left"
+function renderVarEstimatesGrid(list){
+  $('varEstMonthLabel').textContent = monthShort(viewMonth);
+
+  let shareA = 0, shareB = 0;
+  list.forEach(ex=>{
+    shareA += ex.amount * ex.pctA/100;
+    shareB += ex.amount * (100-ex.pctA)/100;
+  });
+  const incA = incomeTotalArs('A'), incB = incomeTotalArs('B');
+  const grid = $('varEstGrid');
+
+  const col = (who, inc, share, person) => {
+    const left = inc - share;
+    const monthlyReal = varExpenses.filter(e=>e.paidBy === person && inViewMonth(e.date));
+    const realTotal = monthlyReal.reduce((s,e)=>s+e.amount, 0);
+    const refined = left - realTotal;
+    const estTotal = variableEstimatesTotal(person);
+
+    const rows = monthlyReal.length
+      ? monthlyReal.map(varExpenseBillRow).join('')
+      : `<div class="avail-est-empty">Todavía no cargaste gastos variables este mes.</div>`;
+    const estimateNote = estTotal > 0
+      ? `<div class="avail-sub">Estimabas gastar ${fmt(estTotal)} este mes</div>`
+      : '';
+
+    return `<div class="avail-col">
+      <div class="avail-who">${escapeHtml(who)}</div>
+      <div class="avail-detail-top">${rows}</div>
+      <div class="bal-line ${refined < 0 ? '' : 'good'}"><span class="bal-who">Te queda realmente</span><span class="amt">${fmt(refined)}</span></div>
+      ${estimateNote}
+    </div>`;
+  };
+  grid.innerHTML = col(names.A, incA, shareA, 'A') + col(names.B, incB, shareB, 'B');
 }
 
 // ---- Ahorro tab ----
@@ -2751,8 +3356,12 @@ function renderAhorro(){
   renderProjection(ahorro);
 
   // ---- month by month ----
-  const months = [...new Set(expenses.map(e=>monthKey(e.date)).filter(Boolean))].sort();
-  const rows = months.map(m=>({ m, ahorro: incomeTotalArs(person) - monthTotalForPerson(m, person) }));
+  // a month can have income logged with no expenses yet, or vice versa — union both
+  const months = [...new Set([
+    ...expenses.map(e=>monthKey(e.date)),
+    ...(income.entries[person]||[]).map(e=>monthKey(e.date))
+  ].filter(Boolean))].sort();
+  const rows = months.map(m=>({ m, ahorro: incomeTotalArs(person, m) - monthTotalForPerson(m, person) }));
   const peak = Math.max(1, ...rows.map(r=>Math.abs(r.ahorro)));
   const acumulado = rows.reduce((s,r)=>s+r.ahorro, 0);
 
@@ -2874,7 +3483,7 @@ function renderBalance(){
   }
   const debtor   = balance > 0 ? escapeHtml(names.B) : escapeHtml(names.A);
   const creditor = balance > 0 ? escapeHtml(names.A) : escapeHtml(names.B);
-  const html = `${debtor} le debe a ${creditor} <span class="amt">${fmt(Math.abs(balance))}</span>`;
+  const html = `<span class="bal-who">${debtor} le debe a ${creditor}</span><span class="amt">${fmt(Math.abs(balance))}</span>`;
   el.innerHTML = html;
   if(el2) el2.innerHTML = html;
 }
