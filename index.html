@@ -404,11 +404,6 @@
   .chart-title{font-size:12px;color:var(--body-muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
 
   /* ---- Resumen: hero total + delta vs. last month ---- */
-  .rs-hero{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-  .rs-hero-amt{font-size:32px;font-weight:600;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;}
-  .rs-hero-delta{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;padding:5px 10px;border-radius:9999px;background:var(--paper);color:var(--body-muted);white-space:nowrap;}
-  .rs-hero-delta.up{color:var(--a-clay-ink);background:var(--a-clay-bg);}
-  .rs-hero-delta.down{color:var(--good);background:var(--good-bg);}
 
   /* ---- Resumen: ranked category bars ---- */
   .rank-row{padding:9px 0;}
@@ -757,11 +752,6 @@
 
   <!-- ============ TAB: RESUMEN ============ -->
   <div class="tab-panel" id="panel-resumen" role="tabpanel">
-    <div class="card">
-      <div class="section-title" id="resumenTitle">Gastos del mes</div>
-      <div class="rs-hero" id="resumenHero"></div>
-    </div>
-
     <!-- ingreso / gasto / ahorro del hogar, y el mismo desglose por persona -->
     <div class="totals" id="totalsStrip"></div>
     <div class="totals-person-grid" id="totalsPersonGrid"></div>
@@ -3572,8 +3562,6 @@ function render(){
 
   renderFixedTabs(list, mes);
 
-  $('resumenTitle').textContent = 'Gastos de ' + mes;
-
   renderTotals(fin);
   renderTotalsPerPerson(fin);
   renderVarExpensesGrid();
@@ -4025,22 +4013,7 @@ function renderAhorro(){
   renderGoals(acumulado, ahorro, person, shareRatio);
 }
 
-// ---- Resumen: hero total, ranked category bars, who-paid split, month trend ----
-function renderResumenHero(list, total){
-  const [vy,vm] = viewMonth.split('-').map(Number);
-  const prevD = new Date(vy, vm-2, 1);
-  const prevKey = `${prevD.getFullYear()}-${String(prevD.getMonth()+1).padStart(2,'0')}`;
-  const prevTotal = expenses.filter(x=>monthKey(x.date)===prevKey).reduce((s,x)=>s+x.amount,0);
-  let deltaHtml = '';
-  if(prevTotal > 0){
-    const pct = Math.round((total-prevTotal)/prevTotal*100);
-    const cls = pct > 0 ? 'up' : pct < 0 ? 'down' : '';
-    const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '·';
-    deltaHtml = `<span class="rs-hero-delta ${cls}">${arrow} ${Math.abs(pct)}% vs. mes anterior</span>`;
-  }
-  $('resumenHero').innerHTML = `<span class="rs-hero-amt">${fmt(total)}</span>${deltaHtml}`;
-}
-
+// ---- Resumen: ranked category bars, who-paid split, month trend ----
 function renderCategoryRank(list){
   const byCategory = {};
   list.forEach(ex=>{ byCategory[ex.category] = (byCategory[ex.category]||0) + ex.amount; });
@@ -4105,8 +4078,6 @@ function renderMonthTrend(){
 }
 
 function renderCharts(list){
-  const total = list.reduce((s,x)=>s+x.amount,0);
-  renderResumenHero(list, total);
   renderCategoryRank(list);
   renderPersonSplit(list);
   renderMonthTrend();
