@@ -471,6 +471,22 @@
   .seg button:active{transform:scale(0.97);}
   @media(min-width:541px){#splitToggle button{flex-basis:0;}}
 
+  /* filtro dentro de una card: más liviano que .seg, para no competir con las
+     pestañas de arriba ni con el botón de agregar */
+  .sub-seg{border:none;background:var(--paper);border-radius:10px;padding:3px;gap:2px;}
+  .sub-seg button{border:none;border-radius:8px;background:transparent;padding:8px 10px;
+    font-size:13px;font-weight:500;color:var(--body-muted);display:flex;align-items:baseline;
+    justify-content:center;gap:6px;flex:1 1 0;min-width:0;}
+  .sub-seg button.active{background:var(--card);color:var(--ink);font-weight:600;
+    box-shadow:0 1px 2px rgba(0,0,0,.07);}
+  .sub-seg .sub-seg-amt{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;
+    color:var(--body-muted);white-space:nowrap;}
+  .sub-seg button.active .sub-seg-amt{color:var(--ink);}
+  @media(max-width:540px){
+    .sub-seg{flex-wrap:wrap;}
+    .sub-seg button{flex:1 1 40%;flex-direction:column;gap:1px;font-size:12.5px;padding:7px 6px;}
+  }
+
   .income-note{font-size:12px;color:var(--body-muted);margin-top:2px;line-height:1.43;letter-spacing:-0.224px;}
   .income-preview{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;font-size:13px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
   .btn-primary{margin-top:4px;background:var(--primary);color:#fff;border:none;border-radius:9999px;padding:12px 22px;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',system-ui,sans-serif;transition:background-color .15s ease, transform .1s ease;}
@@ -664,9 +680,12 @@
     <!-- BLOQUE 1: gastos fijos del mes -->
     <div class="card">
       <div class="section-title"><span id="fixedBlockTitle">Gastos fijos</span></div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los gastos compartidos que cargaste este mes. Abajo, lo que le queda a cada uno después de pagar su parte.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los gastos fijos que cargaste este mes: los del hogar y los que paga cada uno por su cuenta. Abajo, lo que le queda a cada uno después de pagar su parte.</p>
       <button type="button" class="btn-add" onclick="openModal()">+ Agregar gasto fijo</button>
-      <div id="expenseList" style="margin-top:18px;"></div>
+      <!-- filtro de la lista de abajo: compartidos o los propios de cada uno.
+           No toca los Totales, que siempre son los del mes completo. -->
+      <div class="seg sub-seg" id="fixedTabs" style="margin-top:16px;"></div>
+      <div id="expenseList" style="margin-top:14px;"></div>
       <div class="sld-block">
         <div class="sld-title">Totales</div>
         <div class="sld-grid" id="fixedSaldos"></div>
@@ -2374,9 +2393,15 @@ function renderFixed(){
       </div>`;
     }
     const locked = !!f.locked;
+    // igual que en ingresos fijos: tocar la etiqueta cicla el dueño. Acá el
+    // ciclo arranca en "Compartido", que es lo que es un gasto fijo por defecto
+    const owner = peopleCount() > 1
+      ? `<button type="button" class="who-badge" onclick="cycleFixedOwner('${f.id}')"
+           title="Tocá para pasarlo a ${escapeHtml(fixedOwnerLabel(nextFixedOwner(f.owner)))}">${escapeHtml(fixedOwnerLabel(f.owner))}</button>`
+      : '';
     return `<div class="fixed-row" data-id="${f.id}">
       ${handle}
-      <span class="f-label">${escapeHtml(f.label)}</span>
+      <span class="f-label">${escapeHtml(f.label)}${owner}</span>
       ${amt}
       <span class="fixed-actions">
         <button type="button" class="edit" onclick="startEditFixed('${f.id}')" aria-label="Editar">✎</button>
@@ -2388,6 +2413,28 @@ function renderFixed(){
       </span>
     </div>`;
   }).join('') : '<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos fijos.</div>';
+}
+
+// Un gasto fijo puede ser del hogar (sin dueño, se divide) o de una sola
+// persona — el Monotributo de uno no lo paga el otro. El dueño vive en la
+// plantilla para no tener que elegir la división a mano todos los meses:
+// al tocar la etiqueta en el modal ya viene puesta.
+const fixedOwnerLabel = (owner) => isPerson(owner) ? nameOf(owner) : 'Compartido';
+function nextFixedOwner(owner){
+  const ids = pids();
+  if(!isPerson(owner)) return ids[0];
+  const at = ids.indexOf(owner);
+  return at === ids.length - 1 ? null : ids[at + 1];   // después del último, vuelve a compartido
+}
+// la división que le corresponde a un gasto cargado desde esta plantilla
+const splitForOwner = (owner) => isPerson(owner) ? 'only:' + owner : 'equal';
+function cycleFixedOwner(id){
+  const item = fixed.find(f=>f.id === id);
+  if(!item) return;
+  item.owner = nextFixedOwner(item.owner);
+  saveFixed();
+  renderFixed();
+  renderChips();
 }
 // ---- drag to reorder ----
 // pointer events rather than HTML5 drag-and-drop, so this works with a finger too.
@@ -2853,6 +2900,18 @@ $('descChips').addEventListener('click', (e)=>{
   if(!f) return;
   $('fDesc').value = f.label;
   $('fAmount').value = f.amount ? groupThousands(String(f.amount)) : '';
+  // la plantilla ya sabe si el gasto es del hogar o de alguien en particular
+  const split = splitForOwner(f.owner);
+  if(isSplitAvailable(split)){
+    currentSplit = split;
+    document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
+    // el dueño de un gasto propio suele ser también quien lo paga
+    if(isPerson(f.owner)){
+      currentPaidBy = f.owner;
+      document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
+    }
+    renderIncomePreview();
+  }
   syncChips();
 });
 $('fDesc').addEventListener('input', syncChips);
@@ -3452,6 +3511,57 @@ function monthFinance(key){
 // suma de un campo de la cadena sobre todas las personas del espacio
 const finSum = (fin, field) => pids().reduce((s,id)=>s + fin[id][field], 0);
 
+// ---- sub-pestañas de Gastos fijos: compartidos vs. los propios de cada uno ----
+// El criterio sale del reparto que ya tiene cada gasto, no de un campo aparte:
+// si lo banca una sola persona es de ella, y si lo bancan varias es del hogar.
+function expenseOwner(ex){
+  const bearers = pids().filter(id=>personShareOf(ex, id) > 0);
+  return bearers.length === 1 ? bearers[0] : 'shared';
+}
+let currentFixedTab = 'shared';
+
+function renderFixedTabs(list, mes){
+  const tabs = $('fixedTabs');
+  // con una sola persona no hay nada que separar: todo es suyo
+  if(peopleCount() < 2){
+    tabs.style.display = 'none';
+    $('expenseList').innerHTML = expenseListHtml(list, mes, 'No hay gastos cargados en ' + mes + '.');
+    return;
+  }
+  tabs.style.display = '';
+
+  const groups = [{ key:'shared', label:'Compartidos' }, ...people.map(p=>({ key:p.id, label:p.name }))];
+  if(!groups.some(g=>g.key === currentFixedTab)) currentFixedTab = 'shared';
+
+  const totals = {};
+  groups.forEach(g=>{ totals[g.key] = 0; });
+  list.forEach(ex=>{ totals[expenseOwner(ex)] += ex.amount; });
+
+  tabs.innerHTML = groups.map(g=>
+    `<button type="button" data-tab="${g.key}"${g.key === currentFixedTab ? ' class="active"' : ''}>
+      ${escapeHtml(g.label)}${totals[g.key] ? `<span class="sub-seg-amt">${fmt(totals[g.key])}</span>` : ''}
+    </button>`).join('');
+
+  const shown = list.filter(ex=>expenseOwner(ex) === currentFixedTab);
+  const vacio = currentFixedTab === 'shared'
+    ? `Todavía no hay gastos del hogar en ${mes}.`
+    : `${nameOf(currentFixedTab)} no tiene gastos fijos propios en ${mes}.`;
+  $('expenseList').innerHTML = expenseListHtml(shown, mes, vacio);
+}
+
+function expenseListHtml(list, mes, vacio){
+  return list.length
+    ? list.map(billRow).join('')
+    : `<div class="empty">${escapeHtml(vacio)}<br>Agregá el primero con el botón de arriba.</div>`;
+}
+
+$('fixedTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentFixedTab = btn.dataset.tab;
+  render();
+});
+
 function render(){
   if(!viewMonth) viewMonth = monthNow();
   $('monthLabel').textContent = monthLabel(viewMonth);
@@ -3467,9 +3577,7 @@ function render(){
   $('budgetBlockTitle').textContent = `Gastos posibles de ${mes}`;
   $('gastosAhorroTitle').textContent = `Ahorro de ${mes}`;
 
-  $('expenseList').innerHTML = list.length
-    ? list.map(billRow).join('')
-    : `<div class="empty">No hay gastos cargados en ${mes}.<br>Agregá el primero con el botón de arriba.</div>`;
+  renderFixedTabs(list, mes);
 
   $('resumenTitle').textContent = 'Gastos de ' + mes;
 
