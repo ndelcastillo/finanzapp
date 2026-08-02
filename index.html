@@ -215,7 +215,7 @@
   .goal-empty{font-size:12.5px;color:var(--body-muted);line-height:1.5;padding:8px 0 4px;}
 
   /* ---- "what's left" hero ---- */
-  .avail{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+  .avail{display:grid;grid-template-columns:repeat(var(--cols,2),1fr);gap:12px;}
   .avail-col{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;text-align:center;
     display:flex;flex-direction:column;}
   .avail-col .avail-detail-top{flex:1;}
@@ -500,11 +500,11 @@
   .settings-row > div{flex:1;}
   .hint{font-size:12px;color:var(--ink-muted-48);margin-top:10px;line-height:1.5;letter-spacing:-0.12px;}
 
-  /* una columna por persona: se acomodan solas según cuántas haya en el espacio */
-  .people-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+  /* una columna por persona: 1, 2 o 3 en un renglón; 4 van de a 2×2 */
+  .people-grid{display:grid;grid-template-columns:repeat(var(--cols,2),1fr);gap:10px;}
   @media(max-width:540px){.people-grid{grid-template-columns:1fr;}}
-  /* en Ajustes los nombres entran todos en un renglón, sean 1 o 4 */
-  @media(min-width:541px){#namesGrid{grid-template-columns:repeat(var(--cols,2),1fr);}}
+  /* los nombres en Ajustes son la excepción: entran todos en un renglón, sean 1 o 4 */
+  @media(min-width:541px){#namesGrid{grid-template-columns:repeat(var(--cols-all,2),1fr);}}
   /* y la cantidad de personas es una sola fila de opciones, sin envolver */
   #peopleCountSeg{flex-wrap:nowrap;}
   #peopleCountSeg button{flex:1 1 0;}
@@ -807,7 +807,6 @@
         <span class="h3c"></span>
       </div>
       <div id="fixedTable"></div>
-      <div class="bal-line" id="fixedDebtRow"></div>
       <div class="fixed-add">
         <input type="text" id="fixedLabelInput" placeholder="Ej: Luz, Gas, Cochera">
         <input type="text" class="f-new-amt" inputmode="numeric" id="fixedAmountInput" placeholder="0">
@@ -2389,14 +2388,6 @@ function renderFixed(){
       </span>
     </div>`;
   }).join('') : '<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos fijos.</div>';
-  renderFixedDebt();
-}
-
-// balance card at the end of the fixed list, so it nets the section to $0
-function renderFixedDebt(){
-  const el = $('fixedDebtRow');
-  if(!el) return;
-  el.innerHTML = balanceHtml();
 }
 // ---- drag to reorder ----
 // pointer events rather than HTML5 drag-and-drop, so this works with a finger too.
@@ -2896,10 +2887,13 @@ function resetForm(){
 // estimados, las opciones de división de un gasto y los inputs de nombre en
 // Ajustes. Al cambiar la cantidad de personas alcanza con volver a llamarla.
 function refreshPeopleUI(){
-  // las grillas por persona leen estas dos variables en vez de tener un número
-  // fijo de columnas: --cols para pantalla ancha, --cols-sm (tope 2) en celular
-  document.documentElement.style.setProperty('--cols', peopleCount());
-  document.documentElement.style.setProperty('--cols-sm', Math.min(peopleCount(), 2));
+  // las grillas por persona leen estas variables en vez de tener un número fijo
+  // de columnas. Con cuatro personas van de a 2×2 y no 3+1, que deja una sola
+  // tarjeta colgando en la segunda fila; con tres, las tres entran en un renglón.
+  const n = peopleCount();
+  document.documentElement.style.setProperty('--cols', n === 4 ? 2 : n);
+  document.documentElement.style.setProperty('--cols-all', n);
+  document.documentElement.style.setProperty('--cols-sm', Math.min(n, 2));
   // en un espacio de una sola persona, elegir "de quién es" no aporta nada:
   // el selector se arma igual (para que el resto del código no cambie) pero
   // se esconde junto con su etiqueta
@@ -3486,7 +3480,6 @@ function render(){
   renderBlockSaldos(fin);
   renderCharts(list);
   renderBalance();
-  renderFixedDebt();
   renderAhorro();
 }
 
