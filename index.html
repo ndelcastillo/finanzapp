@@ -165,12 +165,13 @@
   .rule-cmp .rule-t{color:var(--body-muted);font-weight:400;}
   .rule-cmp.ok{color:var(--good);}
   .rule-cmp.over{color:var(--a-clay);}
-  .rule-track{position:relative;height:9px;background:var(--paper);border-radius:9999px;margin:9px 0 7px;overflow:hidden;}
+  .rule-track{position:relative;height:9px;background:var(--paper);border-radius:9999px;margin:9px 0 0;overflow:hidden;}
   .rule-track i{display:block;height:100%;border-radius:9999px;background:var(--good);}
   .rule-track i.over{background:var(--a-clay);}
   /* the target marker sits inside the track, so it can't be clipped away */
   .rule-mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-muted-48);}
-  /* los mismos dos números de arriba pero en pesos, alineados bajo el porcentaje */
+  /* el porcentaje y, justo debajo, el mismo par en pesos — los dos arriba de la barra */
+  .rule-cmp-box{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto;}
   .rule-d{font-size:12px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
   .rule-d .rule-v{font-weight:600;color:var(--ink);}
   .rule-d .rule-v.ok{color:var(--good);}
@@ -735,7 +736,7 @@
 
     <div class="card">
       <div class="section-title">Cómo venís este mes</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Un reparto de referencia de lo que entra: la mitad a lo que no podés dejar de pagar (gastos fijos + variables), un 30% a lo que te querés dar (tus gastos posibles), y un 20% que no se toca (tu ahorro). La marca gris en cada barra es el objetivo; abajo, el mismo par de números en pesos.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Un reparto de referencia de lo que entra: la mitad a lo que no podés dejar de pagar (gastos fijos + variables), un 30% a lo que te querés dar (tus gastos posibles), y un 20% que no se toca (tu ahorro). La marca gris en cada barra es el objetivo; arriba, el mismo par de números en pesos.</p>
       <div id="ruleBox"></div>
     </div>
 
@@ -3952,13 +3953,15 @@ function renderRule5030(person){
     return `<div class="rule-row">
       <div class="rule-h">
         <span class="rule-n">${name}</span>
-        <span class="rule-cmp ${bad?'over':'ok'}">${Math.round(pct)}% <span class="rule-t">/ ${target}%</span></span>
+        <span class="rule-cmp-box">
+          <span class="rule-cmp ${bad?'over':'ok'}">${Math.round(pct)}% <span class="rule-t">/ ${target}%</span></span>
+          <span class="rule-d"><span class="rule-v ${bad?'over':'ok'}">${fmt(actual)}</span> <span class="rule-t">/ ${fmt(ingreso*target/100)}</span></span>
+        </span>
       </div>
       <div class="rule-track">
         <i class="${bad?'over':''}" style="width:${Math.max(0, Math.min(100, pct))}%"></i>
         <span class="rule-mark" style="left:${target}%"></span>
       </div>
-      <div class="rule-d"><span class="rule-v ${bad?'over':'ok'}">${fmt(actual)}</span> <span class="rule-t">/ ${fmt(ingreso*target/100)}</span></div>
     </div>`;
   };
 
