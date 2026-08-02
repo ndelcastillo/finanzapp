@@ -475,17 +475,11 @@
      pestañas de arriba ni con el botón de agregar */
   .sub-seg{border:none;background:var(--paper);border-radius:10px;padding:3px;gap:2px;}
   .sub-seg button{border:none;border-radius:8px;background:transparent;padding:8px 10px;
-    font-size:13px;font-weight:500;color:var(--body-muted);display:flex;align-items:baseline;
-    justify-content:center;gap:6px;flex:1 1 0;min-width:0;}
+    font-size:13px;font-weight:500;color:var(--body-muted);text-align:center;
+    flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .sub-seg button.active{background:var(--card);color:var(--ink);font-weight:600;
     box-shadow:0 1px 2px rgba(0,0,0,.07);}
-  .sub-seg .sub-seg-amt{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;
-    color:var(--body-muted);white-space:nowrap;}
-  .sub-seg button.active .sub-seg-amt{color:var(--ink);}
-  @media(max-width:540px){
-    .sub-seg{flex-wrap:wrap;}
-    .sub-seg button{flex:1 1 40%;flex-direction:column;gap:1px;font-size:12.5px;padding:7px 6px;}
-  }
+  @media(max-width:540px){.sub-seg button{font-size:12.5px;padding:7px 6px;}}
 
   .income-note{font-size:12px;color:var(--body-muted);margin-top:2px;line-height:1.43;letter-spacing:-0.224px;}
   .income-preview{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;font-size:13px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
@@ -3533,14 +3527,9 @@ function renderFixedTabs(list, mes){
   const groups = [{ key:'shared', label:'Compartidos' }, ...people.map(p=>({ key:p.id, label:p.name }))];
   if(!groups.some(g=>g.key === currentFixedTab)) currentFixedTab = 'shared';
 
-  const totals = {};
-  groups.forEach(g=>{ totals[g.key] = 0; });
-  list.forEach(ex=>{ totals[expenseOwner(ex)] += ex.amount; });
-
   tabs.innerHTML = groups.map(g=>
-    `<button type="button" data-tab="${g.key}"${g.key === currentFixedTab ? ' class="active"' : ''}>
-      ${escapeHtml(g.label)}${totals[g.key] ? `<span class="sub-seg-amt">${fmt(totals[g.key])}</span>` : ''}
-    </button>`).join('');
+    `<button type="button" data-tab="${g.key}"${g.key === currentFixedTab ? ' class="active"' : ''}>${escapeHtml(g.label)}</button>`
+  ).join('');
 
   const shown = list.filter(ex=>expenseOwner(ex) === currentFixedTab);
   const vacio = currentFixedTab === 'shared'
