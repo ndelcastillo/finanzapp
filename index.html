@@ -3433,12 +3433,12 @@ function deleteExpense(id){
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
 // "partes iguales" cuando a todos les toca lo mismo; si no, inicial + monto de
-// cada uno que efectivamente pone algo (con una sola persona no se muestra nada)
+// cada uno que efectivamente pone algo. Un gasto de una sola persona no lleva
+// etiqueta: ya estás parado en su pestaña.
 function splitLabelOf(ex){
   if(peopleCount() < 2) return '';
   const ids = pids().filter(id=>personShareOf(ex, id) > 0);
-  if(!ids.length) return '';
-  if(ids.length === 1) return 'todo a ' + nameOf(ids[0]);
+  if(ids.length < 2) return '';
   const pcts = ids.map(id=>ex.shares[id]);
   const even = pcts.every(p=>Math.abs(p - pcts[0]) < 0.5) && ids.length === peopleCount();
   if(even) return 'partes iguales';
@@ -3448,12 +3448,16 @@ function splitLabelOf(ex){
 function billRow(ex){
   const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
   const splitLabel = splitLabelOf(ex);
+  // en un gasto propio decir quién paga sobra... salvo que lo haya puesto otro,
+  // porque ahí sí queda una deuda entre los dos y hay que poder verla
+  const owner = expenseOwner(ex);
+  const showPayer = owner === 'shared' ? peopleCount() > 1 : ex.paidBy !== owner;
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(ex.desc)}</div>
       <div class="bill-meta">
         <span>${dateStr}</span>${splitLabel ? `<span>·</span><span>${escapeHtml(splitLabel)}</span>` : ''}
-        <span class="tag ${personTagClass(ex.paidBy)}">Paga ${escapeHtml(nameOf(ex.paidBy))}</span>
+        ${showPayer ? `<span class="tag ${personTagClass(ex.paidBy)}">Paga ${escapeHtml(nameOf(ex.paidBy))}</span>` : ''}
       </div>
     </div>
     <div class="bill-amt">${fmt(ex.amount)}</div>
