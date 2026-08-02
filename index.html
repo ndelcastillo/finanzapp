@@ -661,8 +661,6 @@
 
   <!-- ============ TAB: GASTOS ============ -->
   <div class="tab-panel" id="panel-gastos" role="tabpanel">
-    <!-- household totals for the selected month -->
-    <div class="totals" id="totalsStrip"></div>
     <!-- punto de partida de la cadena: lo que entró, antes de tocar nada -->
     <div class="card">
       <div class="sld-block bare">
@@ -763,7 +761,8 @@
       <div class="rs-hero" id="resumenHero"></div>
     </div>
 
-    <!-- ingreso / gasto / ahorro de cada uno, plegado por defecto -->
+    <!-- ingreso / gasto / ahorro del hogar, y el mismo desglose por persona -->
+    <div class="totals" id="totalsStrip"></div>
     <div class="totals-person-grid" id="totalsPersonGrid"></div>
 
     <div class="card">
