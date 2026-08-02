@@ -22,7 +22,11 @@ Everything lives in one file: `<style>` in the `<head>`, markup in `<body>`, and
 - `names_v1` → `names` column — `{A, B}` display names for the two people
 - `income_v2` → `income` column — `{fx, entries: {A: [...], B: [...]}}`; a legacy scalar shape is migrated on load via `migrateIncome()`
 - `fixed_v1` → `fixed` column, `fixedincome_v1` → `fixed_income` column
+- `varestimates_v1` → `variable_estimates`, `varexpenses_v1` → `variable_expenses`, `budgetoverrides_v1` → `budget_overrides`
+- `goals_v1` → `goals` column — array of user-written savings goals `{id, person, name, kind:'total'|'mensual', amount, currency, deadline, saved}`
 - the one-time migration flags (`fixed_m1`, `fixed_m2`, `fixed_m3`, `fixedincome_m1`) collapse into a single `migration_flags` jsonb column instead of separate rows
+
+Adding a new logical key means adding the column to `couples` in Supabase too (`alter table couples add column <name> jsonb;`) — there's no migration runner. A write to a column that doesn't exist comes back as Postgres error `42703`; `store._writeNow()` special-cases it (no retries, and a toast naming the missing column) and the value survives in the localStorage cache until the column exists.
 
 A Supabase Realtime subscription (`subscribeCoupleRealtime()`) pushes every `UPDATE` on the couple's row to all other open tabs/devices with the same code, which is what makes cross-device sync work without polling. Row Level Security on `couples` allows any `anon` client to read/write — the couple code itself is the only access control, mirroring the no-auth model the app already had. The Supabase project URL and anon key are hardcoded near the top of the script (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) — this is intentional and safe: Supabase anon keys are meant to be public, security comes from RLS policies, not from hiding the key.
 
@@ -30,8 +34,15 @@ A Supabase Realtime subscription (`subscribeCoupleRealtime()`) pushes every `UPD
 
 **State → render flow**: every mutation (add/delete/toggle expense, add/remove income, change names or FX rate) follows the same pattern: mutate the in-memory object → persist via the relevant `save*()` function (fire-and-forget async, wrapped in try/catch) → call `render()` (or `renderIncomeLists()` for income-specific UI) to redraw affected DOM sections from scratch. There is no diffing — sections are fully re-stringified and reassigned to `innerHTML`.
 
+**The money chain** — the single source of truth for every "how much is left" figure in the app is `financeFor(person, monthKey)`. It walks one person's month in the order the Gastos tab lays it out:
+
+```
+ingreso − su parte de los gastos fijos − sus gastos variables − lo que tiene presupuestado gastar = ahorro
+```
+
+and returns every intermediate saldo (`afterFijos`, `afterVar`) plus `cats`/`podes` (the "Podés gastar" per-category budget, from `budgetCatsFor()`). The Gastos tab is four big `.card` blocks — Gastos fijos, Gastos variables, Podés gastar, Ahorro — and each one closes with a two-column "Saldos" footer (`.sld-*`, `renderBlockSaldos()`) showing the running saldo at that step; the Ahorro block's number is the end of the chain. The Ahorro tab's headline number, its month-by-month history, and its 50/30/20 bars all read from the same function, so they can't drift from Gastos. If you change how any step is computed, change it in `financeFor()`, not in a renderer.
+
 **Key derived calculations** (in `render()`'s call graph):
-- `renderBudget()` — "disponible para gastar": each person's income minus their split share of expenses flagged `essential` and dated in the current month.
 - `renderCharts()` → `renderBalance()` — computes net debt between A and B across *all* expenses (not just current month) by summing each person's owed share vs. what they actually paid.
 - `incomePctA()` — proportional income split (used when an expense's `splitType === 'income'`), converts any USD income entries to ARS using the manually-entered `fx` rate before comparing.
 - Recurring expenses: marking a recurring expense paid (`togglePaid`) auto-generates the next month's copy via `addMonths()`, and bumps `cycleCount`; if `adjustPct > 0` and the new cycle is a multiple of 3, the amount is escalated by that percentage.

@@ -44,6 +44,10 @@
   .head-right{display:flex;align-items:center;justify-self:end;gap:10px;flex:0 0 auto;}
 
   .session-menu,.popover-menu{position:relative;flex:0 0 auto;}
+  /* la fecha de hoy, siempre visible en el encabezado */
+  .today-chip{flex:0 0 auto;font-size:13px;font-weight:500;color:var(--body-muted);
+    white-space:nowrap;letter-spacing:-0.1px;}
+  @media(max-width:600px){.today-chip{font-size:12.5px;}}
   .icon-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line-strong);
     background:var(--card);color:var(--body-muted);display:flex;align-items:center;justify-content:center;
     cursor:pointer;transition:background-color .15s ease,color .15s ease;flex:0 0 auto;
@@ -166,15 +170,12 @@
   .rule-track i.over{background:var(--a-clay);}
   /* the target marker sits inside the track, so it can't be clipped away */
   .rule-mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-muted-48);}
-  .rule-d{font-size:11.5px;color:var(--body-muted);font-variant-numeric:tabular-nums;}
-
-  /* ---- compound-interest projection ---- */
-  .proj-row{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
-  .proj-row:last-child{border-bottom:none;}
-  .proj-t{flex:0 0 76px;font-size:13px;font-weight:600;}
-  .proj-v{flex:1;text-align:right;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
-  .proj-s{flex:0 0 100%;font-size:11px;color:var(--body-muted);font-variant-numeric:tabular-nums;margin-top:-4px;}
-  @media(max-width:480px){.proj-t{flex:0 0 62px;font-size:12px;}.proj-v{font-size:14px;}}
+  /* los mismos dos números de arriba pero en pesos, alineados bajo el porcentaje */
+  .rule-d{font-size:12px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  .rule-d .rule-v{font-weight:600;color:var(--ink);}
+  .rule-d .rule-v.ok{color:var(--good);}
+  .rule-d .rule-v.over{color:var(--a-clay);}
+  .rule-d .rule-t{color:var(--body-muted);}
 
   /* ---- the five plan numbers ---- */
   .plan-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
@@ -204,10 +205,17 @@
   .goal-track i.part{background:var(--a-gold);}
   .goal-d{font-size:11.5px;color:var(--body-muted);line-height:1.5;font-variant-numeric:tabular-nums;}
   .goal-pct{font-weight:600;color:var(--ink);}
+  .goal-n .goal-kind{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--body-muted);background:var(--paper);border-radius:9999px;padding:2px 8px;margin-left:7px;
+    vertical-align:middle;}
+  .goal-acts{display:flex;gap:4px;margin-left:6px;}
+  .goal-acts button{border:none;background:transparent;color:var(--body-muted);cursor:pointer;
+    font-size:13px;line-height:1;padding:3px 5px;border-radius:7px;font-family:inherit;}
+  .goal-acts button:hover{background:var(--pearl);color:var(--ink);}
+  .goal-empty{font-size:12.5px;color:var(--body-muted);line-height:1.5;padding:8px 0 4px;}
 
   /* ---- "what's left" hero ---- */
-  .avail{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  #expenseList + .avail, .bal-line + .avail, #varEstGrid + .avail{margin-top:24px;}
+  .avail{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
   .avail-col{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;text-align:center;
     display:flex;flex-direction:column;}
   .avail-col .avail-detail-top{flex:1;}
@@ -225,7 +233,6 @@
   .avail-est-total{border-top:1px solid var(--line);margin-top:4px;padding-top:8px;font-weight:600;color:var(--ink);}
   .avail-est-total .neg{color:var(--a-clay);}
   .avail-est-empty{font-size:12px;color:var(--body-muted);text-align:center;line-height:1.5;}
-  .avail-cap{font-size:12px;color:var(--body-muted);text-align:center;margin:10px 0 0;letter-spacing:-0.12px;}
   .budget-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;
     padding:7px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;}
   .budget-row:last-child{border-bottom:none;}
@@ -241,6 +248,10 @@
     padding:16px;background:var(--a-clay-bg);border-radius:16px;font-size:13px;color:var(--a-clay-ink);
     font-variant-numeric:tabular-nums;}
   .bal-line:empty{display:none;}
+  /* con 3+ personas puede haber más de una deuda cruzada, una debajo de la otra */
+  .bal-pair{display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .bal-pair + .bal-pair{margin-top:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.08);
+    align-self:stretch;}
   .bal-line .bal-who{font-size:13px;font-weight:500;}
   .bal-line .amt{font-size:24px;font-weight:700;color:var(--a-clay-ink);letter-spacing:-0.5px;}
   .bal-line.good{background:var(--good-bg);color:var(--good);}
@@ -248,6 +259,41 @@
   .avail-col .bal-line{margin:14px 0 0;padding:12px;}
   .avail-col .bal-line .amt{font-size:20px;}
   @media(max-width:480px){.avail{grid-template-columns:1fr;}}
+  /* the two-person columns sit inside a big block card now, so they can't
+     repeat the card's own background or they read as a card inside a card */
+  .card .avail-col{background:var(--pearl);}
+
+  /* ---- "Saldos" footer, closing every big block on Gastos ---- */
+  .sld-block{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
+  /* when Saldos is the card's only content there's nothing above it to divide from */
+  .sld-block.bare{margin-top:4px;padding-top:0;border-top:none;}
+  .sld-title{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);
+    font-weight:600;margin-bottom:10px;}
+  /* con 1 persona ocupa todo el ancho; con 3 o 4 se acomodan de a dos en el celular */
+  .sld-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+  .sld-cell{background:var(--pearl);border:1px solid var(--line);border-radius:14px;
+    padding:14px 12px;text-align:center;}
+  .sld-who{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);font-weight:600;}
+  .sld-amt{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.4px;
+    margin-top:5px;line-height:1.15;}
+  .sld-amt.neg{color:var(--a-clay);}
+  /* the last block (Ahorro) is a verdict, not a running total — it reads green
+     when you cerraste el mes en positivo y rojo cuando no */
+  .sld-cell.tone-good{background:var(--good-bg);border-color:transparent;}
+  .sld-cell.tone-bad{background:var(--a-clay-bg);border-color:transparent;}
+  .sld-cell.tone-good .sld-amt{color:var(--good);}
+  .sld-cell.tone-bad .sld-amt{color:var(--a-clay-ink);}
+  .sld-sub{font-size:11px;color:var(--body-muted);margin-top:7px;line-height:1.4;font-variant-numeric:tabular-nums;}
+  /* on a phone the two saldos stay side by side — the arithmetic under each
+     number is what gets dropped, not the second column */
+  @media(max-width:480px){
+    .sld-grid{gap:8px;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));}
+    .sld-cell{padding:12px 8px;}
+    .sld-amt{font-size:17px;letter-spacing:-0.3px;}
+    .sld-who{font-size:10.5px;}
+    .sld-sub{display:none;}
+  }
+
 
   .btn-add{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
     background:var(--primary);color:#fff;border:none;border-radius:14px;padding:15px;
@@ -398,22 +444,18 @@
   .section-title .count{font-weight:600;font-size:12px;letter-spacing:0;color:var(--body-muted);background:var(--paper);padding:2px 9px;border-radius:9999px;}
   .card .section-title{margin-top:0;}
 
-  .list-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;}
-  .list-head .t{font-size:21px;font-weight:600;letter-spacing:0.231px;}
-  .list-head .tot{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
-
   form.add-form{display:flex;flex-direction:column;gap:14px; margin-bottom:-10px}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   @media(max-width:540px){.row2{grid-template-columns:1fr;}}
   label{font-size:14px;color:var(--body-muted);display:block;margin-bottom:6px;letter-spacing:-0.224px;}
-  input[type=text],input[type=number],input[type=date],input[type=password],select{
+  input[type=text],input[type=number],input[type=date],input[type=month],input[type=password],select{
     width:100%;border:1px solid var(--line-strong);background:var(--card);border-radius:8px;
     padding:10px 12px;font-size:16px;font-family:'Inter',system-ui,sans-serif;color:var(--ink);
     transition:border-color .15s ease, box-shadow .15s ease;
   }
   /* iOS Safari auto-zooms on focus when an input's font-size is below 16px */
   @media(max-width:540px){
-    input[type=text],input[type=number],input[type=date],input[type=password],select{font-size:16px;}
+    input[type=text],input[type=number],input[type=date],input[type=month],input[type=password],select{font-size:16px;}
   }
   input:focus,select:focus{outline:none;border-color:var(--primary-focus);box-shadow:0 0 0 3px rgba(0,113,227,0.15);}
 
@@ -441,8 +483,11 @@
   .bill-name{font-size:15px;font-weight:600;letter-spacing:-0.224px;}
   .bill-meta{font-size:12px;color:var(--body-muted);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
   .tag{font-size:11px;padding:2px 8px;border-radius:9999px;font-weight:600;}
-  .tag-a{background:var(--a-gold-bg);color:var(--a-gold-ink);}
-  .tag-b{background:var(--a-clay-bg);color:var(--a-clay-ink);}
+  /* un color por persona, en el orden en que están cargadas en Ajustes */
+  .tag-p0{background:var(--a-gold-bg);color:var(--a-gold-ink);}
+  .tag-p1{background:var(--a-clay-bg);color:var(--a-clay-ink);}
+  .tag-p2{background:#D9E6DC;color:#2F5C3F;}
+  .tag-p3{background:#DAE0EE;color:#3A4A78;}
   .bill-amt{font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;white-space:nowrap;}
   .bill-edit,.bill-del{background:none;border:none;color:var(--body-muted);cursor:pointer;font-size:16px;padding:2px 4px;flex-shrink:0;border-radius:6px;transition:color .15s ease, transform .1s ease;}
   .bill-edit:hover{color:var(--primary);}
@@ -454,6 +499,9 @@
   .settings-row > div{flex:1;}
   .hint{font-size:12px;color:var(--ink-muted-48);margin-top:10px;line-height:1.5;letter-spacing:-0.12px;}
 
+  /* una columna por persona: se acomodan solas según cuántas haya en el espacio */
+  .people-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+  @media(max-width:540px){.people-grid{grid-template-columns:1fr;}}
   .income-person{background:var(--pearl);border:1px solid var(--line);border-radius:12px;padding:16px;}
   .who-label{font-weight:600;font-size:14px;margin-bottom:10px;letter-spacing:-0.224px;}
   .income-big{font-size:26px;font-weight:600;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;margin-bottom:14px;line-height:1.15;}
@@ -552,14 +600,8 @@
       <button type="button" onclick="shiftMonth(1)" aria-label="Mes siguiente">›</button>
     </div>
     <div class="head-right">
-      <div class="popover-menu">
-        <button type="button" class="icon-btn" id="dateBtn" onclick="toggleDatePopover()" aria-label="Fecha de hoy" aria-haspopup="true" aria-expanded="false">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        </button>
-        <div class="session-dropdown" id="dateDropdown">
-          <div id="todayDate" class="usd-dropdown-body"></div>
-        </div>
-      </div>
+      <!-- la fecha de hoy, a la vista: antes vivía detrás de un ícono de calendario -->
+      <div class="today-chip" id="todayDate"></div>
       <div class="popover-menu">
         <button type="button" class="icon-btn" id="usdBtn" onclick="toggleUsdPopover()" aria-label="Cotización del dólar blue" aria-haspopup="true" aria-expanded="false">$</button>
         <div class="session-dropdown" id="usdDropdown">
@@ -575,7 +617,6 @@
         </button>
         <div class="session-dropdown" id="sessionDropdown">
           <div class="session-code" id="sessionCodeLabel"></div>
-          <button type="button" onclick="changeCoupleCode()">Cambiar de espacio</button>
           <button type="button" onclick="logoutCouple()">Cerrar sesión</button>
         </div>
       </div>
@@ -595,18 +636,8 @@
       <div class="section-title" id="incomeSectionTitle">Ingresos mensuales</div>
       <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuánto entra por mes en cada lado. Podés cargar más de uno (ej: sueldo + un freelance). Si es en USD, guardás la cotización de ese día.</p>
       <div id="prevMonthSaldo"></div>
-      <div class="row2">
-        <div class="income-person" data-person="A">
-          <div class="who-label" id="incomeLabelA">Juan</div>
-          <div class="income-big" id="incomeTotalA">$0</div>
-          <div class="income-entries" id="incomeListA"></div>
-        </div>
-        <div class="income-person" data-person="B">
-          <div class="who-label" id="incomeLabelB">Maria</div>
-          <div class="income-big" id="incomeTotalB">$0</div>
-          <div class="income-entries" id="incomeListB"></div>
-        </div>
-      </div>
+      <!-- una columna por persona del espacio, armada en renderIncomeLists() -->
+      <div class="people-grid" id="incomeGrid"></div>
       <button type="button" class="btn-add" style="margin:18px 0 0;" onclick="openIncomeModal()">+ Agregar ingreso</button>
       <div class="income-preview" id="incomePreview" style="display:none;"></div>
     </div>
@@ -616,36 +647,63 @@
   <div class="tab-panel" id="panel-gastos" role="tabpanel">
     <!-- household totals for the selected month -->
     <div class="totals" id="totalsStrip"></div>
-    <div class="totals-person-grid" id="totalsPersonGrid"></div>
-
-    <button type="button" class="btn-add" onclick="openModal()">+ Agregar gasto fijo</button>
-
-    <div class="list-head">
-      <span class="t" id="listTitle">Gastos</span>
-      <span class="tot" id="listTotal"></span>
+    <!-- punto de partida de la cadena: lo que entró, antes de tocar nada -->
+    <div class="card">
+      <div class="sld-block bare">
+        <div class="sld-title">Saldos iniciales</div>
+        <div class="sld-grid" id="startSaldos"></div>
+      </div>
     </div>
-    <div id="expenseList"></div>
 
-    <div class="bal-line" id="balanceResult"></div>
-
-    <div class="avail" id="availGrid"></div>
-    <p class="avail-cap">Te queda esto después de pagar tu parte de todos los gastos fijos cargados en el mes.</p>
-
-    <div class="list-head" id="varEstListHead" style="margin-top:24px;">
-      <span class="t">Gastos Variables de <span id="varEstMonthLabel"></span></span>
+    <!-- BLOQUE 1: gastos fijos del mes -->
+    <div class="card">
+      <div class="section-title"><span id="fixedBlockTitle">Gastos fijos</span></div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los gastos compartidos que cargaste este mes. Abajo, lo que le queda a cada uno después de pagar su parte.</p>
+      <button type="button" class="btn-add" onclick="openModal()">+ Agregar gasto fijo</button>
+      <div id="expenseList" style="margin-top:18px;"></div>
+      <div class="sld-block">
+        <div class="sld-title">Totales</div>
+        <div class="sld-grid" id="fixedSaldos"></div>
+      </div>
+      <div class="bal-line" id="balanceResult"></div>
     </div>
-    <button type="button" class="btn-add" onclick="openVarExpenseModal()">+ Agregar gasto variable</button>
-    <div class="avail" id="varEstGrid" style="margin-top:14px;"></div>
 
-    <div class="avail" id="budgetGrid" style="margin-top:14px;"></div>
+    <!-- BLOQUE 2: gastos variables del mes -->
+    <div class="card">
+      <div class="section-title"><span id="varBlockTitle">Gastos variables</span></div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Lo personal de cada uno: nafta, salidas, compras. No se divide entre los dos — sale del saldo de quien lo gastó.</p>
+      <button type="button" class="btn-add" onclick="openVarExpenseModal()">+ Agregar gasto variable</button>
+      <div class="avail" id="varEstGrid" style="margin-top:16px;"></div>
+      <div class="sld-block">
+        <div class="sld-title">Totales</div>
+        <div class="sld-grid" id="varSaldos"></div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 3: presupuesto discrecional -->
+    <div class="card">
+      <div class="section-title"><span id="budgetBlockTitle">Gastos posibles</span></div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Un tope sugerido por rubro sobre lo que te quedó. Editá cualquier monto y el saldo de abajo se recalcula.</p>
+      <div class="avail" id="budgetGrid"></div>
+      <div class="sld-block">
+        <div class="sld-title">Totales</div>
+        <div class="sld-grid" id="budgetSaldos"></div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 4: lo que queda -->
+    <div class="card">
+      <div class="section-title"><span id="gastosAhorroTitle">Ahorro</span></div>
+      <div class="sld-block bare">
+        <div class="sld-title">Totales</div>
+        <div class="sld-grid" id="ahorroSaldos"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ============ TAB: AHORRO ============ -->
   <div class="tab-panel" id="panel-ahorro" role="tabpanel">
-    <div class="seg" id="ahorroPersonSeg" style="margin-bottom:14px;">
-      <button type="button" data-person="A" class="active" id="ahorroPersonA">Juan</button>
-      <button type="button" data-person="B" id="ahorroPersonB">Maria</button>
-    </div>
+    <div class="seg" id="ahorroPersonSeg" style="margin-bottom:14px;"></div>
     <div class="card">
       <div class="section-title" id="ahorroTitle">Tu ahorro</div>
       <div class="totals" id="ahorroStrip"></div>
@@ -653,33 +711,28 @@
     </div>
 
     <div class="card">
-      <div class="section-title">Tu plan en 5 números</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cinco cuentas sobre lo que entra por mes en el hogar. Las tres de arriba son plata por mes; las dos de abajo son capital a juntar.</p>
+      <div class="section-title">Tu plan en 4 números</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuatro cuentas sobre lo que entra por mes en el hogar. Las tres de arriba son plata por mes; la de abajo es capital a juntar.</p>
       <div id="planBox"></div>
     </div>
 
     <div class="card">
       <div class="section-title">Cómo venís este mes</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Un reparto de referencia de lo que entra: la mitad a lo que no podés dejar de pagar, un 30% a lo que te querés dar, y un 20% que no se toca. La marca gris en cada barra es el objetivo; la barra, cómo venís este mes.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Un reparto de referencia de lo que entra: la mitad a lo que no podés dejar de pagar (gastos fijos + variables), un 30% a lo que te querés dar (tus gastos posibles), y un 20% que no se toca (tu ahorro). La marca gris en cada barra es el objetivo; abajo, el mismo par de números en pesos.</p>
       <div id="ruleBox"></div>
     </div>
 
     <div class="card">
-      <div class="section-title">Si lo invertís al 6% anual</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Qué pasa si todos los meses guardás lo que te sobró este mes y eso rinde 6% anual, el ROI de referencia. Interés compuesto: lo que ganás también empieza a generar.</p>
-      <div id="projBox"></div>
-    </div>
-
-    <div class="card">
       <div class="section-title">Mes a mes</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cuánto te sobró en cada mes que tenés cargado. Ojo: usa tus ingresos de hoy para todos los meses, porque la app guarda un solo ingreso mensual, no el histórico.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cuánto te sobró en cada mes que tenés cargado, con la misma cuenta de arriba: ingresos menos gastos fijos, variables y lo que tenías para gastar.</p>
       <div id="savingsHistory"></div>
     </div>
 
     <div class="card">
-      <div class="section-title">Tus dos metas</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Se van en orden: primero el fondo de emergencia, después el capital que te paga el sueldo solo. El avance se mide contra tu ahorro acumulado.</p>
+      <div class="section-title">Tus metas</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Primero el fondo de emergencia; después, las metas que te pongas vos. El avance de las metas de monto se mide contra tu ahorro acumulado; el de las mensuales, contra lo que ahorraste este mes.</p>
       <div id="goalsBox"></div>
+      <button type="button" class="btn-add" style="margin-top:16px;" onclick="openGoalModal()">+ Agregar meta</button>
     </div>
 
   </div>
@@ -690,6 +743,9 @@
       <div class="section-title" id="resumenTitle">Gastos del mes</div>
       <div class="rs-hero" id="resumenHero"></div>
     </div>
+
+    <!-- ingreso / gasto / ahorro de cada uno, plegado por defecto -->
+    <div class="totals-person-grid" id="totalsPersonGrid"></div>
 
     <div class="card">
       <div class="chart-title">Por categoría</div>
@@ -712,16 +768,10 @@
   <div class="tab-panel" id="panel-ajustes" role="tabpanel">
     <div class="card">
       <div class="section-title">Quiénes son</div>
-      <div class="settings-row" id="names-row">
-        <div>
-          <label for="nameA">Nombre 1</label>
-          <input type="text" id="nameA" placeholder="Ej: Vos">
-        </div>
-        <div>
-          <label for="nameB">Nombre 2</label>
-          <input type="text" id="nameB" placeholder="Ej: Tu pareja">
-        </div>
-      </div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">¿Entre cuántos se llevan las cuentas de este espacio? Toda la app se acomoda a ese número: los ingresos, el reparto de cada gasto, los saldos y el ahorro.</p>
+      <label>Cantidad de personas</label>
+      <div class="seg" id="peopleCountSeg" style="margin-bottom:16px;"></div>
+      <div class="people-grid" id="namesGrid"></div>
     </div>
     <div class="card">
       <div class="section-title">Ingresos fijos</div>
@@ -763,10 +813,7 @@
     <div class="card">
       <div class="section-title">Gastos variables estimados</div>
       <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Una estimación personal de lo que pensás gastar este mes en cosas variables (nafta, salidas, compras). No es un gasto cargado, es un presupuesto — se descuenta de lo que te queda en la tarjeta de Ahorro de Gastos.</p>
-      <div class="seg" id="varEstPersonSeg" style="margin-bottom:14px;">
-        <button type="button" data-person="A" class="active" id="varEstPersonA">Juan</button>
-        <button type="button" data-person="B" id="varEstPersonB">Maria</button>
-      </div>
+      <div class="seg" id="varEstPersonSeg" style="margin-bottom:14px;"></div>
       <div class="fixed-head">
         <span class="h1c">Concepto</span>
         <span class="h2c">Monto</span>
@@ -871,10 +918,7 @@
     <form class="add-form" id="incomeForm">
       <div>
         <label>¿De quién es?</label>
-        <div class="seg" id="iWhoSeg">
-          <button type="button" data-who="A" class="active" id="iWhoA">Juan</button>
-          <button type="button" data-who="B" id="iWhoB">Maria</button>
-        </div>
+        <div class="seg" id="iWhoSeg"></div>
       </div>
       <div>
         <label for="iDesc">Descripción</label>
@@ -919,10 +963,7 @@
     <form class="add-form" id="addForm">
       <div>
         <label>¿Quién lo paga?</label>
-        <div class="seg" id="paidBySeg">
-          <button type="button" data-paid="A" class="active" id="paidLabelA">Juan</button>
-          <button type="button" data-paid="B" id="paidLabelB">Maria</button>
-        </div>
+        <div class="seg" id="paidBySeg"></div>
       </div>
       <div>
         <label for="fDesc">Descripción</label>
@@ -940,14 +981,10 @@
           <input type="date" id="fDate">
         </div>
       </div>
-      <div>
+      <!-- se esconde entero cuando el espacio es de una sola persona -->
+      <div id="splitField">
         <label>¿Cómo se divide?</label>
-        <div class="seg" id="splitToggle">
-          <button type="button" data-split="50" class="active">50 / 50</button>
-          <button type="button" data-split="income">Según ingresos</button>
-          <button type="button" data-split="a-to-b" id="splitAtoB">Juan a Maria</button>
-          <button type="button" data-split="b-to-a" id="splitBtoA">Maria a Juan</button>
-        </div>
+        <div class="seg" id="splitToggle"></div>
         <div class="income-note" id="incomeSplitPreview" style="display:none;"></div>
       </div>
       <button type="submit" class="btn-primary" id="submitBtn">Agregar gasto</button>
@@ -964,10 +1001,7 @@
     <form class="add-form" id="varExpenseForm">
       <div>
         <label>¿De quién es?</label>
-        <div class="seg" id="vxPaidBySeg">
-          <button type="button" data-paid="A" class="active" id="vxPaidLabelA">Juan</button>
-          <button type="button" data-paid="B" id="vxPaidLabelB">Maria</button>
-        </div>
+        <div class="seg" id="vxPaidBySeg"></div>
       </div>
       <div>
         <label for="vxDesc">Descripción</label>
@@ -990,6 +1024,58 @@
   </div>
 </div>
 
+<!-- ============ MODAL: agregar meta de ahorro ============ -->
+<div class="modal-backdrop" id="goalModal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="goalModalTitle">Agregar una meta</div>
+      <button type="button" class="modal-close" onclick="closeGoalModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <form class="add-form" id="goalForm">
+      <div>
+        <label>¿De quién es?</label>
+        <div class="seg" id="gWhoSeg"></div>
+      </div>
+      <div>
+        <label for="gName">¿Qué querés lograr?</label>
+        <input type="text" id="gName" placeholder="Ej: Viaje a Japón, Deuda Arba" required>
+      </div>
+      <div>
+        <label>¿Cómo la medís?</label>
+        <div class="seg" id="gKindSeg">
+          <button type="button" data-kind="total" class="active">Juntar un monto</button>
+          <button type="button" data-kind="mensual">Guardar todos los meses</button>
+        </div>
+        <p class="income-note" id="gKindHint" style="margin-top:6px;"></p>
+      </div>
+      <div class="row2">
+        <div>
+          <label for="gAmount">Monto</label>
+          <input type="text" inputmode="numeric" class="ie-money" id="gAmount" placeholder="0" required>
+        </div>
+        <div>
+          <label>Moneda</label>
+          <div class="seg" id="gCurSeg">
+            <button type="button" data-cur="ARS" class="active">ARS</button>
+            <button type="button" data-cur="USD">USD</button>
+          </div>
+        </div>
+      </div>
+      <div class="row2" id="gTotalFields">
+        <div>
+          <label for="gDeadline">¿Para cuándo? (opcional)</label>
+          <input type="month" id="gDeadline">
+        </div>
+        <div>
+          <label for="gSaved">Ya juntaste (opcional)</label>
+          <input type="text" inputmode="numeric" class="ie-money" id="gSaved" placeholder="0">
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" id="gSubmitBtn">Agregar meta</button>
+    </form>
+  </div>
+</div>
+
 <script>
 const STORE_KEY = 'expenses_v1';
 const NAMES_KEY = 'names_v1';
@@ -999,9 +1085,42 @@ const FIXED_INCOME_KEY = 'fixedincome_v1';
 const VAR_ESTIMATES_KEY = 'varestimates_v1';
 const VAR_EXPENSES_KEY = 'varexpenses_v1';
 const BUDGET_OVERRIDES_KEY = 'budgetoverrides_v1';
+const GOALS_KEY = 'goals_v1';
 
 let expenses = [];
-let names = { A: 'Juan', B: 'Maria' };
+// ---- quiénes viven en este espacio ----
+// El espacio puede ser de 1 a MAX_PEOPLE personas. Cada una tiene un id fijo
+// ('A', 'B', 'C', ...) que es lo que se guarda en todos lados: expense.paidBy,
+// expense.shares, income.entries, varEstimates, budgetOverrides y goals.person.
+// El nombre es solo cosmético y se busca por id al renderizar, así que
+// renombrar a alguien nunca toca los datos.
+const PERSON_IDS = ['A','B','C','D'];
+const MAX_PEOPLE = PERSON_IDS.length;
+let people = [{ id:'A', name:'Persona 1' }, { id:'B', name:'Persona 2' }];
+// mapa id -> nombre, derivado de `people`; lo usan todos los renderers
+let names = {};
+const pids = () => people.map(p=>p.id);
+const peopleCount = () => people.length;
+function rebuildNames(){
+  names = {};
+  people.forEach(p=>{ names[p.id] = p.name; });
+}
+rebuildNames();
+// para gente que ya no está en el espacio (datos viejos) devolvemos algo legible
+// en vez de undefined, así una fila histórica nunca rompe el render
+const nameOf = (id) => names[id] || 'Alguien';
+const isPerson = (id) => Object.prototype.hasOwnProperty.call(names, id);
+// primera persona: destino por defecto de todo lo que necesita un dueño
+const firstPid = () => people[0].id;
+// color por posición en la lista, para gráficos y etiquetas
+const PERSON_COLORS = ['#B4862B', '#9C4B3C', '#3D7A5E', '#4A5C9C'];
+const personIndex = (id) => Math.max(0, pids().indexOf(id));
+const personColor = (i) => PERSON_COLORS[i % PERSON_COLORS.length];
+const personColorOf = (id) => personColor(personIndex(id));
+const personTagClass = (id) => 'tag-p' + (personIndex(id) % PERSON_COLORS.length);
+// la siguiente persona de la lista, dando la vuelta al final
+const nextPid = (id) => { const ids = pids(); return ids[(ids.indexOf(id) + 1) % ids.length]; };
+
 let income = { fx: 1500, entries: { A: [], B: [] } };
 // the recurring expenses and their current amount — these drive the modal chips,
 // so updating a value here is what makes next month's entry one tap
@@ -1021,7 +1140,14 @@ let editingVarExpenseId = null;
 // {A:{salidas:120000,...}, B:{...}}; a category missing from the map falls back
 // to its default suggested-percentage amount
 let budgetOverrides = { A: {}, B: {} };
-let currentSplit = '50';
+// savings goals the user writes down themselves, on top of the built-in emergency
+// fund: {id, person, name, kind:'total'|'mensual', amount, currency, deadline, saved}
+let goals = [];
+let editingGoalId = null;
+let currentGoalPerson = 'A';
+let currentGoalKind = 'total';
+let currentGoalCurrency = 'ARS';
+let currentSplit = 'equal';
 let currentPaidBy = 'A';
 let currentAhorroPerson = 'A';   // which person's individual breakdown Ahorro shows
 let viewMonth = '';           // 'YYYY-MM' — the month being planned
@@ -1089,7 +1215,8 @@ const COLUMN_FOR_KEY = {
   fixedincome_v1: 'fixed_income',
   varestimates_v1: 'variable_estimates',
   varexpenses_v1: 'variable_expenses',
-  budgetoverrides_v1: 'budget_overrides'
+  budgetoverrides_v1: 'budget_overrides',
+  goals_v1: 'goals'
 };
 const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1']);
 
@@ -1150,7 +1277,7 @@ const GUEST_CODE = 'demo-invitado';
 const GUEST_PASSWORD = 'probar123';
 function guestSeedData(){
   return {
-    names: { A: 'Persona 1', B: 'Persona 2' },
+    names: [{ id:'A', name:'Persona 1' }, { id:'B', name:'Persona 2' }],
     expenses: [],
     income: { fx: 1500, entries: { A: [], B: [] } },
     fixed: [],
@@ -1212,13 +1339,14 @@ function subscribeCoupleRealtime(code){
 function applyCoupleRow(){
   if(!coupleRow) return;
   expenses = Array.isArray(coupleRow.expenses) ? coupleRow.expenses : [];
-  if(coupleRow.names) names = coupleRow.names;
+  if(coupleRow.names) setPeople(migratePeople(coupleRow.names));
   income = migrateIncome(coupleRow.income);
   if(Array.isArray(coupleRow.fixed)) fixed = coupleRow.fixed;
   if(Array.isArray(coupleRow.fixed_income)) fixedIncome = coupleRow.fixed_income;
   if(coupleRow.variable_estimates && Array.isArray(coupleRow.variable_estimates.A) && Array.isArray(coupleRow.variable_estimates.B)) varEstimates = coupleRow.variable_estimates;
   if(Array.isArray(coupleRow.variable_expenses)) varExpenses = coupleRow.variable_expenses;
   if(coupleRow.budget_overrides && typeof coupleRow.budget_overrides === 'object') budgetOverrides = coupleRow.budget_overrides;
+  if(Array.isArray(coupleRow.goals)) goals = coupleRow.goals;
   if(normalizeExpenses()) saveExpenses();
 }
 
@@ -1254,7 +1382,7 @@ function paintFromLocalCache(code){
     const e = readLocalCache(code, STORE_KEY);
     if(e) expenses = JSON.parse(e);
     const n = readLocalCache(code, NAMES_KEY);
-    if(n) names = JSON.parse(n);
+    if(n) setPeople(migratePeople(JSON.parse(n)));
     const i = readLocalCache(code, INCOME_KEY);
     if(i) income = migrateIncome(JSON.parse(i));
     const f = readLocalCache(code, FIXED_KEY);
@@ -1265,6 +1393,8 @@ function paintFromLocalCache(code){
     if(ve) varEstimates = JSON.parse(ve);
     const vx = readLocalCache(code, VAR_EXPENSES_KEY);
     if(vx) varExpenses = JSON.parse(vx);
+    const g = readLocalCache(code, GOALS_KEY);
+    if(g) goals = JSON.parse(g);
     if(normalizeExpenses()){ /* fixed up in-memory; loadAll()'s real save will persist it */ }
     render();
     renderFixed();
@@ -1384,12 +1514,18 @@ const store = {
           break;
         }catch(e){
           lastError = e;
+          // 42703 = the column doesn't exist in this project's `couples` table
+          // (a new key shipped before the ALTER TABLE was run). Retrying can
+          // never fix that, and the local cache already has the value.
+          if(e && e.code === '42703') break;
         }
       }
       if(lastError){
         storageMode = 'error';
         markPendingWrite(coupleCode, key, value);
-        notyf.error('No se pudo guardar ahora — se reintentará solo apenas vuelva la conexión. Tu cambio no se pierde.');
+        notyf.error(lastError.code === '42703'
+          ? `Falta la columna "${COLUMN_FOR_KEY[key]}" en la tabla couples de Supabase. Tu cambio quedó en este dispositivo y se sincroniza solo cuando la agregues.`
+          : 'No se pudo guardar ahora — se reintentará solo apenas vuelva la conexión. Tu cambio no se pierde.');
         return false;
       }
       clearPendingWrite(coupleCode, key);
@@ -1622,21 +1758,11 @@ function toggleUsdPopover(force){
   dropdown.classList.toggle('open', open);
   btn.setAttribute('aria-expanded', open);
 }
-function toggleDatePopover(force){
-  const dropdown = $('dateDropdown');
-  const btn = $('dateBtn');
-  const open = typeof force === 'boolean' ? force : !dropdown.classList.contains('open');
-  dropdown.classList.toggle('open', open);
-  btn.setAttribute('aria-expanded', open);
-}
 document.addEventListener('click', (e)=>{
   const sessionMenu = document.querySelector('.session-menu');
   if(sessionMenu && !sessionMenu.contains(e.target)) toggleSessionMenu(false);
   document.querySelectorAll('.popover-menu').forEach(menu=>{
-    if(!menu.contains(e.target)){
-      if(menu.querySelector('#usdDropdown')) toggleUsdPopover(false);
-      if(menu.querySelector('#dateDropdown')) toggleDatePopover(false);
-    }
+    if(!menu.contains(e.target) && menu.querySelector('#usdDropdown')) toggleUsdPopover(false);
   });
 });
 
@@ -1764,8 +1890,52 @@ const USD_API = 'https://dolarapi.com/v1/dolares/blue';
 let todayUsdRate = null;   // average of compra/venta, null until it loads
 
 function renderTodayDate(){
-  const s = new Date().toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
-  $('todayDate').innerHTML = `<div class="usd-title">Hoy</div>${s.charAt(0).toUpperCase() + s.slice(1)}`;
+  const s = new Date().toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+  $('todayDate').textContent = s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ---- personas del espacio ----
+// La columna `names` guardaba `{A:'Juan', B:'Maria'}` cuando el espacio era
+// siempre de dos. Ahora guarda un array ordenado [{id,name}] para soportar de 1
+// a MAX_PEOPLE; esta función acepta las dos formas para que un espacio viejo
+// entre sin migración manual.
+function migratePeople(raw){
+  if(Array.isArray(raw)){
+    const out = [];
+    raw.forEach(p=>{
+      if(!p || !PERSON_IDS.includes(p.id) || out.some(o=>o.id === p.id)) return;
+      out.push({ id: p.id, name: String(p.name || '').trim() || defaultPersonName(p.id) });
+    });
+    if(out.length) return out.slice(0, MAX_PEOPLE);
+  }
+  if(raw && typeof raw === 'object'){
+    const out = PERSON_IDS
+      .filter(id=>typeof raw[id] === 'string')
+      .map(id=>({ id, name: raw[id].trim() || defaultPersonName(id) }));
+    if(out.length) return out.slice(0, MAX_PEOPLE);
+  }
+  return [{ id:'A', name:'Persona 1' }, { id:'B', name:'Persona 2' }];
+}
+function defaultPersonName(id){ return 'Persona ' + (PERSON_IDS.indexOf(id) + 1); }
+
+// único punto de entrada para cambiar quiénes son: deja `names` en sincronía y
+// se asegura de que cada persona tenga su casillero en las estructuras que van
+// por persona, así ningún render tiene que defenderse de un undefined
+function setPeople(list){
+  people = list;
+  rebuildNames();
+  pids().forEach(id=>{
+    if(!income.entries[id]) income.entries[id] = [];
+    if(!varEstimates[id]) varEstimates[id] = [];
+    if(!budgetOverrides[id]) budgetOverrides[id] = {};
+  });
+  // el que estuviera seleccionado en alguna pantalla puede haber desaparecido
+  if(!isPerson(currentPaidBy)) currentPaidBy = firstPid();
+  if(!isPerson(currentIncomeWho)) currentIncomeWho = firstPid();
+  if(!isPerson(currentVxPaidBy)) currentVxPaidBy = firstPid();
+  if(!isPerson(currentVarEstPerson)) currentVarEstPerson = firstPid();
+  if(!isPerson(currentAhorroPerson)) currentAhorroPerson = firstPid();
+  if(!isPerson(currentGoalPerson)) currentGoalPerson = firstPid();
 }
 
 async function loadUsdToday(){
@@ -1806,18 +1976,45 @@ function incomeTotalArs(person, key){
 function variableEstimatesTotal(person){
   return (varEstimates[person]||[]).reduce((s,e)=>s+(e.amount||0),0);
 }
-function incomePctA(){
-  const arsA = incomeTotalArs('A');
-  const arsB = incomeTotalArs('B');
-  if(arsA + arsB <= 0) return null;
-  return (arsA / (arsA + arsB)) * 100;
+// reparto en partes iguales entre todos los que hay hoy en el espacio
+function equalShares(){
+  const ids = pids();
+  const each = 100 / ids.length;
+  const out = {};
+  ids.forEach(id=>{ out[id] = each; });
+  return out;
+}
+// reparto proporcional al ingreso del mes; null si todavía no cargaron ninguno
+function incomeShares(){
+  const ids = pids();
+  const totals = ids.map(id=>incomeTotalArs(id));
+  const sum = totals.reduce((s,v)=>s+v, 0);
+  if(sum <= 0) return null;
+  const out = {};
+  ids.forEach((id,i)=>{ out[id] = totals[i] / sum * 100; });
+  return out;
+}
+// 100% a cargo de una sola persona (el resto no pone nada)
+function soloShares(person){
+  const out = {};
+  pids().forEach(id=>{ out[id] = id === person ? 100 : 0; });
+  return out;
+}
+// traduce el tipo de división elegido en el modal al mapa de porcentajes
+function sharesFor(splitType){
+  if(splitType === 'income') return incomeShares() || equalShares();
+  if(splitType && splitType.startsWith('only:')){
+    const who = splitType.slice(5);
+    if(isPerson(who)) return soloShares(who);
+  }
+  return equalShares();
 }
 
 function migrateIncome(raw){
   if(raw && raw.entries){
     // USD entries saved before rates were per-entry inherit the global one
     const fx = raw.fx || 1500;
-    ['A','B'].forEach(p=>{
+    Object.keys(raw.entries).forEach(p=>{
       (raw.entries[p]||[]).forEach(e=>{
         if(e.currency === 'USD' && !e.fx) e.fx = fx;
         // entries saved before income had a month of its own belong to the current month
@@ -1844,7 +2041,20 @@ function normalizeExpenses(){
   let changed = false;
   expenses.forEach(ex=>{
     if(!ex.date){ ex.date = monthNow() + '-01'; changed = true; }
-    if(typeof ex.pctA !== 'number'){ ex.pctA = 50; changed = true; }
+    // el reparto era un solo número (pctA, lo que le tocaba a A; el resto a B).
+    // Ahora es un mapa {id: porcentaje} para que funcione con 1 o con N personas.
+    if(!ex.shares || typeof ex.shares !== 'object'){
+      ex.shares = typeof ex.pctA === 'number'
+        ? { A: ex.pctA, B: 100 - ex.pctA }
+        : equalShares();
+      delete ex.pctA;
+      changed = true;
+    }
+    if(!ex.splitType){ ex.splitType = 'equal'; changed = true; }
+    // los tipos viejos apuntaban a la pareja fija A/B
+    if(ex.splitType === '50'){ ex.splitType = 'equal'; changed = true; }
+    else if(ex.splitType === 'a-to-b'){ ex.splitType = 'only:B'; changed = true; }
+    else if(ex.splitType === 'b-to-a'){ ex.splitType = 'only:A'; changed = true; }
     if(!ex.category){ ex.category = categoryOf(ex.desc); changed = true; }
   });
   return changed;
@@ -1857,7 +2067,7 @@ async function loadAll(){
   }catch(e){ expenses = []; }
   try{
     const v = await store.get(NAMES_KEY);
-    if(v) names = JSON.parse(v);
+    setPeople(migratePeople(v ? JSON.parse(v) : null));
   }catch(e){}
   try{
     const v = await store.get(INCOME_KEY);
@@ -1916,7 +2126,10 @@ async function loadAll(){
     fixedIncome = v ? JSON.parse(v) : null;
   }catch(e){ fixedIncome = null; }
   if(!Array.isArray(fixedIncome)){
-    fixedIncome = FIXED_INCOME_SEED.map(s=>({ id: genId(), ...s }));
+    // el seed asume dos personas; en un espacio de una sola, todo va a la primera
+    fixedIncome = FIXED_INCOME_SEED.map(s=>({
+      id: genId(), ...s, person: isPerson(s.person) ? s.person : firstPid()
+    }));
     saveFixedIncome();
     await store.set(FIXED_INCOME_LOCK_KEY, '1');   // seed is already locked
   }else{
@@ -1957,11 +2170,18 @@ async function loadAll(){
     saveBudgetOverrides();
   }
 
+  // no seed write here on purpose: an empty goal list is the valid starting
+  // point, and writing it back would fail loudly on a couples table that hasn't
+  // had the `goals` column added yet
+  try{
+    const v = await store.get(GOALS_KEY);
+    goals = v ? JSON.parse(v) : [];
+  }catch(e){ goals = []; }
+  if(!Array.isArray(goals)) goals = [];
+
   if(normalizeExpenses()) saveExpenses();
 
-  $('nameA').value = names.A;
-  $('nameB').value = names.B;
-  refreshNameLabels();
+  refreshPeopleUI();
   describeStorage();
   renderFixed();
   renderChips();
@@ -1973,12 +2193,13 @@ async function loadAll(){
 }
 
 async function saveExpenses(){ await store.set(STORE_KEY, JSON.stringify(expenses)); }
-async function saveNames(){ await store.set(NAMES_KEY, JSON.stringify(names)); }
+async function saveNames(){ await store.set(NAMES_KEY, JSON.stringify(people)); }
 async function saveIncome(){ await store.set(INCOME_KEY, JSON.stringify(income)); }
 async function saveFixed(){ return await store.set(FIXED_KEY, JSON.stringify(fixed)); }
 async function saveVarEstimates(){ return await store.set(VAR_ESTIMATES_KEY, JSON.stringify(varEstimates)); }
 async function saveVarExpenses(){ return await store.set(VAR_EXPENSES_KEY, JSON.stringify(varExpenses)); }
 async function saveBudgetOverrides(){ return await store.set(BUDGET_OVERRIDES_KEY, JSON.stringify(budgetOverrides)); }
+async function saveGoals(){ return await store.set(GOALS_KEY, JSON.stringify(goals)); }
 
 // "Guardar gastos fijos" button in Ajustes — fixed already autosaves on every
 // edit, this just forces an immediate write and confirms it with a toast
@@ -2018,9 +2239,9 @@ function fixedIncomeRow(f){
       <option value="ARS"${f.currency !== 'USD' ? ' selected' : ''}>ARS</option>
       <option value="USD"${f.currency === 'USD' ? ' selected' : ''}>USD</option>
     </select>`;
+  const owned = isPerson(f.person) ? f.person : firstPid();
   const who = `<select class="fi-who-sel" aria-label="De quién es">
-      <option value="A"${f.person !== 'B' ? ' selected' : ''}>${escapeHtml(names.A)}</option>
-      <option value="B"${f.person === 'B' ? ' selected' : ''}>${escapeHtml(names.B)}</option>
+      ${people.map(p=>`<option value="${p.id}"${p.id === owned ? ' selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
     </select>`;
   const handle = `<span class="drag-handle" aria-hidden="true">⠿</span>`;
   if(editingFixedIncomeId === f.id){
@@ -2036,9 +2257,10 @@ function fixedIncomeRow(f){
   }
   const locked = !!f.locked;
   const usd = f.currency === 'USD' ? '<span class="cur-badge">US$</span>' : '';
-  // tap the name to hand the income to the other person
+  // tap the name to hand the income to the next person in the list
+  const nextOwner = nextPid(owned);
   const owner = `<button type="button" class="who-badge" onclick="toggleFixedIncomeOwner('${f.id}')"
-      title="Tocá para pasarlo a ${escapeHtml(f.person === 'B' ? names.A : names.B)}">${escapeHtml(names[f.person] || names.A)}</button>`;
+      ${nextOwner === owned ? '' : `title="Tocá para pasarlo a ${escapeHtml(nameOf(nextOwner))}"`}>${escapeHtml(nameOf(owned))}</button>`;
   return `<div class="fixed-row" data-id="${f.id}">
     ${handle}
     <span class="f-label">${escapeHtml(f.label)}${owner}${usd}</span>
@@ -2063,7 +2285,7 @@ function toggleLockFixedIncome(id){
 function toggleFixedIncomeOwner(id){
   const item = fixedIncome.find(f=>f.id === id);
   if(!item) return;
-  item.person = item.person === 'B' ? 'A' : 'B';
+  item.person = nextPid(isPerson(item.person) ? item.person : firstPid());
   saveFixedIncome();
   renderFixedIncome();
   renderIncomeChips();
@@ -2093,7 +2315,7 @@ function addFixedIncome(){
   if(!label) return;
   // defaults to the first person in ARS; both are changed with the pencil
   fixedIncome.push({
-    id: genId(), person: 'A', label,
+    id: genId(), person: firstPid(), label,
     amount: numVal('fiAmountInput') || 0,
     currency: 'ARS'
   });
@@ -2164,23 +2386,11 @@ function renderFixed(){
   renderFixedDebt();
 }
 
-// balance card at the end of the fixed list, so it nets the section to $0 between A and B
+// balance card at the end of the fixed list, so it nets the section to $0
 function renderFixedDebt(){
   const el = $('fixedDebtRow');
   if(!el) return;
-  let balance = 0;
-  expenses.forEach(ex=>{
-    const shareA = ex.amount * ex.pctA/100;
-    const shareB = ex.amount - shareA;
-    if(ex.paidBy === 'A'){ balance += shareB; } else { balance -= shareA; }
-  });
-  if(!expenses.length || Math.abs(balance) < 1){
-    el.innerHTML = '';
-    return;
-  }
-  const debtor   = balance > 0 ? escapeHtml(names.B) : escapeHtml(names.A);
-  const creditor = balance > 0 ? escapeHtml(names.A) : escapeHtml(names.B);
-  el.innerHTML = `<span class="bal-who">${debtor} le debe a ${creditor}</span><span class="amt">${fmt(Math.abs(balance))}</span>`;
+  el.innerHTML = balanceHtml();
 }
 // ---- drag to reorder ----
 // pointer events rather than HTML5 drag-and-drop, so this works with a finger too.
@@ -2410,8 +2620,8 @@ function openModal(expenseId){
     $('fDesc').value = ex.desc;
     $('fAmount').value = groupThousands(String(ex.amount));
     $('fDate').value = ex.date;
-    currentPaidBy = ex.paidBy;
-    currentSplit = ['income','a-to-b','b-to-a'].includes(ex.splitType) ? ex.splitType : '50';
+    currentPaidBy = isPerson(ex.paidBy) ? ex.paidBy : firstPid();
+    currentSplit = isSplitAvailable(ex.splitType) ? ex.splitType : 'equal';
     document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
     document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
     syncChips();
@@ -2463,8 +2673,8 @@ function resetVarExpenseForm(){
   $('varExpenseForm').reset();
   editingVarExpenseId = null;
   $('vxDate').value = defaultDate();
-  currentVxPaidBy = 'A';
-  document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === 'A'));
+  currentVxPaidBy = firstPid();
+  document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentVxPaidBy));
   renderVxChips();
 }
 $('varExpenseModal').addEventListener('click', (e)=>{ if(e.target === $('varExpenseModal')) closeVarExpenseModal(); });
@@ -2530,6 +2740,107 @@ function deleteVarExpense(id){
   notyf.success('Gasto variable eliminado');
 }
 
+// ---- metas de ahorro ----
+const GOAL_KIND_HINTS = {
+  total: 'Un monto a juntar de una vez: un viaje, una deuda, un auto. Podés ponerle fecha límite y te dice cuánto guardar por mes.',
+  mensual: 'Algo que querés guardar todos los meses. El avance se mide contra lo que ahorraste este mes.'
+};
+function openGoalModal(goalId){
+  resetGoalForm();
+  const g = goalId ? goals.find(x=>x.id === goalId) : null;
+  if(g){
+    editingGoalId = g.id;
+    $('gName').value = g.name;
+    $('gAmount').value = groupThousands(String(g.amount));
+    $('gDeadline').value = g.deadline || '';
+    $('gSaved').value = g.saved ? groupThousands(String(g.saved)) : '';
+    currentGoalPerson = g.person;
+    currentGoalKind = g.kind;
+    currentGoalCurrency = g.currency;
+    syncGoalSegs();
+  }
+  $('goalModalTitle').textContent = g ? 'Editar meta' : 'Agregar una meta';
+  $('gSubmitBtn').textContent = g ? 'Guardar cambios' : 'Agregar meta';
+  $('goalModal').classList.add('open');
+  document.body.classList.add('modal-open');
+  $('gName').focus();
+}
+function closeGoalModal(){
+  $('goalModal').classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+function resetGoalForm(){
+  $('goalForm').reset();
+  editingGoalId = null;
+  currentGoalPerson = currentAhorroPerson;
+  currentGoalKind = 'total';
+  currentGoalCurrency = 'ARS';
+  syncGoalSegs();
+}
+// keeps the three segmented controls (and the deadline/saved fields, which only
+// make sense for a one-off amount) in sync with the current selection
+function syncGoalSegs(){
+  document.querySelectorAll('#gWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === currentGoalPerson));
+  document.querySelectorAll('#gKindSeg button').forEach(b=>b.classList.toggle('active', b.dataset.kind === currentGoalKind));
+  document.querySelectorAll('#gCurSeg button').forEach(b=>b.classList.toggle('active', b.dataset.cur === currentGoalCurrency));
+  $('gKindHint').textContent = GOAL_KIND_HINTS[currentGoalKind];
+  $('gTotalFields').style.display = currentGoalKind === 'total' ? '' : 'none';
+}
+$('goalModal').addEventListener('click', (e)=>{ if(e.target === $('goalModal')) closeGoalModal(); });
+$('gWhoSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentGoalPerson = btn.dataset.who;
+  syncGoalSegs();
+});
+$('gKindSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentGoalKind = btn.dataset.kind;
+  syncGoalSegs();
+});
+$('gCurSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentGoalCurrency = btn.dataset.cur;
+  syncGoalSegs();
+});
+$('goalForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const name = $('gName').value.trim();
+  const amount = numVal('gAmount');
+  if(!name || !amount) return;
+  const fields = {
+    person: currentGoalPerson,
+    name,
+    kind: currentGoalKind,
+    amount,
+    currency: currentGoalCurrency,
+    deadline: currentGoalKind === 'total' ? ($('gDeadline').value || null) : null,
+    saved: currentGoalKind === 'total' ? (numVal('gSaved') || 0) : 0
+  };
+  const existing = editingGoalId ? goals.find(x=>x.id === editingGoalId) : null;
+  if(existing) Object.assign(existing, fields);
+  else goals.push({ id: genId(), ...fields });
+
+  saveGoals();
+  closeGoalModal();
+  resetGoalForm();
+  // the goal was created for whoever's picked in the modal, so show that person
+  currentAhorroPerson = fields.person;
+  document.querySelectorAll('#ahorroPersonSeg button').forEach(b=>b.classList.toggle('active', b.dataset.person === currentAhorroPerson));
+  renderAhorro();
+  notyf.success(existing ? 'Meta actualizada' : 'Meta agregada');
+});
+function deleteGoal(id){
+  const g = goals.find(x=>x.id === id);
+  if(g && !confirm(`¿Eliminar la meta "${g.name}"?`)) return;
+  goals = goals.filter(x=>x.id !== id);
+  saveGoals();
+  renderAhorro();
+  notyf.success('Meta eliminada');
+}
+
 // one chip per fixed expense; tapping it fills the description AND its current amount
 function renderChips(){
   $('descChips').innerHTML = fixed.length
@@ -2566,33 +2877,174 @@ function resetForm(){
   $('addForm').reset();
   editingExpenseId = null;
   $('fDate').value = defaultDate();
-  currentSplit = '50';
-  currentPaidBy = 'A';
-  document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === '50'));
-  document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === 'A'));
+  currentSplit = 'equal';
+  currentPaidBy = firstPid();
+  document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
+  document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
   syncChips();
   renderIncomePreview();
 }
 
-function refreshNameLabels(){
-  $('paidLabelA').textContent = names.A;
-  $('paidLabelB').textContent = names.B;
-  $('incomeLabelA').textContent = names.A;
-  $('incomeLabelB').textContent = names.B;
-  $('iWhoA').textContent = names.A;
-  $('iWhoB').textContent = names.B;
-  $('splitAtoB').textContent = `${names.A} a ${names.B}`;
-  $('splitBtoA').textContent = `${names.B} a ${names.A}`;
-  $('ahorroPersonA').textContent = names.A;
-  $('ahorroPersonB').textContent = names.B;
-  $('varEstPersonA').textContent = names.A;
-  $('varEstPersonB').textContent = names.B;
-  $('vxPaidLabelA').textContent = names.A;
-  $('vxPaidLabelB').textContent = names.B;
+// Todos los controles que listan personas se arman acá, en un solo lugar: los
+// segmentados de los modales, el de la pestaña Ahorro, el de gastos variables
+// estimados, las opciones de división de un gasto y los inputs de nombre en
+// Ajustes. Al cambiar la cantidad de personas alcanza con volver a llamarla.
+function refreshPeopleUI(){
+  const seg = (id, attr, current) => {
+    const el = $(id);
+    if(!el) return;
+    el.innerHTML = people.map(p=>
+      `<button type="button" ${attr}="${p.id}"${p.id === current ? ' class="active"' : ''}>${escapeHtml(p.name)}</button>`
+    ).join('');
+  };
+  seg('paidBySeg', 'data-paid', currentPaidBy);
+  seg('iWhoSeg', 'data-who', currentIncomeWho);
+  seg('vxPaidBySeg', 'data-paid', currentVxPaidBy);
+  seg('gWhoSeg', 'data-who', currentGoalPerson);
+  seg('ahorroPersonSeg', 'data-person', currentAhorroPerson);
+  seg('varEstPersonSeg', 'data-person', currentVarEstPerson);
+
+  // división de un gasto: partes iguales, según ingresos, o todo a cargo de uno.
+  // Con una sola persona no hay nada que dividir, así que el bloque se esconde.
+  const split = $('splitToggle');
+  const solo = peopleCount() < 2;
+  $('splitField').style.display = solo ? 'none' : '';
+  if(!solo){
+    if(!isSplitAvailable(currentSplit)) currentSplit = 'equal';
+    const opts = [
+      { v:'equal',  label:'Partes iguales' },
+      { v:'income', label:'Según ingresos' },
+      ...people.map(p=>({ v:'only:' + p.id, label:'Todo a ' + p.name }))
+    ];
+    split.innerHTML = opts.map(o=>
+      `<button type="button" data-split="${o.v}"${o.v === currentSplit ? ' class="active"' : ''}>${escapeHtml(o.label)}</button>`
+    ).join('');
+  }
+
+  // cuántos son + un input de nombre por persona
+  const countSeg = $('peopleCountSeg');
+  if(countSeg){
+    countSeg.innerHTML = Array.from({length: MAX_PEOPLE}, (_,i)=>i+1).map(n=>
+      `<button type="button" data-count="${n}"${n === peopleCount() ? ' class="active"' : ''}>${n}</button>`
+    ).join('');
+  }
+  const namesGrid = $('namesGrid');
+  if(namesGrid){
+    namesGrid.innerHTML = people.map((p,i)=>`<div>
+      <label for="name-${p.id}">Nombre ${i+1}</label>
+      <input type="text" id="name-${p.id}" data-person="${p.id}" value="${escapeHtml(p.name)}" placeholder="Ej: ${i === 0 ? 'Vos' : 'Tu pareja'}">
+    </div>`).join('');
+  }
+}
+// un tipo de división sigue siendo válido mientras la persona que nombra exista
+function isSplitAvailable(splitType){
+  if(splitType === 'equal' || splitType === 'income') return true;
+  return !!(splitType && splitType.startsWith('only:') && isPerson(splitType.slice(5)));
+}
+// se sigue llamando desde varios lados con el nombre viejo
+const refreshNameLabels = refreshPeopleUI;
+
+// renombrar no toca ningún dato: los ingresos, gastos y metas siguen atados al id
+$('namesGrid').addEventListener('change', (e)=>{
+  const input = e.target.closest('input[data-person]');
+  if(!input) return;
+  const p = people.find(x=>x.id === input.dataset.person);
+  if(!p) return;
+  p.name = input.value.trim() || defaultPersonName(p.id);
+  input.value = p.name;
+  rebuildNames();
+  refreshPeopleUI();
+  saveNames();
+  renderFixedIncome();
+  renderIncomeChips();
+  render();
+});
+
+$('peopleCountSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(btn) setPeopleCount(parseInt(btn.dataset.count, 10));
+});
+
+// Subir la cantidad solo agrega a alguien vacío. Bajarla borra a la última
+// persona, y con ella sus ingresos, gastos variables, presupuesto y metas — su
+// parte de los gastos compartidos se reparte entre los que quedan, así ningún
+// gasto queda con plata sin dueño. Por eso se avisa antes.
+function setPeopleCount(n){
+  if(!(n >= 1 && n <= MAX_PEOPLE) || n === peopleCount()) return;
+  if(n < peopleCount()){
+    const going = people.slice(n);
+    const label = going.map(p=>p.name).join(', ');
+    const msg = `Vas a quedarte con ${n} ${n === 1 ? 'persona' : 'personas'}.\n\n` +
+      `Se borran los ingresos, gastos variables, presupuesto y metas de ${label}. ` +
+      `Su parte de los gastos compartidos se reparte entre quienes quedan.\n\n¿Seguimos?`;
+    if(!confirm(msg)) { refreshPeopleUI(); return; }
+    const goneIds = going.map(p=>p.id);
+    goneIds.forEach(dropPersonData);
+    setPeople(people.slice(0, n));
+    redistributeShares(goneIds);
+  }else{
+    // sumar a alguien no toca los gastos ya cargados: esos meses se repartieron
+    // entre quienes estaban, y así deben quedar. Los nuevos gastos ya salen
+    // divididos entre todos.
+    const next = people.slice();
+    while(next.length < n){
+      const id = PERSON_IDS[next.length];
+      next.push({ id, name: defaultPersonName(id) });
+    }
+    setPeople(next);
+  }
+  saveNames();
+  saveExpenses();
+  saveIncome();
+  saveVarEstimates();
+  saveVarExpenses();
+  saveBudgetOverrides();
+  saveGoals();
+  refreshPeopleUI();
+  renderFixed();
+  renderChips();
+  renderFixedIncome();
+  renderIncomeChips();
+  renderVarEstimates();
+  render();
 }
 
-$('nameA').addEventListener('change', e=>{ names.A = e.target.value || 'Juan'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
-$('nameB').addEventListener('change', e=>{ names.B = e.target.value || 'Maria'; refreshNameLabels(); saveNames(); renderFixedIncome(); render(); });
+function dropPersonData(id){
+  delete income.entries[id];
+  delete varEstimates[id];
+  delete budgetOverrides[id];
+  varExpenses = varExpenses.filter(e=>e.paidBy !== id);
+  goals = goals.filter(g=>g.person !== id);
+  // siempre se saca del final de la lista, así que la primera persona sigue ahí
+  // y hereda los gastos compartidos que pagaba el que se va (si no, el gasto
+  // quedaría sin nadie que lo haya puesto y el balance no cerraría)
+  const fallback = people[0].id;
+  expenses.forEach(ex=>{ if(ex.paidBy === id) ex.paidBy = fallback; });
+  fixedIncome.forEach(f=>{ if(f.person === id) f.person = fallback; });
+}
+
+// la parte que le tocaba a quien se fue no puede quedar huérfana: se reparte
+// entre los que siguen, en la misma proporción que ya tenían entre ellos
+function redistributeShares(goneIds){
+  expenses.forEach(ex=>{
+    if(!ex.shares) return;
+    let orphan = 0;
+    goneIds.forEach(id=>{
+      orphan += ex.shares[id] || 0;
+      delete ex.shares[id];
+    });
+    if(orphan <= 0) return;
+    const rest = pids().filter(id=>typeof ex.shares[id] === 'number');
+    if(!rest.length){
+      ex.shares = equalShares();
+    }else{
+      const base = rest.reduce((s,id)=>s + ex.shares[id], 0);
+      if(base > 0) rest.forEach(id=>{ ex.shares[id] += orphan * (ex.shares[id] / base); });
+      else rest.forEach(id=>{ ex.shares[id] = orphan / rest.length; });
+    }
+    if(!isSplitAvailable(ex.splitType)) ex.splitType = 'equal';
+  });
+}
 
 $('ahorroPersonSeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
@@ -2642,9 +3094,9 @@ function resetIncomeForm(){
   $('incomeForm').reset();
   editingIncomeId = null;
   currentIncomeCur = 'ARS';
-  currentIncomeWho = 'A';
+  currentIncomeWho = firstPid();
   document.querySelectorAll('#iCurSeg button').forEach(b=>b.classList.toggle('active', b.dataset.cur === 'ARS'));
-  document.querySelectorAll('#iWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === 'A'));
+  document.querySelectorAll('#iWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === currentIncomeWho));
   $('iDate').value = defaultDate();
   syncIncomeFx();
   renderIncomeChips();
@@ -2728,7 +3180,7 @@ $('incomeForm').addEventListener('submit', (e)=>{
   if(editingIncomeId){
     // the owner can change, so the entry may need to move between people
     let found = null, from = null;
-    ['A','B'].forEach(p=>{
+    pids().forEach(p=>{
       const hit = (income.entries[p]||[]).find(x=>x.id === editingIncomeId);
       if(hit){ found = hit; from = p; }
     });
@@ -2787,13 +3239,16 @@ function renderIncomeLists(){
   const title = $('incomeSectionTitle');
   if(title) title.textContent = `Ingresos de ${monthShort(viewMonth)}`;
 
-  ['A','B'].forEach(p=>{
+  $('incomeGrid').innerHTML = pids().map(p=>{
     const list = (income.entries[p]||[]).filter(e=>monthKey(e.date) === viewMonth);
-    $('incomeList'+p).innerHTML = list.length
-      ? list.map(e=>incomeRowHtml(p, e)).join('')
-      : '<div class="income-note">Todavía sin ingresos.</div>';
-    $('incomeTotal'+p).textContent = fmt(incomeTotalArs(p));
-  });
+    return `<div class="income-person" data-person="${p}">
+      <div class="who-label">${escapeHtml(nameOf(p))}</div>
+      <div class="income-big">${fmt(incomeTotalArs(p))}</div>
+      <div class="income-entries">${list.length
+        ? list.map(e=>incomeRowHtml(p, e)).join('')
+        : '<div class="income-note">Todavía sin ingresos.</div>'}</div>
+    </div>`;
+  }).join('');
 
   renderPrevMonthSaldo();
   renderIncomePreview();
@@ -2804,11 +3259,11 @@ function renderPrevMonthSaldo(){
   if(!box) return;
   const prevKey = prevMonthKey(viewMonth);
   // nothing to carry over before any expenses/income have ever been logged
-  if(!expenses.some(x=>monthKey(x.date) === prevKey) && !['A','B'].some(p=>(income.entries[p]||[]).some(e=>monthKey(e.date) === prevKey))){
+  if(!expenses.some(x=>monthKey(x.date) === prevKey) && !pids().some(p=>(income.entries[p]||[]).some(e=>monthKey(e.date) === prevKey))){
     box.innerHTML = '';
     return;
   }
-  const cols = ['A','B'].map(p=>{
+  const cols = pids().map(p=>{
     const left = prevMonthLeftover(p);
     if(Math.abs(left) < 1) return '<div></div>';
     // already carried over into this month? don't offer it twice
@@ -2842,20 +3297,24 @@ function usePrevMonthSaldo(person){
 }
 
 function renderIncomePreview(){
-  const pct = incomePctA();
+  const shares = incomeShares();
   const preview = $('incomePreview');
   const splitPreview = $('incomeSplitPreview');
-  if(pct === null){
+  // con una sola persona no hay nada que repartir
+  if(!shares || peopleCount() < 2){
     preview.style.display = 'none';
     splitPreview.style.display = 'none';
     return;
   }
+  const parts = pids().map(id=>({ id, pct: Math.round(shares[id]) }));
   preview.style.display = 'block';
   preview.innerHTML = `<div style="font-size:12px;color:var(--body-muted);margin-bottom:4px;">Si dividís un gasto según ingresos:</div>
-    <div style="display:flex;justify-content:space-between;"><span class="name-a">${escapeHtml(names.A)}: ${Math.round(pct)}%</span><span class="name-b">${escapeHtml(names.B)}: ${Math.round(100-pct)}%</span></div>`;
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">${
+      parts.map((p,i)=>`<span style="color:${personColor(i)}">${escapeHtml(nameOf(p.id))}: ${p.pct}%</span>`).join('')
+    }</div>`;
   if(currentSplit === 'income'){
     splitPreview.style.display = 'block';
-    splitPreview.textContent = `${names.A} paga ${Math.round(pct)}% · ${names.B} paga ${Math.round(100-pct)}%`;
+    splitPreview.textContent = parts.map(p=>`${nameOf(p.id)} paga ${p.pct}%`).join(' · ');
   } else {
     splitPreview.style.display = 'none';
   }
@@ -2883,15 +3342,11 @@ $('addForm').addEventListener('submit', (e)=>{
   const desc = $('fDesc').value.trim();
   const amount = numVal('fAmount');
   if(!desc || !amount) return;
-  const pctA = currentSplit === 'income' ? (incomePctA() ?? 50)
-    : currentSplit === 'a-to-b' ? 0
-    : currentSplit === 'b-to-a' ? 100
-    : 50;
   const fields = {
     desc, amount,
     date: $('fDate').value || defaultDate(),
     category: categoryOf(desc),
-    pctA,
+    shares: sharesFor(currentSplit),
     splitType: currentSplit,
     paidBy: currentPaidBy
   };
@@ -2915,19 +3370,26 @@ function deleteExpense(id){
 
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
+// "partes iguales" cuando a todos les toca lo mismo; si no, inicial + monto de
+// cada uno que efectivamente pone algo (con una sola persona no se muestra nada)
+function splitLabelOf(ex){
+  const ids = pids().filter(id=>personShareOf(ex, id) > 0);
+  if(ids.length <= 1) return '';
+  const pcts = ids.map(id=>ex.shares[id]);
+  const even = pcts.every(p=>Math.abs(p - pcts[0]) < 0.5) && ids.length === peopleCount();
+  if(even) return 'partes iguales';
+  return ids.map(id=>`${nameOf(id).charAt(0).toUpperCase()} ${fmt(personShareOf(ex, id))}`).join(' / ');
+}
+
 function billRow(ex){
   const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
-  const nA = escapeHtml(names.A), nB = escapeHtml(names.B);
-  const amtA = ex.amount * ex.pctA/100, amtB = ex.amount - amtA;
-  const initA = nA.charAt(0).toUpperCase(), initB = nB.charAt(0).toUpperCase();
-  const splitLabel = ex.pctA === 50 ? '50/50'
-    : `${initA} ${fmt(amtA)} / ${initB} ${fmt(amtB)}`;
+  const splitLabel = splitLabelOf(ex);
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(ex.desc)}</div>
       <div class="bill-meta">
-        <span>${dateStr}</span><span>·</span><span>${splitLabel}</span>
-        <span class="tag ${ex.paidBy==='A'?'tag-a':'tag-b'}">Paga ${ex.paidBy==='A'?nA:nB}</span>
+        <span>${dateStr}</span>${splitLabel ? `<span>·</span><span>${escapeHtml(splitLabel)}</span>` : ''}
+        <span class="tag ${personTagClass(ex.paidBy)}">Paga ${escapeHtml(nameOf(ex.paidBy))}</span>
       </div>
     </div>
     <div class="bill-amt">${fmt(ex.amount)}</div>
@@ -2952,6 +3414,33 @@ function varExpenseBillRow(ex){
   </div>`;
 }
 
+// the month's money chain for one person, in the same order the Gastos tab
+// lays it out: ingreso − su parte de los gastos fijos − sus gastos variables
+// − lo que tiene presupuestado gastar = ahorro. Every big block on Gastos ends
+// with one of these running saldos, and the Ahorro tab reads the last one.
+function financeFor(person, key){
+  key = key || viewMonth;
+  const list = expenses.filter(x=>monthKey(x.date) === key);
+  const inc = incomeTotalArs(person, key);
+  const fijos = personShareTotal(list, person);
+  const variables = varExpenses
+    .filter(e=>e.paidBy === person && monthKey(e.date) === key)
+    .reduce((s,e)=>s+(e.amount||0), 0);
+  const afterFijos = inc - fijos;
+  const afterVar = afterFijos - variables;
+  const cats = budgetCatsFor(person, afterVar);
+  const podes = cats.reduce((s,c)=>s+c.val, 0);
+  return { inc, fijos, variables, afterFijos, afterVar, cats, podes, ahorro: afterVar - podes };
+}
+
+function monthFinance(key){
+  const out = {};
+  pids().forEach(id=>{ out[id] = financeFor(id, key); });
+  return out;
+}
+// suma de un campo de la cadena sobre todas las personas del espacio
+const finSum = (fin, field) => pids().reduce((s,id)=>s + fin[id][field], 0);
+
 function render(){
   if(!viewMonth) viewMonth = monthNow();
   $('monthLabel').textContent = monthLabel(viewMonth);
@@ -2959,31 +3448,37 @@ function render(){
 
   const list = expenses.filter(x=>inViewMonth(x.date))
     .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const total = list.reduce((s,x)=>s+x.amount,0);
+  const fin = monthFinance(viewMonth);
+  const mes = monthShort(viewMonth);
 
-  $('listTitle').textContent = `Gastos Fijos de ${monthShort(viewMonth)}` + (list.length ? ` (${list.length})` : '');
-  $('listTotal').textContent = list.length ? fmt(total) : '';
+  $('fixedBlockTitle').textContent = `Gastos fijos de ${mes}`;
+  $('varBlockTitle').textContent = `Gastos variables de ${mes}`;
+  $('budgetBlockTitle').textContent = `Gastos posibles de ${mes}`;
+  $('gastosAhorroTitle').textContent = `Ahorro de ${mes}`;
+
   $('expenseList').innerHTML = list.length
     ? list.map(billRow).join('')
-    : `<div class="empty">No hay gastos cargados en ${monthShort(viewMonth)}.<br>Agregá el primero con el botón de arriba.</div>`;
+    : `<div class="empty">No hay gastos cargados en ${mes}.<br>Agregá el primero con el botón de arriba.</div>`;
 
-  $('resumenTitle').textContent = 'Gastos de ' + monthShort(viewMonth);
+  $('resumenTitle').textContent = 'Gastos de ' + mes;
 
-  renderTotals(total);
-  renderTotalsPerPerson(list);
-  renderAvailable(list);
-  renderBudgetCategories(list);
-  renderVarEstimatesGrid(list);
+  renderTotals(fin);
+  renderTotalsPerPerson(fin);
+  renderVarExpensesGrid();
+  renderBudgetCategories(fin);
+  renderBlockSaldos(fin);
   renderCharts(list);
   renderBalance();
   renderFixedDebt();
   renderAhorro();
 }
 
-// household view of the month: what came in, what goes out, what's left over
-function renderTotals(gasto){
-  const ingreso = incomeTotalArs('A') + incomeTotalArs('B');
-  const ahorro = ingreso - gasto;
+// household view of the month: what came in, everything that goes out
+// (fijos + variables + lo presupuestado) and what's left over
+function renderTotals(fin){
+  const ingreso = finSum(fin, 'inc');
+  const ahorro = finSum(fin, 'ahorro');
+  const gasto = ingreso - ahorro;
   const cell = (k, v, cls='') => `<div class="totals-cell">
       <div class="totals-k">${k}</div>
       <div class="totals-v ${cls}">${fmt(v)}</div>
@@ -2994,58 +3489,64 @@ function renderTotals(gasto){
     cell('Ahorro', ahorro, ahorro < 0 ? 'neg' : 'save');
 }
 
-// same three numbers, but broken out per person: what each one earns,
-// actually paid out of pocket (by paidBy, not by split share), and keeps
-function renderTotalsPerPerson(list){
+// same three numbers, but broken out per person: what each one earns, what
+// their whole month costs them (su parte de los fijos + variables + presupuesto)
+// and what's left
+function renderTotalsPerPerson(fin){
   const cell = (k, v, cls='') => `<div class="totals-person-cell">
       <div class="totals-person-k">${k}</div>
       <div class="totals-person-v ${cls}">${fmt(v)}</div>
     </div>`;
-  const personBlock = (who, person) => {
-    const inc = incomeTotalArs(person);
-    const paid = list.filter(ex=>ex.paidBy === person).reduce((s,ex)=>s+ex.amount, 0);
-    const ahorro = inc - paid;
+  const personBlock = (person) => {
+    const f = fin[person];
+    const gasto = f.fijos + f.variables + f.podes;
     return `<details class="totals-person">
-      <summary class="totals-person-who">${escapeHtml(who)}</summary>
+      <summary class="totals-person-who">${escapeHtml(names[person])}</summary>
       <div class="totals-person-row">
-        ${cell('Ingreso', inc)}
-        ${cell('Gasto', paid)}
-        ${cell('Ahorro', ahorro, ahorro < 0 ? 'neg' : 'save')}
+        ${cell('Ingreso', f.inc)}
+        ${cell('Gasto', gasto)}
+        ${cell('Ahorro', f.ahorro, f.ahorro < 0 ? 'neg' : 'save')}
       </div>
     </details>`;
   };
-  $('totalsPersonGrid').innerHTML = personBlock(names.A, 'A') + personBlock(names.B, 'B');
+  $('totalsPersonGrid').innerHTML = pids().map(personBlock).join('');
 }
 
-// what's left for extras: income minus your share of everything booked this month
-function renderAvailable(list){
-  let shareA = 0, shareB = 0;
-  list.forEach(ex=>{
-    shareA += ex.amount * ex.pctA/100;
-    shareB += ex.amount * (100-ex.pctA)/100;
-  });
-  const incA = incomeTotalArs('A'), incB = incomeTotalArs('B');
-  const grid = $('availGrid');
-
-  if(incA <= 0 && incB <= 0){
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;">Para saber cuánto te queda, cargá primero los ingresos.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
-    return;
-  }
-
-  const col = (who, inc, share) => {
-    const left = inc - share;
-    return `<div class="avail-col">
-      <div class="avail-who">Saldo ${escapeHtml(who)}</div>
-      <div class="avail-amt ${left < 0 ? 'neg' : ''}">${fmt(left)}</div>
-      <div class="avail-sub">${fmt(inc)} de ingresos − ${fmt(share)} de gastos</div>
-    </div>`;
-  };
-  grid.innerHTML = col(names.A, incA, shareA) + col(names.B, incB, shareB);
+// the "Saldos" footer every big block on Gastos ends with: the same two people,
+// the same shape, each block one step further down the chain
+// `tone` paints the whole cell green/red by sign — only the closing Ahorro
+// block uses it; the intermediate saldos stay neutral so the last one destaca
+function saldoCell(person, amt, sub, tone){
+  const toneCls = tone ? (amt < 0 ? 'tone-bad' : 'tone-good') : '';
+  return `<div class="sld-cell ${toneCls}">
+    <div class="sld-who">${escapeHtml(names[person])}</div>
+    <div class="sld-amt ${!tone && amt < 0 ? 'neg' : ''}">${fmt(amt)}</div>
+    <div class="sld-sub">${sub}</div>
+  </div>`;
+}
+function renderSaldos(elId, fin, pick, subFn, tone){
+  const el = $(elId);
+  if(!el) return;
+  el.innerHTML = pids().map(p=>saldoCell(p, pick(fin[p]), subFn(fin[p]), tone)).join('');
+}
+function renderBlockSaldos(fin){
+  const mes = monthShort(viewMonth);
+  renderSaldos('startSaldos', fin, f=>f.inc,
+    () => `lo que entró en ${mes}, antes de gastos`);
+  renderSaldos('fixedSaldos', fin, f=>f.afterFijos,
+    f=>`${fmt(f.inc)} de ingresos − ${fmt(f.fijos)} de gastos fijos`);
+  renderSaldos('varSaldos', fin, f=>f.afterVar,
+    f=>`${fmt(f.afterFijos)} − ${fmt(f.variables)} de gastos variables`);
+  renderSaldos('budgetSaldos', fin, f=>f.ahorro,
+    f=>`${fmt(f.afterVar)} − ${fmt(f.podes)} que podés gastar`);
+  renderSaldos('ahorroSaldos', fin, f=>f.ahorro,
+    f=>`${fmt(f.inc)} − ${fmt(f.fijos)} − ${fmt(f.variables)} − ${fmt(f.podes)}`, true);
 }
 
-// splits each person's Saldo (renderAvailable's "left") into suggested caps per
+
+// splits what's left after fijos y variables into suggested caps per
 // discretionary category — same idea as the Ahorro tab's PLAN %, but applied to
-// what's actually left after this month's expenses rather than gross income.
+// the running saldo rather than gross income.
 // Every category is independently editable per person (budgetOverrides); the
 // defaults leave a slice unallocated on purpose so Ahorro starts out positive.
 const BUDGET_CATEGORIES = [
@@ -3057,44 +3558,44 @@ const BUDGET_CATEGORIES = [
 ];
 const AHORRO_IDEAL_PCT = 0.2; // same 20% used as "Invertir por mes" in the Ahorro tab's PLAN
 
-function renderBudgetCategories(list){
-  let shareA = 0, shareB = 0;
-  list.forEach(ex=>{
-    shareA += ex.amount * ex.pctA/100;
-    shareB += ex.amount * (100-ex.pctA)/100;
-  });
-  const incA = incomeTotalArs('A'), incB = incomeTotalArs('B');
+// suggested cap per category, as a share of what's left after fijos y
+// variables; a category the user typed over keeps their number instead
+function budgetCatsFor(person, base){
+  const overrides = budgetOverrides[person] || {};
+  const left = Math.max(0, base);
+  return BUDGET_CATEGORIES.map(c=>({
+    ...c,
+    val: overrides[c.key] != null ? overrides[c.key] : left * c.f
+  }));
+}
+
+function renderBudgetCategories(fin){
   const grid = $('budgetGrid');
   if(!grid) return;
 
-  if(incA <= 0 && incB <= 0){ grid.innerHTML = ''; return; }
+  if(finSum(fin, 'inc') <= 0){
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;">Para saber cuánto podés gastar, cargá primero los ingresos.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
+    return;
+  }
 
-  const col = (who, inc, share, person) => {
-    const left = Math.max(0, inc - share);
-    const overrides = budgetOverrides[person] || {};
-    let allocated = 0;
-    const rows = BUDGET_CATEGORIES.map(c=>{
-      const val = overrides[c.key] != null ? overrides[c.key] : left * c.f;
-      allocated += val;
-      return `
+  const col = (person) => {
+    const f = fin[person];
+    const rows = f.cats.map(c=>`
       <div class="budget-row">
         <span class="budget-cat">${c.label}</span>
-        <input type="text" inputmode="numeric" class="budget-amt-input" value="${groupThousands(String(Math.round(val)))}"
+        <input type="text" inputmode="numeric" class="budget-amt-input" value="${groupThousands(String(Math.round(c.val)))}"
           data-person="${person}" data-cat="${c.key}"
           oninput="groupThousandsInPlace(this)" onchange="setBudgetOverride(this)">
-      </div>`;
-    }).join('');
-    const ahorro = left - allocated;
-    const ahorroIdeal = left * AHORRO_IDEAL_PCT;
+      </div>`).join('');
+    const ahorroIdeal = f.inc * AHORRO_IDEAL_PCT;
 
     return `<div class="avail-col">
-      <div class="avail-who">Podés gastar — ${escapeHtml(who)}</div>
+      <div class="avail-who">${escapeHtml(names[person])}</div>
       <div class="avail-detail-top">${rows}</div>
-      <div class="bal-line ${ahorro < 0 ? '' : 'good'}"><span class="bal-who">Ahorro</span><span class="amt">${fmt(ahorro)}</span></div>
-      <div class="avail-sub">Ideal: ahorrar ${fmt(ahorroIdeal)} (${Math.round(AHORRO_IDEAL_PCT*100)}% de lo disponible)</div>
+      <div class="avail-sub">Sobre ${fmt(Math.max(0, f.afterVar))} que te quedaron después de fijos y variables. Ideal: ahorrar ${fmt(ahorroIdeal)} (${Math.round(AHORRO_IDEAL_PCT*100)}% de tu ingreso).</div>
     </div>`;
   };
-  grid.innerHTML = col(names.A, incA, shareA, 'A') + col(names.B, incB, shareB, 'B');
+  grid.innerHTML = pids().map(col).join('');
 }
 
 // mirrors attachThousands()'s caret-preserving reformat, but as an inline
@@ -3119,24 +3620,14 @@ function setBudgetOverride(el){
   render();
 }
 
-// two columns, one per person, listing their personal variable-expense
-// estimates and what's really left after subtracting them from renderAvailable()'s "left"
-function renderVarEstimatesGrid(list){
-  $('varEstMonthLabel').textContent = monthShort(viewMonth);
-
-  let shareA = 0, shareB = 0;
-  list.forEach(ex=>{
-    shareA += ex.amount * ex.pctA/100;
-    shareB += ex.amount * (100-ex.pctA)/100;
-  });
-  const incA = incomeTotalArs('A'), incB = incomeTotalArs('B');
+// two columns, one per person, listing the personal variable expenses they
+// actually logged this month — the block's saldo closes the account below
+function renderVarExpensesGrid(){
   const grid = $('varEstGrid');
+  if(!grid) return;
 
-  const col = (who, inc, share, person) => {
-    const left = inc - share;
+  const col = (person) => {
     const monthlyReal = varExpenses.filter(e=>e.paidBy === person && inViewMonth(e.date));
-    const realTotal = monthlyReal.reduce((s,e)=>s+e.amount, 0);
-    const refined = left - realTotal;
     const estTotal = variableEstimatesTotal(person);
 
     const rows = monthlyReal.length
@@ -3147,26 +3638,19 @@ function renderVarEstimatesGrid(list){
       : '';
 
     return `<div class="avail-col">
-      <div class="avail-who">${escapeHtml(who)}</div>
+      <div class="avail-who">${escapeHtml(names[person])}</div>
       <div class="avail-detail-top">${rows}</div>
-      <div class="bal-line ${refined < 0 ? '' : 'good'}"><span class="bal-who">Te queda realmente</span><span class="amt">${fmt(refined)}</span></div>
       ${estimateNote}
     </div>`;
   };
-  grid.innerHTML = col(names.A, incA, shareA, 'A') + col(names.B, incB, shareB, 'B');
+  grid.innerHTML = pids().map(col).join('');
 }
 
 // ---- Ahorro tab ----
-// an expense counts as a "need" when it matches one of your fixed expenses;
-// anything typed by hand (category Otro) falls on the "wants" side
-function isNeed(ex){
-  const c = (ex.category||'').toLowerCase();
-  return fixed.some(f=>f.label.toLowerCase() === c);
-}
-
-// this person's share of one expense, per its pctA split (not who paid it)
+// this person's share of one expense, per its `shares` split (not who paid it)
 function personShareOf(ex, person){
-  return ex.amount * (person === 'A' ? ex.pctA : 100 - ex.pctA) / 100;
+  const pct = ex.shares ? ex.shares[person] : null;
+  return ex.amount * (typeof pct === 'number' ? pct : 0) / 100;
 }
 function personShareTotal(list, person){
   return list.reduce((s,ex)=>s+personShareOf(ex, person), 0);
@@ -3194,7 +3678,9 @@ const PLAN = [
     d:'Lo que sale a inversión todos los meses. Es el motor de las dos metas de abajo.' },
   { op:'× 6',    f:6,   n:'Fondo de emergencia', flow:false,
     d:'La primera meta: seis meses de sueldo guardados y disponibles antes de inmovilizar plata.' },
-  { op:'× 200',  f:200, n:'Vivir de rentas', flow:false,
+  // oculta por ahora: la cifra es tan lejana que tapa las otras cuatro.
+  // Sacale el `hidden` para volver a mostrarla.
+  { op:'× 200',  f:200, n:'Vivir de rentas', flow:false, hidden:true,
     d:'El capital que, rindiendo 6% al año, te deposita un sueldo por mes sin trabajar.' }
 ];
 
@@ -3205,7 +3691,7 @@ function renderPlan(person){
     box.innerHTML = '<div class="empty">Cargá los ingresos para ver tus números.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
     return;
   }
-  box.innerHTML = PLAN.map(p=>`
+  box.innerHTML = PLAN.filter(p=>!p.hidden).map(p=>`
     <div class="plan-row">
       <span class="plan-op">${p.op}</span>
       <span class="plan-main">
@@ -3235,6 +3721,34 @@ function humanMonths(m){
   return (y < 10 ? y.toFixed(1).replace('.', ',') : Math.round(y)) + ' años';
 }
 
+// the rate used to price a goal loaded in USD: the blue read from the API if it
+// came back, otherwise whatever the user typed for their own USD income
+function usdRate(){ return todayUsdRate || income.fx || 0; }
+function goalTargetArs(g){
+  return g.currency === 'USD' ? (g.amount||0) * usdRate() : (g.amount||0);
+}
+// months between this month and a 'YYYY-MM' deadline, 0 if it's already past
+function monthsUntil(key){
+  if(!key) return null;
+  const [ty,tm] = key.split('-').map(Number);
+  const [vy,vm] = viewMonth.split('-').map(Number);
+  return Math.max(0, (ty - vy) * 12 + (tm - vm));
+}
+
+function goalCardHtml(name, target, pct, detail, extra, acts, kindTag){
+  const done = pct >= 100;
+  return `<div class="goal">
+    <div class="goal-h">
+      <span class="goal-n">${name}${kindTag ? `<span class="goal-kind">${kindTag}</span>` : ''}</span>
+      <span class="goal-t">${target}</span>
+      ${acts || ''}
+    </div>
+    <div class="goal-track"><i class="${done?'':'part'}" style="width:${Math.max(0, Math.min(100, pct))}%"></i></div>
+    <div class="goal-d"><span class="goal-pct">${pct < 1 && pct > 0 ? '<1' : Math.round(pct)}%</span> — ${detail}${extra ? '<br>' + extra : ''}</div>
+  </div>`;
+}
+
+// the built-in emergency fund plus every goal the user wrote down for this person
 function renderGoals(acumulado, monthlySaving, person, shareRatio){
   const ingreso = incomeTotalArs(person);
   const box = $('goalsBox');
@@ -3244,30 +3758,66 @@ function renderGoals(acumulado, monthlySaving, person, shareRatio){
   }
   const saved = Math.max(0, acumulado);
   const fijosMes = fixed.reduce((s,f)=>s+(f.amount||0), 0) * shareRatio;
-
-  const goal = (name, target, extra) => {
-    const pct = Math.min(100, saved/target*100);
-    const done = pct >= 100;
-    const falta = Math.max(0, target - saved);
-    const eta = humanMonths(monthsToTarget(monthlySaving, target, saved));
-    return `<div class="goal">
-      <div class="goal-h"><span class="goal-n">${name}</span><span class="goal-t">${fmt(target)}</span></div>
-      <div class="goal-track"><i class="${done?'':'part'}" style="width:${pct}%"></i></div>
-      <div class="goal-d"><span class="goal-pct">${pct < 1 && pct > 0 ? '<1' : Math.round(pct)}%</span> — tenés ${fmt(saved)}${
-        done ? '. Meta cumplida.' : `, faltan ${fmt(falta)}${eta ? `. A tu ritmo actual: ${eta}.` : '. Todavía no estás ahorrando por mes.'}`
-      }${extra ? '<br>' + extra : ''}</div>
-    </div>`;
-  };
-
   const runway = fijosMes > 0
     ? `Tu ahorro de hoy cubre ${(saved/fijosMes).toFixed(1).replace('.', ',')} meses de tu parte de los gastos fijos (${fmt(fijosMes)} por mes).`
     : '';
 
+  // meta 1 is always there: six months of income, measured against what you've accumulated
+  const emTarget = ingreso * 6;
+  const emPct = Math.min(100, saved/emTarget*100);
+  const emEta = humanMonths(monthsToTarget(monthlySaving, emTarget, saved));
+  const emDetail = emPct >= 100
+    ? `tenés ${fmt(saved)}. Meta cumplida.`
+    : `tenés ${fmt(saved)}, faltan ${fmt(emTarget - saved)}${emEta ? `. A tu ritmo actual: ${emEta}.` : '. Todavía no estás ahorrando por mes.'}`;
+
+  const mine = goals.filter(g=>g.person === person);
+  const custom = mine.map(g=>{
+    const acts = `<span class="goal-acts">
+      <button type="button" onclick="openGoalModal('${g.id}')" aria-label="Editar meta">✎</button>
+      <button type="button" onclick="deleteGoal('${g.id}')" aria-label="Eliminar meta">✕</button>
+    </span>`;
+    const targetArs = goalTargetArs(g);
+    const targetLabel = g.currency === 'USD'
+      ? `${fmtUsd(g.amount)}${targetArs ? ` <span style="color:var(--body-muted);font-weight:400;">· ${fmt(targetArs)}</span>` : ''}`
+      : fmt(g.amount);
+
+    if(g.kind === 'mensual'){
+      // measured against this month's savings, not the accumulated pile
+      const pct = targetArs > 0 ? Math.min(100, Math.max(0, monthlySaving)/targetArs*100) : 0;
+      const falta = Math.max(0, targetArs - Math.max(0, monthlySaving));
+      const detail = pct >= 100
+        ? `este mes ahorraste ${fmt(Math.max(0, monthlySaving))}. Ya la cumpliste.`
+        : `este mes ahorraste ${fmt(Math.max(0, monthlySaving))}, faltan ${fmt(falta)} para llegar.`;
+      const extra = g.currency === 'USD' && !usdRate()
+        ? 'Sin cotización del dólar todavía no se puede comparar contra tu ahorro.' : '';
+      return goalCardHtml(escapeHtml(g.name), targetLabel + '<span style="font-size:11px;font-weight:400;color:var(--body-muted);"> /mes</span>',
+        pct, detail, extra, acts, 'por mes');
+    }
+
+    const gSaved = Math.max(0, g.saved || 0);
+    const pct = targetArs > 0 ? Math.min(100, gSaved/targetArs*100) : 0;
+    const falta = Math.max(0, targetArs - gSaved);
+    const detail = pct >= 100
+      ? `juntaste ${fmt(gSaved)}. Meta cumplida.`
+      : `juntaste ${fmt(gSaved)}, faltan ${fmt(falta)}.`;
+    const meses = monthsUntil(g.deadline);
+    let extra = '';
+    if(meses !== null && falta > 0){
+      extra = meses > 0
+        ? `Para ${monthLabel(g.deadline)} tenés que guardar ${fmt(falta/meses)} por mes durante ${meses} ${meses === 1 ? 'mes' : 'meses'}.`
+        : `La fecha límite (${monthLabel(g.deadline)}) ya llegó.`;
+    }else if(falta > 0){
+      const eta = humanMonths(monthsToTarget(monthlySaving, targetArs, gSaved));
+      extra = eta ? `A tu ritmo actual (${fmt(Math.max(0, monthlySaving))} por mes): ${eta}.` : 'Todavía no estás ahorrando por mes.';
+    }
+    return goalCardHtml(escapeHtml(g.name), targetLabel, pct, detail, extra, acts,
+      g.deadline ? monthLabel(g.deadline) : '');
+  }).join('');
+
   box.innerHTML =
-    goal('1 · Fondo de emergencia', ingreso * 6, runway) +
-    goal('2 · Vivir de rentas', ingreso * 200,
-      `Rindiendo 6% al año, ese capital genera ${fmt(ingreso)} por mes — tu ingreso actual.`) +
-    `<p class="income-note" style="margin-top:14px;">El "a tu ritmo actual" asume que seguís ahorrando ${fmt(Math.max(0, monthlySaving))} por mes al 6% anual, en pesos de hoy y sin descontar inflación.</p>`;
+    goalCardHtml('Fondo de emergencia', fmt(emTarget), emPct, emDetail, runway, '', '') +
+    custom +
+    (mine.length ? '' : '<div class="goal-empty">Todavía no cargaste metas propias. Agregá una: juntar un monto para una fecha, o guardar algo todos los meses.</div>');
 }
 
 function renderRule5030(person){
@@ -3277,13 +3827,16 @@ function renderRule5030(person){
     box.innerHTML = '<div class="empty">Cargá los ingresos para ver el reparto.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
     return;
   }
-  const list = expenses.filter(x=>inViewMonth(x.date));
-  const needs = list.filter(isNeed).reduce((s,x)=>s+personShareOf(x, person),0);
-  const wants = list.filter(x=>!isNeed(x)).reduce((s,x)=>s+personShareOf(x, person),0);
-  const saved = ingreso - needs - wants;
+  // needs = todo lo que ya está comprometido (fijos + variables);
+  // wants = el presupuesto discrecional de "Gastos posibles";
+  // ahorro = el que cierra la cadena, el mismo número de la tarjeta de arriba
+  const f = financeFor(person);
+  const needs = f.fijos + f.variables;
+  const wants = f.podes;
+  const saved = f.ahorro;
 
   // for needs/wants, going over the target is the bad direction; for savings it's under
-  const row = (name, actual, target, lowerIsBetter, hint) => {
+  const row = (name, actual, target, lowerIsBetter) => {
     const pct = actual / ingreso * 100;
     const bad = lowerIsBetter ? pct > target + 0.5 : pct < target - 0.5;
     return `<div class="rule-row">
@@ -3295,36 +3848,14 @@ function renderRule5030(person){
         <i class="${bad?'over':''}" style="width:${Math.max(0, Math.min(100, pct))}%"></i>
         <span class="rule-mark" style="left:${target}%"></span>
       </div>
-      <div class="rule-d">${fmt(actual)} · el objetivo son ${fmt(ingreso*target/100)}${hint ? ' · ' + hint : ''}</div>
+      <div class="rule-d"><span class="rule-v ${bad?'over':'ok'}">${fmt(actual)}</span> <span class="rule-t">/ ${fmt(ingreso*target/100)}</span></div>
     </div>`;
   };
 
   box.innerHTML =
-    row('Necesidades', needs, 50, true, 'tus gastos fijos') +
-    row('Deseos', wants, 30, true, 'lo que cargaste a mano') +
-    row('Ahorro', Math.max(0, saved), 20, false, saved < 0 ? 'este mes gastaste más de lo que entró' : '');
-}
-
-function renderProjection(monthly){
-  const box = $('projBox');
-  if(!(monthly > 0)){
-    box.innerHTML = '<div class="empty">Cuando te sobre plata en el mes, acá vas a ver cuánto se convertiría con el tiempo.</div>';
-    return;
-  }
-  const r = RULE_ANNUAL_ROI / 12;
-  // future value of a monthly contribution, compounded
-  const fv = (months) => monthly * ((Math.pow(1+r, months) - 1) / r);
-  const horizons = [[1,'1 año'],[3,'3 años'],[5,'5 años'],[10,'10 años'],[20,'20 años']];
-  box.innerHTML = horizons.map(([y,label])=>{
-    const months = y*12;
-    const total = fv(months);
-    const aportado = monthly * months;
-    return `<div class="proj-row">
-      <span class="proj-t">${label}</span>
-      <span class="proj-v">${fmt(total)}</span>
-      <span class="proj-s">Pusiste ${fmt(aportado)} · el interés sumó ${fmt(total - aportado)}</span>
-    </div>`;
-  }).join('') + `<p class="income-note" style="margin-top:12px;">Calculado sobre ${fmt(monthly)} por mes al 6% anual. Son pesos de hoy sin descontar inflación, así que tomalo como el efecto del interés compuesto y no como poder de compra futuro.</p>`;
+    row('Necesidades', needs, 50, true) +
+    row('Deseos', wants, 30, true) +
+    row('Ahorro', Math.max(0, saved), 20, false);
 }
 
 // this person's share of everything booked in a given month
@@ -3335,8 +3866,9 @@ function monthTotalForPerson(key, person){
 function renderAhorro(){
   const person = currentAhorroPerson;
   const ingreso = incomeTotalArs(person);
-  const gasto = monthTotalForPerson(viewMonth, person);
-  const ahorro = ingreso - gasto;
+  // exactly the number the last card of Gastos shows for this person:
+  // ingreso − gastos fijos − variables − lo que podés gastar
+  const ahorro = financeFor(person).ahorro;
   const tasa = ingreso > 0 ? (ahorro / ingreso) * 100 : 0;
 
   $('ahorroTitle').textContent = `Ahorro de ${escapeHtml(names[person])} · ${monthShort(viewMonth)}`;
@@ -3348,12 +3880,11 @@ function renderAhorro(){
     cell('En dólares', todayUsdRate && ahorro > 0 ? fmtUsd(ahorro / todayUsdRate) : '—');
 
   $('ahorroNote').textContent = todayUsdRate
-    ? `Convertido al blue promedio de hoy ($${fmtNum(todayUsdRate)}). La tasa de ahorro es qué porcentaje de lo que entra no te lo gastás. El gasto es tu parte de cada gasto según cómo se dividió.`
-    : 'La tasa de ahorro es qué porcentaje de lo que entra no te lo gastás. El gasto es tu parte de cada gasto según cómo se dividió. La conversión a dólares aparece cuando se pueda leer la cotización.';
+    ? `Es lo que queda al final de Gastos: tus ingresos menos tu parte de los gastos fijos, tus gastos variables y lo que tenés presupuestado gastar. Convertido al blue promedio de hoy ($${fmtNum(todayUsdRate)}).`
+    : 'Es lo que queda al final de Gastos: tus ingresos menos tu parte de los gastos fijos, tus gastos variables y lo que tenés presupuestado gastar. La conversión a dólares aparece cuando se pueda leer la cotización.';
 
   renderPlan(person);
   renderRule5030(person);
-  renderProjection(ahorro);
 
   // ---- month by month ----
   // a month can have income logged with no expenses yet, or vice versa — union both
@@ -3361,7 +3892,7 @@ function renderAhorro(){
     ...expenses.map(e=>monthKey(e.date)),
     ...(income.entries[person]||[]).map(e=>monthKey(e.date))
   ].filter(Boolean))].sort();
-  const rows = months.map(m=>({ m, ahorro: incomeTotalArs(person, m) - monthTotalForPerson(m, person) }));
+  const rows = months.map(m=>({ m, ahorro: financeFor(person, m).ahorro }));
   const peak = Math.max(1, ...rows.map(r=>Math.abs(r.ahorro)));
   const acumulado = rows.reduce((s,r)=>s+r.ahorro, 0);
 
@@ -3423,20 +3954,22 @@ function renderCategoryRank(list){
 }
 
 function renderPersonSplit(list){
-  let paidA = 0, paidB = 0;
-  list.forEach(ex=>{ if(ex.paidBy==='A') paidA += ex.amount; else paidB += ex.amount; });
-  const total = paidA + paidB;
+  const paid = {};
+  pids().forEach(id=>{ paid[id] = 0; });
+  list.forEach(ex=>{ if(paid[ex.paidBy] != null) paid[ex.paidBy] += ex.amount; });
+  const total = pids().reduce((s,id)=>s+paid[id], 0);
   if(total <= 0){
     $('personSplit').innerHTML = '<div class="income-note">Todavía no hay gastos en este mes.</div>';
     return;
   }
-  const wA = Math.round(paidA/total*100);
+  const rows = pids().map((id,i)=>({
+    id, color: personColor(i), amount: paid[id], pct: Math.round(paid[id]/total*100)
+  }));
   $('personSplit').innerHTML = `
-    <div class="split-bar"><span style="width:${wA}%;background:var(--a-gold)"></span><span style="width:${100-wA}%;background:var(--a-clay)"></span></div>
-    <div class="split-legend">
-      <span class="split-legend-item"><span class="dot" style="background:var(--a-gold)"></span><span class="split-legend-name">${escapeHtml(names.A)}</span><span class="split-legend-val"><b>${fmt(paidA)}</b> · ${wA}%</span></span>
-      <span class="split-legend-item"><span class="dot" style="background:var(--a-clay)"></span><span class="split-legend-name">${escapeHtml(names.B)}</span><span class="split-legend-val"><b>${fmt(paidB)}</b> · ${100-wA}%</span></span>
-    </div>`;
+    <div class="split-bar">${rows.map(r=>`<span style="width:${r.amount/total*100}%;background:${r.color}"></span>`).join('')}</div>
+    <div class="split-legend">${rows.map(r=>
+      `<span class="split-legend-item"><span class="dot" style="background:${r.color}"></span><span class="split-legend-name">${escapeHtml(nameOf(r.id))}</span><span class="split-legend-val"><b>${fmt(r.amount)}</b> · ${r.pct}%</span></span>`
+    ).join('')}</div>`;
 }
 
 function renderMonthTrend(){
@@ -3466,25 +3999,57 @@ function renderCharts(list){
   renderMonthTrend();
 }
 
+// cuánto puso cada uno de su bolsillo menos lo que le tocaba, sobre TODOS los
+// meses. Positivo = le deben; negativo = debe.
+function netBalances(){
+  const net = {};
+  pids().forEach(id=>{ net[id] = 0; });
+  expenses.forEach(ex=>{
+    if(net[ex.paidBy] != null) net[ex.paidBy] += ex.amount;
+    pids().forEach(id=>{ net[id] -= personShareOf(ex, id); });
+  });
+  return net;
+}
+
+// con dos personas hay una sola deuda; con tres o cuatro hay varias cruzadas,
+// así que se saldan de a pares — el que más debe le paga al que más puso —
+// hasta que no queda nadie en rojo. Da el mínimo de transferencias posible.
+function settlements(){
+  const net = netBalances();
+  const debtors = [], creditors = [];
+  pids().forEach(id=>{
+    const v = net[id];
+    if(v < -0.5) debtors.push({ id, v: -v });
+    else if(v > 0.5) creditors.push({ id, v });
+  });
+  debtors.sort((a,b)=>b.v - a.v);
+  creditors.sort((a,b)=>b.v - a.v);
+  const out = [];
+  let i = 0, j = 0;
+  while(i < debtors.length && j < creditors.length){
+    const amount = Math.min(debtors[i].v, creditors[j].v);
+    if(amount >= 1) out.push({ from: debtors[i].id, to: creditors[j].id, amount });
+    debtors[i].v -= amount;
+    creditors[j].v -= amount;
+    if(debtors[i].v < 1) i++;
+    if(creditors[j].v < 1) j++;
+  }
+  return out;
+}
+
+function balanceHtml(){
+  return settlements().map(s=>`<span class="bal-pair">
+    <span class="bal-who">${escapeHtml(nameOf(s.from))} le debe a ${escapeHtml(nameOf(s.to))}</span>
+    <span class="amt">${fmt(s.amount)}</span>
+  </span>`).join('');
+}
+
 // who owes whom, across every month
 function renderBalance(){
-  let balance = 0;
-  expenses.forEach(ex=>{
-    const shareA = ex.amount * ex.pctA/100;
-    const shareB = ex.amount - shareA;
-    if(ex.paidBy === 'A'){ balance += shareB; } else { balance -= shareA; }
-  });
+  const html = balanceHtml();
   const el = $('balanceResult');
   const el2 = $('resumenBalance');
-  if(!expenses.length || Math.abs(balance) < 1){
-    el.textContent = '';
-    if(el2) el2.textContent = '';
-    return;
-  }
-  const debtor   = balance > 0 ? escapeHtml(names.B) : escapeHtml(names.A);
-  const creditor = balance > 0 ? escapeHtml(names.A) : escapeHtml(names.B);
-  const html = `<span class="bal-who">${debtor} le debe a ${creditor}</span><span class="amt">${fmt(Math.abs(balance))}</span>`;
-  el.innerHTML = html;
+  if(el) el.innerHTML = html;
   if(el2) el2.innerHTML = html;
 }
 
