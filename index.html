@@ -269,8 +269,9 @@
   .sld-block.bare{margin-top:4px;padding-top:0;border-top:none;}
   .sld-title{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);
     font-weight:600;margin-bottom:10px;}
-  /* con 1 persona ocupa todo el ancho; con 3 o 4 se acomodan de a dos en el celular */
-  .sld-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+  /* una columna por persona (--cols lo fija refreshPeopleUI según cuántas haya);
+     en el celular nunca más de dos por fila, así el número sigue siendo legible */
+  .sld-grid{display:grid;grid-template-columns:repeat(var(--cols,2),1fr);gap:12px;}
   .sld-cell{background:var(--pearl);border:1px solid var(--line);border-radius:14px;
     padding:14px 12px;text-align:center;}
   .sld-who{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);font-weight:600;}
@@ -287,7 +288,7 @@
   /* on a phone the two saldos stay side by side — the arithmetic under each
      number is what gets dropped, not the second column */
   @media(max-width:480px){
-    .sld-grid{gap:8px;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));}
+    .sld-grid{gap:8px;grid-template-columns:repeat(var(--cols-sm,2),1fr);}
     .sld-cell{padding:12px 8px;}
     .sld-amt{font-size:17px;letter-spacing:-0.3px;}
     .sld-who{font-size:10.5px;}
@@ -634,7 +635,7 @@
   <div class="tab-panel active" id="panel-ingresos" role="tabpanel">
     <div class="card">
       <div class="section-title" id="incomeSectionTitle">Ingresos mensuales</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuánto entra por mes en cada lado. Podés cargar más de uno (ej: sueldo + un freelance). Si es en USD, guardás la cotización de ese día.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuánto entra por mes por cada lado. Podés cargar más de uno (ej: sueldo + un freelance). Si es en USD, guardás la cotización de ese día.</p>
       <div id="prevMonthSaldo"></div>
       <!-- una columna por persona del espacio, armada en renderIncomeLists() -->
       <div class="people-grid" id="incomeGrid"></div>
@@ -671,7 +672,7 @@
     <!-- BLOQUE 2: gastos variables del mes -->
     <div class="card">
       <div class="section-title"><span id="varBlockTitle">Gastos variables</span></div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Lo personal de cada uno: nafta, salidas, compras. No se divide entre los dos — sale del saldo de quien lo gastó.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Lo personal de cada uno: nafta, salidas, compras. No se reparte — sale del saldo de quien lo gastó.</p>
       <button type="button" class="btn-add" onclick="openVarExpenseModal()">+ Agregar gasto variable</button>
       <div class="avail" id="varEstGrid" style="margin-top:16px;"></div>
       <div class="sld-block">
@@ -775,7 +776,7 @@
     </div>
     <div class="card">
       <div class="section-title">Ingresos fijos</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los que entran todos los meses. Actualizá el monto acá y en Ingresos te aparecen como etiqueta para cargarlos de un toque. Arrastrá de ⠿ para reordenar — ese orden es el de las etiquetas. Tocá el nombre para pasarlo a la otra persona; la moneda se cambia con el lápiz.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los que entran todos los meses. Actualizá el monto acá y en Ingresos te aparecen como etiqueta para cargarlos de un toque. Arrastrá de ⠿ para reordenar — ese orden es el de las etiquetas. Tocá el nombre para pasárselo a otra persona; la moneda se cambia con el lápiz.</p>
       <div class="fixed-head">
         <span class="h0c"></span>
         <span class="h1c">Concepto</span>
@@ -835,7 +836,7 @@
     </div>
     <div class="card">
       <div class="section-title">Contraseña del espacio</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cambiá la contraseña de este espacio sin perder los datos. La contraseña vieja deja de funcionar al instante — avisale a tu pareja la nueva para que la reingrese en su dispositivo.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cambiá la contraseña de este espacio sin perder los datos. La contraseña vieja deja de funcionar al instante — pasale la nueva a quien comparta el espacio para que la reingrese en su dispositivo.</p>
       <div class="row2">
         <div>
           <input type="password" id="renameCodeInput" placeholder="Nueva contraseña" autocomplete="off" autocapitalize="off">
@@ -854,12 +855,12 @@
     <div class="onboarding-slide active" data-slide="0">
       <div class="onboarding-icon">👋</div>
       <div class="modal-title" id="onboardingTitle">Bienvenido a FinanzApp</div>
-      <p class="onboarding-text">Una app para llevar las cuentas en pareja: gastos, ingresos y cuánto le corresponde a cada uno, todo sincronizado entre los dos celulares en tiempo real.</p>
+      <p class="onboarding-text">Una app para llevar las cuentas compartidas: gastos, ingresos y cuánto le corresponde a cada uno, todo sincronizado entre los celulares en tiempo real. Sirve para una persona sola o para las que vivan bajo el mismo techo.</p>
     </div>
     <div class="onboarding-slide" data-slide="1">
       <div class="onboarding-icon">🔑</div>
       <div class="modal-title">Un espacio, código y contraseña</div>
-      <p class="onboarding-text">Cada pareja tiene un <strong>espacio</strong> propio, identificado por un código que inventan ustedes (ej: <em>villate956216</em>) y protegido por una contraseña. Quien tenga ambos datos entra y ve la misma información — no hace falta registrarse con email.</p>
+      <p class="onboarding-text">Cada grupo tiene un <strong>espacio</strong> propio, identificado por un código que inventan ustedes (ej: <em>villate956216</em>) y protegido por una contraseña. Quien tenga ambos datos entra y ve la misma información — no hace falta registrarse con email.</p>
       <p class="onboarding-text">Guardá bien la contraseña: no hay forma de recuperarla si se olvida.</p>
     </div>
     <div class="onboarding-dots" id="onboardingDots">
@@ -874,7 +875,7 @@
 </div>
 
 <!-- ============ MODAL: agregar ingreso ============ -->
-<!-- ============ MODAL: código de pareja ============ -->
+<!-- ============ MODAL: código del espacio ============ -->
 <div class="modal-backdrop" id="coupleModal" role="dialog" aria-modal="true" aria-labelledby="coupleModalTitle">
   <div class="modal">
     <div class="modal-head">
@@ -886,7 +887,7 @@
     </div>
     <form class="add-form" id="coupleForm">
       <div>
-        <label for="coupleCodeInput">Código de pareja</label>
+        <label for="coupleCodeInput">Código del espacio</label>
         <input type="text" id="coupleCodeInput" placeholder="Ej: villate956216" required autocomplete="off" autocapitalize="off">
       </div>
       <div>
@@ -900,7 +901,7 @@
       <p class="code-hint" id="coupleAuthHint">Ingresá el código y la contraseña de tu espacio.</p>
       <details class="code-info">
         <summary><span class="i-badge">i</span> ¿Es seguro?</summary>
-        <p>El código identifica tu espacio y la contraseña lo protege: sin la contraseña correcta no se puede entrar, aunque alguien adivine el código. Igual, no lo compartas con nadie fuera de tu pareja. No hay email ni recuperación automática: si se olvidan la contraseña, no vamos a poder restaurarla ni recuperar los datos.</p>
+        <p>El código identifica tu espacio y la contraseña lo protege: sin la contraseña correcta no se puede entrar, aunque alguien adivine el código. Igual, no lo compartas con nadie fuera de tu espacio. No hay email ni recuperación automática: si se olvidan la contraseña, no vamos a poder restaurarla ni recuperar los datos.</p>
       </details>
       <button type="submit" class="btn-primary" id="coupleSubmitBtn">Entrar</button>
       <p class="code-hint" id="coupleError" style="color:#b3261e;"></p>
@@ -1593,7 +1594,7 @@ function setCoupleAuthMode(mode){
   $('couplePasswordConfirmInput').required = mode === 'signup';
   $('coupleModalTitle').textContent = mode === 'signup' ? 'Creá tu espacio' : 'Entrá a tu espacio';
   $('coupleAuthHint').textContent = mode === 'signup'
-    ? `Elegí un código y una contraseña (mín. ${MIN_PASSWORD_LENGTH} caracteres) para tu espacio, y compartiselos con tu pareja. No hay forma de recuperarla si la olvidan — guardala en un lugar seguro.`
+    ? `Elegí un código y una contraseña (mín. ${MIN_PASSWORD_LENGTH} caracteres) para tu espacio, y compartiselos con quienes usen el espacio. No hay forma de recuperarla si la olvidan — guardala en un lugar seguro.`
     : 'Ingresá el código y la contraseña de tu espacio.';
   $('coupleSubmitBtn').textContent = mode === 'signup' ? 'Crear espacio' : 'Entrar';
   $('coupleError').textContent = '';
@@ -1741,7 +1742,7 @@ function describeStorage(){
   if(!el) return;
   el.textContent = storageMode === 'error'
     ? 'No se pudo guardar el último cambio — revisá tu conexión.'
-    : `Compartido con tu pareja mediante el código "${coupleCode}" y su contraseña. Quien inicie sesión con ambos ve y edita estos datos.`;
+    : `Compartido mediante el código "${coupleCode}" y su contraseña. Quien inicie sesión con ambos ve y edita estos datos.`;
 }
 
 function toggleSessionMenu(force){
@@ -2890,24 +2891,33 @@ function resetForm(){
 // estimados, las opciones de división de un gasto y los inputs de nombre en
 // Ajustes. Al cambiar la cantidad de personas alcanza con volver a llamarla.
 function refreshPeopleUI(){
-  const seg = (id, attr, current) => {
+  // las grillas por persona leen estas dos variables en vez de tener un número
+  // fijo de columnas: --cols para pantalla ancha, --cols-sm (tope 2) en celular
+  document.documentElement.style.setProperty('--cols', peopleCount());
+  document.documentElement.style.setProperty('--cols-sm', Math.min(peopleCount(), 2));
+  // en un espacio de una sola persona, elegir "de quién es" no aporta nada:
+  // el selector se arma igual (para que el resto del código no cambie) pero
+  // se esconde junto con su etiqueta
+  const solo = peopleCount() < 2;
+  const seg = (id, attr, current, hideTarget) => {
     const el = $(id);
     if(!el) return;
     el.innerHTML = people.map(p=>
       `<button type="button" ${attr}="${p.id}"${p.id === current ? ' class="active"' : ''}>${escapeHtml(p.name)}</button>`
     ).join('');
+    const box = hideTarget === 'self' ? el : el.parentElement;
+    if(box) box.style.display = solo ? 'none' : '';
   };
   seg('paidBySeg', 'data-paid', currentPaidBy);
   seg('iWhoSeg', 'data-who', currentIncomeWho);
   seg('vxPaidBySeg', 'data-paid', currentVxPaidBy);
   seg('gWhoSeg', 'data-who', currentGoalPerson);
-  seg('ahorroPersonSeg', 'data-person', currentAhorroPerson);
-  seg('varEstPersonSeg', 'data-person', currentVarEstPerson);
+  seg('ahorroPersonSeg', 'data-person', currentAhorroPerson, 'self');
+  seg('varEstPersonSeg', 'data-person', currentVarEstPerson, 'self');
 
   // división de un gasto: partes iguales, según ingresos, o todo a cargo de uno.
   // Con una sola persona no hay nada que dividir, así que el bloque se esconde.
   const split = $('splitToggle');
-  const solo = peopleCount() < 2;
   $('splitField').style.display = solo ? 'none' : '';
   if(!solo){
     if(!isSplitAvailable(currentSplit)) currentSplit = 'equal';
@@ -2932,7 +2942,7 @@ function refreshPeopleUI(){
   if(namesGrid){
     namesGrid.innerHTML = people.map((p,i)=>`<div>
       <label for="name-${p.id}">Nombre ${i+1}</label>
-      <input type="text" id="name-${p.id}" data-person="${p.id}" value="${escapeHtml(p.name)}" placeholder="Ej: ${i === 0 ? 'Vos' : 'Tu pareja'}">
+      <input type="text" id="name-${p.id}" data-person="${p.id}" value="${escapeHtml(p.name)}" placeholder="Ej: ${i === 0 ? 'Vos' : 'Con quién compartís'}">
     </div>`).join('');
   }
 }
@@ -3373,8 +3383,10 @@ function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; 
 // "partes iguales" cuando a todos les toca lo mismo; si no, inicial + monto de
 // cada uno que efectivamente pone algo (con una sola persona no se muestra nada)
 function splitLabelOf(ex){
+  if(peopleCount() < 2) return '';
   const ids = pids().filter(id=>personShareOf(ex, id) > 0);
-  if(ids.length <= 1) return '';
+  if(!ids.length) return '';
+  if(ids.length === 1) return 'todo a ' + nameOf(ids[0]);
   const pcts = ids.map(id=>ex.shares[id]);
   const even = pcts.every(p=>Math.abs(p - pcts[0]) < 0.5) && ids.length === peopleCount();
   if(even) return 'partes iguales';

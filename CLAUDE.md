@@ -19,7 +19,7 @@ Everything lives in one file: `<style>` in the `<head>`, markup in `<body>`, and
 
 **Persistence**: backed by Supabase (Postgres + REST + Realtime), not `localStorage` or `window.storage` (this app previously ran inside Claude Artifacts, where `window.storage` was Artifacts' own shared KV runtime — that environment no longer applies here). Every couple is one row in a `couples` table, keyed by a shared "código de pareja" the two people agree on (no email/password — see `initCouple()`/`enterCouple()`). The `store.get(key)`/`store.set(key, value)` object (search `const store = {` in the script) still exposes the original key-based interface so the ~15 call sites elsewhere didn't need to change; internally it now maps logical keys to `couples` columns and does Supabase `select`/`update` calls:
 - `expenses_v1` → `expenses` column — array of expense objects
-- `names_v1` → `names` column — `{A, B}` display names for the two people
+- `names_v1` → `names` column — ordered `[{id, name}]` roster of the people in the space; the old `{A, B}` object shape is migrated on read by `migratePeople()`
 - `income_v2` → `income` column — `{fx, entries: {A: [...], B: [...]}}`; a legacy scalar shape is migrated on load via `migrateIncome()`
 - `fixed_v1` → `fixed` column, `fixedincome_v1` → `fixed_income` column
 - `varestimates_v1` → `variable_estimates`, `varexpenses_v1` → `variable_expenses`, `budgetoverrides_v1` → `budget_overrides`
@@ -30,7 +30,15 @@ Adding a new logical key means adding the column to `couples` in Supabase too (`
 
 A Supabase Realtime subscription (`subscribeCoupleRealtime()`) pushes every `UPDATE` on the couple's row to all other open tabs/devices with the same code, which is what makes cross-device sync work without polling. Row Level Security on `couples` allows any `anon` client to read/write — the couple code itself is the only access control, mirroring the no-auth model the app already had. The Supabase project URL and anon key are hardcoded near the top of the script (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) — this is intentional and safe: Supabase anon keys are meant to be public, security comes from RLS policies, not from hiding the key.
 
-**People model**: the two participants are always referred to internally as `'A'` and `'B'` (not by name) — expense `paidBy`, split percentages (`pctA`, with B implicitly `100 - pctA`), and income `entries` are all keyed this way. Display names (`names.A`/`names.B`) are cosmetic only and looked up at render time.
+**People model**: a space holds **1 to `MAX_PEOPLE` (4) people**, not a fixed couple. `people` is an ordered array of `{id, name}` where `id` comes from `PERSON_IDS = ['A','B','C','D']`; that id is what every record is keyed by — expense `paidBy` and `shares`, `income.entries`, `varEstimates`, `budgetOverrides`, `goals.person`, `fixedIncome.person`. Names are cosmetic and resolved at render time through the derived `names` map (`nameOf(id)`), so renaming someone never touches data.
+
+- `pids()` / `peopleCount()` / `firstPid()` / `isPerson(id)` are the accessors; **never hardcode `'A'`/`'B'`** or iterate a literal `['A','B']`.
+- `setPeople()` is the only way to change the roster: it rebuilds `names`, creates the missing per-person slots, and re-points any selection (`currentPaidBy`, `currentAhorroPerson`, …) that pointed at someone who is gone.
+- **Expense splits** are `ex.shares = {A: 60, B: 40}` (percentages), not the old scalar `pctA`. Build them with `sharesFor(splitType)`; `splitType` is `'equal' | 'income' | 'only:<id>'`. `normalizeExpenses()` migrates `pctA` and the old `'50' | 'a-to-b' | 'b-to-a'` types on load, so stored data from the couple-only era keeps working.
+- Raising the count leaves past expenses alone on purpose — those months really were split among whoever was there, and the newcomer's share is 0. Lowering it is destructive and confirms first: `dropPersonData()` deletes that person's income/variable expenses/budget/goals, and `redistributeShares()` spreads their slice of each shared expense across whoever is left so no money is left orphaned.
+- `refreshPeopleUI()` rebuilds every person-dependent control in one place (all the `.seg` pickers, the split options, the names inputs in Ajustes) and publishes `--cols` / `--cols-sm` for the per-person grids. Call it after any roster or name change instead of touching those controls directly. With a single person it also hides the "who?" pickers and the split field entirely.
+- Colors come from `PERSON_COLORS` by position (`personColor`, `personTagClass`), so charts and tags stay consistent as people are added.
+- Who-owes-whom is `netBalances()` → `settlements()`: with two people it's the same single line as before, with three or four it greedily nets the debts into the fewest transfers.
 
 **State → render flow**: every mutation (add/delete/toggle expense, add/remove income, change names or FX rate) follows the same pattern: mutate the in-memory object → persist via the relevant `save*()` function (fire-and-forget async, wrapped in try/catch) → call `render()` (or `renderIncomeLists()` for income-specific UI) to redraw affected DOM sections from scratch. There is no diffing — sections are fully re-stringified and reassigned to `innerHTML`.
 
@@ -55,6 +63,6 @@ and returns every intermediate saldo (`afterFijos`, `afterVar`) plus `cats`/`pod
 
 - Keep everything in the one HTML file unless the user asks to split it up — GitHub Pages serves it as a static file with no build step.
 - Use the `store.get`/`store.set` abstraction (backed by Supabase) for anything that needs to persist — don't reach for `localStorage` as a source of truth; it's only used to remember which couple code this device last used (`couple_code` key), not for actual data.
-- Follow the existing `A`/`B` person-keying convention rather than switching to names internally.
+- Key everything by person **id**, never by name and never by a hardcoded `'A'`/`'B'` — iterate `pids()` and resolve labels with `nameOf(id)`. Any new per-person UI belongs in `refreshPeopleUI()`, and any new per-person data structure needs a slot created in `setPeople()` and cleanup in `dropPersonData()`.
 - `escapeHtml()` is used when interpolating user-entered text (`desc`, income `label`) into `innerHTML` — keep doing this for any new user-text interpolation to avoid XSS via the shared/multi-editor storage.
 - Every `couples` row is shared by everyone who knows that couple's code — there is still no per-person auth within a couple, only isolation *between* couples.
