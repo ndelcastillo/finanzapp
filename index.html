@@ -503,6 +503,11 @@
   /* una columna por persona: se acomodan solas según cuántas haya en el espacio */
   .people-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
   @media(max-width:540px){.people-grid{grid-template-columns:1fr;}}
+  /* en Ajustes los nombres entran todos en un renglón, sean 1 o 4 */
+  @media(min-width:541px){#namesGrid{grid-template-columns:repeat(var(--cols,2),1fr);}}
+  /* y la cantidad de personas es una sola fila de opciones, sin envolver */
+  #peopleCountSeg{flex-wrap:nowrap;}
+  #peopleCountSeg button{flex:1 1 0;}
   .income-person{background:var(--pearl);border:1px solid var(--line);border-radius:12px;padding:16px;}
   .who-label{font-weight:600;font-size:14px;margin-bottom:10px;letter-spacing:-0.224px;}
   .income-big{font-size:26px;font-weight:600;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;margin-bottom:14px;line-height:1.15;}
