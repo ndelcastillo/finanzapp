@@ -127,22 +127,6 @@
     #ahorroStrip .totals-cell:last-child{border-bottom:none;}
   }
 
-  /* ---- per-person totals under the household strip: 2 accordion items, closed by default ---- */
-  .totals-person-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
-  .totals-person{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
-  .totals-person-who{list-style:none;cursor:pointer;font-size:12px;text-transform:uppercase;
-    letter-spacing:0.06em;color:var(--body-muted);font-weight:600;padding:10px 14px;
-    display:flex;align-items:center;justify-content:space-between;}
-  .totals-person-who::-webkit-details-marker{display:none;}
-  .totals-person-who::after{content:'▾';font-size:10px;transition:transform .15s ease;}
-  .totals-person[open] .totals-person-who::after{transform:rotate(180deg);}
-  .totals-person-row{display:flex;gap:10px;padding:0 14px 12px;}
-  .totals-person-cell{flex:1;text-align:center;}
-  .totals-person-k{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);font-weight:600;}
-  .totals-person-v{font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;}
-  .totals-person-v.save{color:var(--good);}
-  .totals-person-v.neg{color:var(--a-clay);}
-
   /* ---- savings history bars ---- */
   .sv-row{display:flex;align-items:center;gap:10px;padding:7px 0;}
   .sv-m{flex:0 0 96px;font-size:12.5px;color:var(--body-muted);}
@@ -234,17 +218,6 @@
   .avail-est-total{border-top:1px solid var(--line);margin-top:4px;padding-top:8px;font-weight:600;color:var(--ink);}
   .avail-est-total .neg{color:var(--a-clay);}
   .avail-est-empty{font-size:12px;color:var(--body-muted);text-align:center;line-height:1.5;}
-  .budget-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;
-    padding:7px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;}
-  .budget-row:last-child{border-bottom:none;}
-  .budget-cat{color:var(--body-muted);text-align:left;}
-  .budget-amt{font-weight:600;color:var(--ink);white-space:nowrap;}
-  .budget-amt-input{font-family:'Inter',system-ui,sans-serif;font-weight:600;color:var(--ink);
-    white-space:nowrap;font-variant-numeric:tabular-nums;font-size:12px!important;text-align:right;
-    width:104px;flex:0 0 104px;border:1px solid var(--line-strong);background:transparent;border-radius:8px;
-    padding:6px 8px;transition:border-color .15s ease,background-color .15s ease;}
-  .budget-amt-input:hover{border-color:var(--line-strong);}
-  .budget-amt-input:focus{outline:none;border-color:var(--primary);background:var(--card);}
   .bal-line{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;margin:16px 0 0;
     padding:16px;background:var(--a-clay-bg);border-radius:16px;font-size:13px;color:var(--a-clay-ink);
     font-variant-numeric:tabular-nums;}
@@ -273,8 +246,10 @@
   /* una columna por persona (--cols lo fija refreshPeopleUI según cuántas haya);
      en el celular nunca más de dos por fila, así el número sigue siendo legible */
   .sld-grid{display:grid;grid-template-columns:repeat(var(--cols,2),1fr);gap:12px;}
+  /* min-width:0 para que ninguna tarjeta pueda estirar su columna más allá de
+     lo que le toca y empujar la fila fuera de la card */
   .sld-cell{background:var(--pearl);border:1px solid var(--line);border-radius:14px;
-    padding:14px 12px;text-align:center;}
+    padding:14px 12px;text-align:center;min-width:0;overflow:hidden;}
   .sld-who{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-muted);font-weight:600;}
   .sld-amt{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.4px;
     margin-top:5px;line-height:1.15;}
@@ -285,15 +260,13 @@
   .sld-cell.tone-bad{background:var(--a-clay-bg);border-color:transparent;}
   .sld-cell.tone-good .sld-amt{color:var(--good);}
   .sld-cell.tone-bad .sld-amt{color:var(--a-clay-ink);}
-  .sld-sub{font-size:11px;color:var(--body-muted);margin-top:7px;line-height:1.4;font-variant-numeric:tabular-nums;}
-  /* on a phone the two saldos stay side by side — the arithmetic under each
-     number is what gets dropped, not the second column */
+  /* on a phone the saldos stay side by side: lo que se achica es el número,
+     no la cantidad de columnas */
   @media(max-width:480px){
     .sld-grid{gap:8px;grid-template-columns:repeat(var(--cols-sm,2),1fr);}
     .sld-cell{padding:12px 8px;}
     .sld-amt{font-size:17px;letter-spacing:-0.3px;}
     .sld-who{font-size:10.5px;}
-    .sld-sub{display:none;}
   }
 
 
@@ -466,6 +439,9 @@
   .seg button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
   .seg button:active{transform:scale(0.97);}
   @media(min-width:541px){#splitToggle button{flex-basis:0;}}
+  /* tres opciones cortas entran en un solo renglón en vez de envolverse 2+1
+     (lo pone refreshPeopleUI cuando son pocas) */
+  .seg.seg-fit button{flex-basis:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* filtro dentro de una card: más liviano que .seg, para no competir con las
      pestañas de arriba ni con el botón de agregar */
@@ -486,6 +462,10 @@
   .btn-link{background:none;border:none;color:var(--primary);font-family:'Inter',system-ui,sans-serif;font-size:14px;cursor:pointer;padding:0;text-decoration:underline;}
 
   .bill{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px;}
+  /* cierre de una lista: la suma real de lo que se está mostrando, no confundir
+     con los Saldos del bloque (que son la cadena de plata, no una suma) */
+  .bill-total{background:var(--paper);border-style:dashed;margin-top:2px;}
+  .bill-total .bill-name,.bill-total .bill-amt{font-weight:700;}
   .bill-main{flex:1;min-width:0;}
   .bill-name{font-size:15px;font-weight:600;letter-spacing:-0.224px;}
   .bill-meta{font-size:12px;color:var(--body-muted);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
@@ -500,6 +480,10 @@
   .bill-edit:hover{color:var(--primary);}
   .bill-del:hover{color:var(--a-clay);}
   .bill-edit:active,.bill-del:active{transform:scale(0.9);}
+  /* protegido por el candado de Ajustes: se ve, no se toca */
+  .bill-del:disabled{opacity:.3;cursor:not-allowed;}
+  .bill-del:disabled:hover{color:var(--body-muted);}
+  .bill-del:disabled:active{transform:none;}
   .empty{color:var(--body-muted);font-size:14px;padding:14px 0;text-align:center;line-height:1.5;}
 
   .settings-row{display:flex;gap:10px;}
@@ -671,11 +655,11 @@
       <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los gastos fijos que cargaste este mes: los del hogar y los que paga cada uno por su cuenta. Abajo, lo que le queda a cada uno después de pagar su parte.</p>
       <button type="button" class="btn-add" onclick="openModal()">+ Agregar gasto fijo</button>
       <!-- filtro de la lista de abajo: compartidos o los propios de cada uno.
-           No toca los Totales, que siempre son los del mes completo. -->
+           No toca los Saldos, que siempre son los del mes completo. -->
       <div class="seg sub-seg" id="fixedTabs" style="margin-top:16px;"></div>
       <div id="expenseList" style="margin-top:14px;"></div>
       <div class="sld-block">
-        <div class="sld-title">Totales</div>
+        <div class="sld-title">Saldos</div>
         <div class="sld-grid" id="fixedSaldos"></div>
       </div>
       <div class="bal-line" id="balanceResult"></div>
@@ -684,11 +668,14 @@
     <!-- BLOQUE 2: gastos variables del mes -->
     <div class="card">
       <div class="section-title"><span id="varBlockTitle">Gastos variables</span></div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Lo personal de cada uno: nafta, salidas, compras. No se reparte — sale del saldo de quien lo gastó.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Nafta, salidas, compras. Los propios salen del saldo de quien los gastó; los compartidos se dividen en partes iguales.</p>
       <button type="button" class="btn-add" onclick="openVarExpenseModal()">+ Agregar gasto variable</button>
-      <div class="avail" id="varEstGrid" style="margin-top:16px;"></div>
+      <!-- mismo filtro que en gastos fijos: compartidos o los propios de cada
+           uno. Los Saldos de abajo son siempre los del mes completo. -->
+      <div class="seg sub-seg" id="varTabs" style="margin-top:16px;"></div>
+      <div id="varExpenseList" style="margin-top:14px;"></div>
       <div class="sld-block">
-        <div class="sld-title">Totales</div>
+        <div class="sld-title">Saldos</div>
         <div class="sld-grid" id="varSaldos"></div>
       </div>
     </div>
@@ -696,10 +683,12 @@
     <!-- BLOQUE 3: presupuesto discrecional -->
     <div class="card">
       <div class="section-title"><span id="budgetBlockTitle">Gastos posibles</span></div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Un tope sugerido por rubro sobre lo que te quedó. Editá cualquier monto y el saldo de abajo se recalcula.</p>
-      <div class="avail" id="budgetGrid"></div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Lo que tenés presupuestado gastar por rubro. El monto de siempre se carga en Ajustes y acá lo corregís con el lápiz cuando cambia. Los de Compartidos se dividen en partes iguales y le descuentan a cada uno su parte.</p>
+      <button type="button" class="btn-add" onclick="openBudgetRubroModal()">+ Agregar gasto posible</button>
+      <div class="seg sub-seg" id="budgetTabs" style="margin-top:16px;"></div>
+      <div id="budgetList" style="margin-top:14px;"></div>
       <div class="sld-block">
-        <div class="sld-title">Totales</div>
+        <div class="sld-title">Saldos</div>
         <div class="sld-grid" id="budgetSaldos"></div>
       </div>
     </div>
@@ -708,7 +697,7 @@
     <div class="card">
       <div class="section-title"><span id="gastosAhorroTitle">Ahorro</span></div>
       <div class="sld-block bare">
-        <div class="sld-title">Totales</div>
+        <div class="sld-title">Saldos</div>
         <div class="sld-grid" id="ahorroSaldos"></div>
       </div>
     </div>
@@ -752,9 +741,9 @@
 
   <!-- ============ TAB: RESUMEN ============ -->
   <div class="tab-panel" id="panel-resumen" role="tabpanel">
-    <!-- ingreso / gasto / ahorro del hogar, y el mismo desglose por persona -->
+    <!-- Compartido = el hogar entero; cada pestaña de persona filtra todo lo de abajo a lo suyo -->
+    <div class="seg sub-seg" id="resumenTabs" style="margin-bottom:14px;"></div>
     <div class="totals" id="totalsStrip"></div>
-    <div class="totals-person-grid" id="totalsPersonGrid"></div>
 
     <div class="card">
       <div class="chart-title">Por categoría</div>
@@ -762,7 +751,7 @@
     </div>
 
     <div class="card">
-      <div class="chart-title">Quién pagó</div>
+      <div class="chart-title" id="personSplitTitle">Quién pagó</div>
       <div id="personSplit"></div>
       <div class="bal-line" id="resumenBalance"></div>
     </div>
@@ -802,7 +791,8 @@
 
     <div class="card">
       <div class="section-title">Gastos fijos</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Los que se repiten todos los meses. Actualizá el monto acá cuando cambie y al cargar el gasto ya te lo trae puesto. Arrastrá de ⠿ para reordenar — ese orden es el de las etiquetas en Gastos.</p>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Los que se repiten todos los meses. Actualizá el monto acá cuando cambie y al cargar el gasto ya te lo trae puesto. En Compartidos van los del hogar; en la pestaña de cada uno, los propios (el monotributo, la obra social). Lo que agregues cae en la pestaña abierta, y tocando la etiqueta lo pasás a otra. Arrastrá de ⠿ para reordenar — ese orden es el de las etiquetas en Gastos. El candado protege la plantilla y también el gasto cargado: no se pueden borrar hasta abrirlo.</p>
+      <div class="seg sub-seg" id="fixedSubTabs" style="margin-bottom:14px;"></div>
       <div class="fixed-head">
         <span class="h0c"></span>
         <span class="h1c">Concepto</span>
@@ -819,8 +809,8 @@
     </div>
 
     <div class="card">
-      <div class="section-title">Gastos variables estimados</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Una estimación personal de lo que pensás gastar este mes en cosas variables (nafta, salidas, compras). No es un gasto cargado, es un presupuesto — se descuenta de lo que te queda en la tarjeta de Ahorro de Gastos.</p>
+      <div class="section-title">Gastos variables</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Una estimación de lo que pensás gastar este mes en cosas variables (nafta, salidas, compras). No es un gasto cargado, es una referencia — te aparece como etiqueta al cargar el gasto y al pie de la lista en Gastos. En Compartidos van los que estiman entre todos. El candado protege la plantilla: no se puede borrar hasta abrirlo.</p>
       <div class="seg" id="varEstPersonSeg" style="margin-bottom:14px;"></div>
       <div class="fixed-head">
         <span class="h1c">Concepto</span>
@@ -834,6 +824,24 @@
         <button type="button" onclick="addVarEstimate()" aria-label="Agregar gasto variable estimado">+</button>
       </div>
       <button type="button" class="btn-primary fixed-save-btn" onclick="commitVarEstimates()">Guardar gastos variables</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Gastos posibles</div>
+      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Los rubros que tenés presupuestados todos los meses. Poné el monto de cada uno y en Gastos se descuenta de lo que te quedó. Podés renombrarlos, agregar los tuyos y borrarlos abriendo el candado. El monto también se corrige desde la card en Gastos cuando cambia. En Compartidos van los que presupuestan entre todos: se dividen en partes iguales.</p>
+      <div class="seg" id="bTplPersonSeg" style="margin-bottom:14px;"></div>
+      <div class="fixed-head">
+        <span class="h1c">Concepto</span>
+        <span class="h2c">Monto</span>
+        <span class="h3c"></span>
+      </div>
+      <div id="bTplTable"></div>
+      <div class="fixed-add">
+        <input type="text" id="bTplLabelInput" placeholder="Ej: Salidas, Regalos">
+        <input type="text" class="f-new-amt ie-money" inputmode="numeric" id="bTplAmountInput" placeholder="0">
+        <button type="button" onclick="addBudgetTemplate()" aria-label="Agregar gasto posible">+</button>
+      </div>
+      <button type="button" class="btn-primary fixed-save-btn" onclick="commitBudgetTemplates()">Guardar gastos posibles</button>
     </div>
 
     <div class="card">
@@ -1032,6 +1040,29 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="budgetRubroModal" role="dialog" aria-modal="true" aria-labelledby="budgetRubroTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="budgetRubroTitle">Editar gasto posible</div>
+      <button type="button" class="modal-close" onclick="closeBudgetRubroModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <form class="add-form" id="budgetRubroForm">
+      <div>
+        <label>¿De quién es?</label>
+        <div class="seg" id="brWhoSeg"></div>
+      </div>
+      <div>
+        <label for="brLabel">Concepto</label>
+        <input type="text" id="brLabel" placeholder="Ej: Salidas" required>
+      </div>
+      <div>
+        <label for="brAmount">Monto (ARS)</label>
+        <input type="text" inputmode="numeric" class="ie-money" id="brAmount" placeholder="0">
+      </div>
+      <button type="submit" class="btn-primary" id="brSubmitBtn">Agregar gasto posible</button>
+    </form>
+  </div>
+</div>
 <!-- ============ MODAL: agregar meta de ahorro ============ -->
 <div class="modal-backdrop" id="goalModal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
   <div class="modal">
@@ -1092,14 +1123,18 @@ const FIXED_KEY = 'fixed_v1';
 const FIXED_INCOME_KEY = 'fixedincome_v1';
 const VAR_ESTIMATES_KEY = 'varestimates_v1';
 const VAR_EXPENSES_KEY = 'varexpenses_v1';
-const BUDGET_OVERRIDES_KEY = 'budgetoverrides_v1';
+// Reusa la columna vieja `budget_overrides`: antes guardaba los topes por
+// rubro, ahora guarda las plantillas de gastos posibles de cada uno. El shape
+// viejo se convierte al leer (migrateBudgetTemplates), así nadie pierde lo que
+// había escrito y no hace falta una columna nueva.
+const BUDGET_TEMPLATES_KEY = 'budgetoverrides_v1';
 const GOALS_KEY = 'goals_v1';
 
 let expenses = [];
 // ---- quiénes viven en este espacio ----
 // El espacio puede ser de 1 a MAX_PEOPLE personas. Cada una tiene un id fijo
 // ('A', 'B', 'C', ...) que es lo que se guarda en todos lados: expense.paidBy,
-// expense.shares, income.entries, varEstimates, budgetOverrides y goals.person.
+// expense.shares, income.entries, varEstimates, budgetTemplates y goals.person.
 // El nombre es solo cosmético y se busca por id al renderizar, así que
 // renombrar a alguien nunca toca los datos.
 const PERSON_IDS = ['A','B','C','D'];
@@ -1147,7 +1182,9 @@ let editingVarExpenseId = null;
 // per-person, per-category planned-spend overrides for the "Podés gastar" cards —
 // {A:{salidas:120000,...}, B:{...}}; a category missing from the map falls back
 // to its default suggested-percentage amount
-let budgetOverrides = { A: {}, B: {} };
+// rubros de gastos posibles por persona (y 'shared'); ensureSharedSlots() y
+// setPeople() le ponen los cinco de arranque a cada casillero nuevo
+let budgetTemplates = {};
 // savings goals the user writes down themselves, on top of the built-in emergency
 // fund: {id, person, name, kind:'total'|'mensual', amount, currency, deadline, saved}
 let goals = [];
@@ -1353,8 +1390,9 @@ function applyCoupleRow(){
   if(Array.isArray(coupleRow.fixed_income)) fixedIncome = coupleRow.fixed_income;
   if(coupleRow.variable_estimates && Array.isArray(coupleRow.variable_estimates.A) && Array.isArray(coupleRow.variable_estimates.B)) varEstimates = coupleRow.variable_estimates;
   if(Array.isArray(coupleRow.variable_expenses)) varExpenses = coupleRow.variable_expenses;
-  if(coupleRow.budget_overrides && typeof coupleRow.budget_overrides === 'object') budgetOverrides = coupleRow.budget_overrides;
+  if(coupleRow.budget_overrides && typeof coupleRow.budget_overrides === 'object') budgetTemplates = migrateBudgetTemplates(coupleRow.budget_overrides);
   if(Array.isArray(coupleRow.goals)) goals = coupleRow.goals;
+  ensureSharedSlots();
   if(normalizeExpenses()) saveExpenses();
 }
 
@@ -1401,6 +1439,8 @@ function paintFromLocalCache(code){
     if(ve) varEstimates = JSON.parse(ve);
     const vx = readLocalCache(code, VAR_EXPENSES_KEY);
     if(vx) varExpenses = JSON.parse(vx);
+    const bt = readLocalCache(code, BUDGET_TEMPLATES_KEY);
+    if(bt) budgetTemplates = migrateBudgetTemplates(JSON.parse(bt));
     const g = readLocalCache(code, GOALS_KEY);
     if(g) goals = JSON.parse(g);
     if(normalizeExpenses()){ /* fixed up in-memory; loadAll()'s real save will persist it */ }
@@ -1408,6 +1448,7 @@ function paintFromLocalCache(code){
     renderFixed();
     renderFixedIncome();
     renderVarEstimates();
+    renderBudgetTemplates();
   }catch(e){}
 }
 
@@ -1926,6 +1967,15 @@ function migratePeople(raw){
 }
 function defaultPersonName(id){ return 'Persona ' + (PERSON_IDS.indexOf(id) + 1); }
 
+// "Compartido" no es una persona, pero tiene los mismos casilleros que una: el
+// presupuesto que arman entre todos y los variables estimados del hogar. Hay
+// que asegurarlos también después de traer los datos, porque un espacio
+// guardado antes de esto (o desde otro dispositivo) llega sin esa clave.
+function ensureSharedSlots(){
+  if(!varEstimates[SHARED_PAY]) varEstimates[SHARED_PAY] = [];
+  if(!budgetTemplates[SHARED_PAY]) budgetTemplates[SHARED_PAY] = defaultBudgetCats();
+}
+
 // único punto de entrada para cambiar quiénes son: deja `names` en sincronía y
 // se asegura de que cada persona tenga su casillero en las estructuras que van
 // por persona, así ningún render tiene que defenderse de un undefined
@@ -1935,13 +1985,18 @@ function setPeople(list){
   pids().forEach(id=>{
     if(!income.entries[id]) income.entries[id] = [];
     if(!varEstimates[id]) varEstimates[id] = [];
-    if(!budgetOverrides[id]) budgetOverrides[id] = {};
+    if(!budgetTemplates[id]) budgetTemplates[id] = defaultBudgetCats();
   });
-  // el que estuviera seleccionado en alguna pantalla puede haber desaparecido
-  if(!isPerson(currentPaidBy)) currentPaidBy = firstPid();
+  ensureSharedSlots();
+  // el que estuviera seleccionado en alguna pantalla puede haber desaparecido.
+  // Los tres primeros además admiten "Compartido", que no es una persona
+  const vale = (v) => isPerson(v) || (isSharedPay(v) && list.length > 1);
+  if(!vale(currentPaidBy)) currentPaidBy = firstPid();
   if(!isPerson(currentIncomeWho)) currentIncomeWho = firstPid();
-  if(!isPerson(currentVxPaidBy)) currentVxPaidBy = firstPid();
-  if(!isPerson(currentVarEstPerson)) currentVarEstPerson = firstPid();
+  if(!vale(currentVxPaidBy)) currentVxPaidBy = firstPid();
+  if(!vale(currentBrWho)) currentBrWho = firstPid();
+  if(!vale(currentBudgetTplPerson)) currentBudgetTplPerson = firstPid();
+  if(!vale(currentVarEstPerson)) currentVarEstPerson = firstPid();
   if(!isPerson(currentAhorroPerson)) currentAhorroPerson = firstPid();
   if(!isPerson(currentGoalPerson)) currentGoalPerson = firstPid();
 }
@@ -1981,9 +2036,6 @@ function incomeTotalArs(person, key){
   key = key || viewMonth;
   return (income.entries[person]||[]).filter(e=>monthKey(e.date) === key).reduce((s,e)=> s + entryArs(e), 0);
 }
-function variableEstimatesTotal(person){
-  return (varEstimates[person]||[]).reduce((s,e)=>s+(e.amount||0),0);
-}
 // reparto en partes iguales entre todos los que hay hoy en el espacio
 function equalShares(){
   const ids = pids();
@@ -2002,6 +2054,12 @@ function incomeShares(){
   ids.forEach((id,i)=>{ out[id] = totals[i] / sum * 100; });
   return out;
 }
+// "Compartido" como pagador: la plata no salió del bolsillo de uno solo, cada
+// quien puso su parte. Se guarda en `paidBy` igual que una persona, pero no
+// genera deuda entre nadie (ver netBalances) — es la misma clave que usa
+// expenseOwner() para el grupo de gastos del hogar.
+const SHARED_PAY = 'shared';
+const isSharedPay = (v) => v === SHARED_PAY;
 // 100% a cargo de una sola persona (el resto no pone nada)
 function soloShares(person){
   const out = {};
@@ -2016,6 +2074,36 @@ function sharesFor(splitType){
     if(isPerson(who)) return soloShares(who);
   }
   return equalShares();
+}
+
+// Los rubros con los que arranca cualquier casillero nuevo. Se pueden
+// renombrar, cambiarles el monto o borrarlos desde Ajustes, y agregar otros.
+const DEFAULT_BUDGET_CATS = [
+  { key:'salidas', label:'Salidas' },
+  { key:'regalos', label:'Regalos' },
+  { key:'hogar',   label:'Compras Hogar' },
+  { key:'deudas',  label:'Deudas' },
+  { key:'diaria',  label:'Diaria' }
+];
+const defaultBudgetCats = () => DEFAULT_BUDGET_CATS.map(c=>({ id: genId(), label: c.label, amount: 0, locked: true }));
+
+// Del shape viejo ({A:{salidas:200000}}, sólo los topes que habían tocado) al
+// nuevo: los cinco rubros de siempre, con el monto que ya tenían escrito, más
+// cualquier otro que hubiera guardado.
+function migrateBudgetTemplates(raw){
+  if(!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const out = {};
+  Object.keys(raw).forEach(k=>{
+    const v = raw[k];
+    if(Array.isArray(v)){ out[k] = v; return; }
+    if(!v || typeof v !== 'object'){ out[k] = defaultBudgetCats(); return; }
+    const propios = DEFAULT_BUDGET_CATS.map(c=>({ id: genId(), label: c.label, amount: v[c.key] || 0, locked: true }));
+    const extra = Object.keys(v)
+      .filter(cat=>!DEFAULT_BUDGET_CATS.some(c=>c.key === cat) && v[cat] != null)
+      .map(cat=>({ id: genId(), label: cat, amount: v[cat] }));
+    out[k] = [...propios, ...extra];
+  });
+  return out;
 }
 
 function migrateIncome(raw){
@@ -2170,13 +2258,10 @@ async function loadAll(){
   }
 
   try{
-    const v = await store.get(BUDGET_OVERRIDES_KEY);
-    budgetOverrides = v ? JSON.parse(v) : null;
-  }catch(e){ budgetOverrides = null; }
-  if(!budgetOverrides || typeof budgetOverrides !== 'object' || Array.isArray(budgetOverrides)){
-    budgetOverrides = { A: {}, B: {} };
-    saveBudgetOverrides();
-  }
+    const v = await store.get(BUDGET_TEMPLATES_KEY);
+    budgetTemplates = migrateBudgetTemplates(v ? JSON.parse(v) : null);
+  }catch(e){ budgetTemplates = {}; }
+
 
   // no seed write here on purpose: an empty goal list is the valid starting
   // point, and writing it back would fail loudly on a couples table that hasn't
@@ -2188,6 +2273,7 @@ async function loadAll(){
   if(!Array.isArray(goals)) goals = [];
 
   if(normalizeExpenses()) saveExpenses();
+  ensureSharedSlots();   // los datos vienen después de setPeople()
 
   refreshPeopleUI();
   describeStorage();
@@ -2197,6 +2283,7 @@ async function loadAll(){
   renderIncomeChips();
   renderIncomeLists();
   renderVarEstimates();
+  renderBudgetTemplates();
   render();
 }
 
@@ -2206,7 +2293,7 @@ async function saveIncome(){ await store.set(INCOME_KEY, JSON.stringify(income))
 async function saveFixed(){ return await store.set(FIXED_KEY, JSON.stringify(fixed)); }
 async function saveVarEstimates(){ return await store.set(VAR_ESTIMATES_KEY, JSON.stringify(varEstimates)); }
 async function saveVarExpenses(){ return await store.set(VAR_EXPENSES_KEY, JSON.stringify(varExpenses)); }
-async function saveBudgetOverrides(){ return await store.set(BUDGET_OVERRIDES_KEY, JSON.stringify(budgetOverrides)); }
+async function saveBudgetTemplates(){ return await store.set(BUDGET_TEMPLATES_KEY, JSON.stringify(budgetTemplates)); }
 async function saveGoals(){ return await store.set(GOALS_KEY, JSON.stringify(goals)); }
 
 // "Guardar gastos fijos" button in Ajustes — fixed already autosaves on every
@@ -2289,6 +2376,7 @@ function toggleLockFixedIncome(id){
   item.locked = !item.locked;
   saveFixedIncome();
   renderFixedIncome();
+  render();
 }
 function toggleFixedIncomeOwner(id){
   const item = fixedIncome.find(f=>f.id === id);
@@ -2358,8 +2446,43 @@ $('panel-ajustes').addEventListener('change', (e)=>{
 // ---- fixed expenses ----
 let editingFixedId = null;
 
+// ---- sub-pestañas de la plantilla de gastos fijos ----
+// Mismo criterio que las de la pestaña Gastos, pero acá el dueño es un campo
+// de la plantilla (`f.owner`) y no algo derivado: lo que se agrega desde una
+// pestaña nace con ese dueño puesto.
+let currentFixedSettingsTab = 'shared';
+const fixedTabOf = (f) => isPerson(f.owner) ? f.owner : 'shared';
+
+function renderFixedSubTabs(){
+  const tabs = $('fixedSubTabs');
+  if(peopleCount() < 2){                    // de a uno no hay nada que separar
+    tabs.style.display = 'none';
+    currentFixedSettingsTab = 'shared';
+    return;
+  }
+  tabs.style.display = '';
+  const groups = [{ key:'shared', label:'Compartidos' }, ...people.map(p=>({ key:p.id, label:p.name }))];
+  if(!groups.some(g=>g.key === currentFixedSettingsTab)) currentFixedSettingsTab = 'shared';
+  tabs.innerHTML = groups.map(g=>
+    `<button type="button" data-tab="${g.key}"${g.key === currentFixedSettingsTab ? ' class="active"' : ''}>${escapeHtml(g.label)}</button>`
+  ).join('');
+}
+
+$('fixedSubTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentFixedSettingsTab = btn.dataset.tab;
+  editingFixedId = null;                    // la fila que se editaba puede no estar acá
+  renderFixed();
+});
+
 function renderFixed(){
-  $('fixedTable').innerHTML = fixed.length ? fixed.map(f=>{
+  renderFixedSubTabs();
+  const solo = peopleCount() < 2;
+  const shown = solo ? fixed : fixed.filter(f=>fixedTabOf(f) === currentFixedSettingsTab);
+  const propios = !solo && currentFixedSettingsTab !== 'shared';
+  $('fixedLabelInput').placeholder = propios ? 'Ej: Monotributo, Obra social' : 'Ej: Luz, Gas, Cochera';
+  $('fixedTable').innerHTML = shown.length ? shown.map(f=>{
     const amt = `<input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${f.id}"
              value="${f.amount ? groupThousands(String(f.amount)) : ''}" placeholder="0"
              aria-label="Monto de ${escapeHtml(f.label)}">`;
@@ -2396,7 +2519,10 @@ function renderFixed(){
                 aria-label="Eliminar" ${locked ? 'disabled' : ''}>✕</button>
       </span>
     </div>`;
-  }).join('') : '<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos fijos.</div>';
+  }).join('') : `<div class="income-note" style="padding:12px 0;">${escapeHtml(
+    solo ? 'Todavía no cargaste gastos fijos.'
+    : propios ? `${nameOf(currentFixedSettingsTab)} todavía no tiene gastos fijos propios.`
+    : 'Todavía no cargaste gastos fijos del hogar.')}</div>`;
 }
 
 // Un gasto fijo puede ser del hogar (sin dueño, se divide) o de una sola
@@ -2419,6 +2545,8 @@ function cycleFixedOwner(id){
   saveFixed();
   renderFixed();
   renderChips();
+  // la fila se va a otra sub-pestaña, así que conviene decir a dónde fue
+  if(peopleCount() > 1) notyf.success(`"${item.label}" pasó a ${fixedOwnerLabel(item.owner)}`);
 }
 // ---- drag to reorder ----
 // pointer events rather than HTML5 drag-and-drop, so this works with a finger too.
@@ -2474,8 +2602,19 @@ function commitOrder(arr, containers){
   arr.sort((a,b)=> order.indexOf(a.id) - order.indexOf(b.id));
 }
 
+// como la tabla de gastos fijos muestra una sub-pestaña por vez, reordenar sólo
+// puede tocar las filas visibles: las de las otras pestañas se quedan en el
+// mismo lugar del array (si no, commitOrder las mandaría a todas al principio)
+function commitVisibleOrder(arr, container){
+  const order = [...container.querySelectorAll('.fixed-row')].map(r=>r.dataset.id);
+  const moved = order.map(id=>arr.find(x=>x.id === id)).filter(Boolean);
+  const slots = [];
+  arr.forEach((item, i)=>{ if(order.includes(item.id)) slots.push(i); });
+  slots.forEach((slot, i)=>{ arr[slot] = moved[i]; });
+}
+
 enableDrag($('fixedTable'), ()=>{
-  commitOrder(fixed, [$('fixedTable')]);
+  commitVisibleOrder(fixed, $('fixedTable'));
   saveFixed();
   renderChips();       // chips follow this order
 }, renderFixed);
@@ -2492,6 +2631,7 @@ function toggleLockFixed(id){
   item.locked = !item.locked;
   saveFixed();
   renderFixed();
+  render();
 }
 function startEditFixed(id){ editingFixedId = id; renderFixed(); }
 function cancelEditFixed(){ editingFixedId = null; renderFixed(); }
@@ -2526,7 +2666,9 @@ function addFixed(){
   const label = $('fixedLabelInput').value.trim();
   if(!label) return;
   const amount = numVal('fixedAmountInput') || 0;
-  fixed.push({ id: genId(), label, amount });
+  // nace en la pestaña abierta: compartido, o propio de esa persona
+  const owner = isPerson(currentFixedSettingsTab) ? currentFixedSettingsTab : null;
+  fixed.push({ id: genId(), label, amount, owner });
   $('fixedLabelInput').value = '';
   $('fixedAmountInput').value = '';
   saveFixed();
@@ -2562,15 +2704,23 @@ function renderVarEstimates(){
         </span>
       </div>`;
     }
+    const locked = !!f.locked;
     return `<div class="fixed-row" data-id="${f.id}">
       <span class="f-label">${escapeHtml(f.label)}</span>
       ${amt}
-      <span class="fixed-actions two">
+      <span class="fixed-actions">
         <button type="button" class="edit" onclick="startEditVarEstimate('${f.id}')" aria-label="Editar">✎</button>
-        <button type="button" class="del" onclick="removeVarEstimate('${f.id}')" aria-label="Eliminar">✕</button>
+        <button type="button" class="lock" onclick="toggleLockVarEstimate('${f.id}')"
+                aria-label="${locked ? 'Desbloquear para poder borrar' : 'Bloquear'}"
+                title="${locked ? 'Protegido: tocá para poder borrarlo' : 'Tocá para protegerlo'}">${locked ? '🔒' : '🔓'}</button>
+        <button type="button" class="del" onclick="removeVarEstimate('${f.id}')"
+                aria-label="Eliminar" ${locked ? 'disabled' : ''}>✕</button>
       </span>
     </div>`;
-  }).join('') : '<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos variables estimados.</div>';
+  }).join('') : `<div class="income-note" style="padding:12px 0;">${
+    isSharedPay(currentVarEstPerson)
+      ? 'Todavía no cargaron gastos variables compartidos.'
+      : 'Todavía no cargaste gastos variables.'}</div>`;
 }
 
 $('varEstTable').addEventListener('change', (e)=>{
@@ -2611,14 +2761,133 @@ function saveEditVarEstimate(id){
   renderVarEstimates();
   render();
 }
-function removeVarEstimate(id){
+function toggleLockVarEstimate(id){
   const item = (varEstimates[currentVarEstPerson]||[]).find(f=>f.id === id);
   if(!item) return;
+  item.locked = !item.locked;
+  saveVarEstimates();
+  renderVarEstimates();
+  render();
+}
+function removeVarEstimate(id){
+  const item = (varEstimates[currentVarEstPerson]||[]).find(f=>f.id === id);
+  if(!item || item.locked) return;   // el candado abierto es lo que habilita el borrado
   varEstimates[currentVarEstPerson] = varEstimates[currentVarEstPerson].filter(f=>f.id !== id);
   saveVarEstimates();
   renderVarEstimates();
   render();
   notyf.success(`"${item.label}" eliminado`);
+}
+
+// ---- plantillas de gastos posibles ----
+// Mismo molde que los gastos variables de acá arriba: concepto + monto de
+// siempre, por persona o compartidos. Es lo que después sale como etiqueta en
+// el modal de Gastos posibles.
+let currentBudgetTplPerson = 'A';
+let editingBudgetTplId = null;
+
+function renderBudgetTemplates(){
+  const list = budgetTemplates[currentBudgetTplPerson] || [];
+  $('bTplTable').innerHTML = list.length ? list.map(f=>{
+    const amt = `<input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${f.id}"
+             value="${f.amount ? groupThousands(String(f.amount)) : ''}" placeholder="0"
+             aria-label="Monto de ${escapeHtml(f.label)}">`;
+    if(editingBudgetTplId === f.id){
+      return `<div class="fixed-row" data-id="${f.id}">
+        <input type="text" class="f-label-edit" value="${escapeHtml(f.label)}" aria-label="Concepto">
+        ${amt}
+        <span class="fixed-actions two">
+          <button type="button" class="ok" onclick="saveEditBudgetTemplate('${f.id}')" aria-label="Guardar">✓</button>
+          <button type="button" class="del" onclick="cancelEditBudgetTemplate()" aria-label="Cancelar">✕</button>
+        </span>
+      </div>`;
+    }
+    const locked = !!f.locked;
+    return `<div class="fixed-row" data-id="${f.id}">
+      <span class="f-label">${escapeHtml(f.label)}</span>
+      ${amt}
+      <span class="fixed-actions">
+        <button type="button" class="edit" onclick="startEditBudgetTemplate('${f.id}')" aria-label="Editar">✎</button>
+        <button type="button" class="lock" onclick="toggleLockBudgetTemplate('${f.id}')"
+                aria-label="${locked ? 'Desbloquear para poder borrar' : 'Bloquear'}"
+                title="${locked ? 'Protegido: tocá para poder borrarlo' : 'Tocá para protegerlo'}">${locked ? '🔒' : '🔓'}</button>
+        <button type="button" class="del" onclick="removeBudgetTemplate('${f.id}')"
+                aria-label="Eliminar" ${locked ? 'disabled' : ''}>✕</button>
+      </span>
+    </div>`;
+  }).join('') : `<div class="income-note" style="padding:12px 0;">${
+    isSharedPay(currentBudgetTplPerson)
+      ? 'Todavía no cargaron gastos posibles compartidos.'
+      : 'Todavía no cargaste gastos posibles.'}</div>`;
+}
+
+$('bTplTable').addEventListener('change', (e)=>{
+  const el = e.target;
+  if(!el.classList.contains('f-amt')) return;
+  const item = (budgetTemplates[currentBudgetTplPerson]||[]).find(f=>f.id === el.dataset.id);
+  if(!item) return;
+  const d = digitsOnly(el.value);
+  item.amount = d ? parseInt(d,10) : 0;
+  saveBudgetTemplates();
+  render();   // el bloque de Gastos posibles lee estos montos
+});
+
+$('bTplPersonSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentBudgetTplPerson = btn.dataset.person;
+  editingBudgetTplId = null;
+  refreshPeopleUI();
+  renderBudgetTemplates();
+});
+
+function addBudgetTemplate(){
+  const label = $('bTplLabelInput').value.trim();
+  if(!label) return;
+  const amount = numVal('bTplAmountInput') || 0;
+  budgetTemplates[currentBudgetTplPerson].push({ id: genId(), label, amount });
+  $('bTplLabelInput').value = '';
+  $('bTplAmountInput').value = '';
+  saveBudgetTemplates();
+  renderBudgetTemplates();
+  render();   // el bloque de Gastos posibles lee estos montos
+}
+function startEditBudgetTemplate(id){ editingBudgetTplId = id; renderBudgetTemplates(); }
+function cancelEditBudgetTemplate(){ editingBudgetTplId = null; renderBudgetTemplates(); }
+function saveEditBudgetTemplate(id){
+  const row = document.querySelector(`#bTplTable .fixed-row[data-id="${id}"]`);
+  const item = (budgetTemplates[currentBudgetTplPerson]||[]).find(f=>f.id === id);
+  if(!row || !item) return;
+  const label = row.querySelector('.f-label-edit').value.trim();
+  if(!label) return;
+  const d = digitsOnly(row.querySelector('.f-amt').value);
+  item.label = label;
+  item.amount = d ? parseInt(d,10) : 0;
+  editingBudgetTplId = null;
+  saveBudgetTemplates();
+  renderBudgetTemplates();
+  render();   // el bloque de Gastos posibles lee estos montos
+}
+function toggleLockBudgetTemplate(id){
+  const item = (budgetTemplates[currentBudgetTplPerson]||[]).find(f=>f.id === id);
+  if(!item) return;
+  item.locked = !item.locked;
+  saveBudgetTemplates();
+  renderBudgetTemplates();
+  render();
+}
+function removeBudgetTemplate(id){
+  const item = (budgetTemplates[currentBudgetTplPerson]||[]).find(f=>f.id === id);
+  if(!item || item.locked) return;   // el candado abierto es lo que habilita el borrado
+  budgetTemplates[currentBudgetTplPerson] = budgetTemplates[currentBudgetTplPerson].filter(f=>f.id !== id);
+  saveBudgetTemplates();
+  renderBudgetTemplates();
+  render();   // el bloque de Gastos posibles lee estos montos
+  notyf.success(`"${item.label}" eliminado`);
+}
+async function commitBudgetTemplates(){
+  const ok = await saveBudgetTemplates();
+  if(ok) notyf.success('Gastos posibles guardados');
 }
 
 // ---- tabs ----
@@ -2648,12 +2917,10 @@ function openModal(expenseId){
     $('fDesc').value = ex.desc;
     $('fAmount').value = groupThousands(String(ex.amount));
     $('fDate').value = ex.date;
-    currentPaidBy = isPerson(ex.paidBy) ? ex.paidBy : firstPid();
-    currentSplit = isSplitAvailable(ex.splitType) ? ex.splitType : 'equal';
-    document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
-    document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
+    const paid = isPerson(ex.paidBy) || (isSharedPay(ex.paidBy) && peopleCount() > 1);
+    setPaidBy(paid ? ex.paidBy : firstPid());
+    setSplit(isSplitAvailable(ex.splitType) ? ex.splitType : 'equal');
     syncChips();
-    renderIncomePreview();
   }
   $('addModalTitle').textContent = ex ? 'Editar gasto' : 'Agregar un gasto';
   $('submitBtn').textContent = ex ? 'Guardar cambios' : 'Agregar gasto';
@@ -2671,6 +2938,7 @@ document.addEventListener('keydown', (e)=>{
   if($('addModal').classList.contains('open')) closeModal();
   if($('incomeModal').classList.contains('open')) closeIncomeModal();
   if($('varExpenseModal').classList.contains('open')) closeVarExpenseModal();
+  if($('budgetRubroModal').classList.contains('open')) closeBudgetRubroModal();
 });
 
 // ---- real, dated, personal variable expenses (mirrors openModal/closeModal/
@@ -2683,9 +2951,8 @@ function openVarExpenseModal(expenseId){
     $('vxDesc').value = ex.desc;
     $('vxAmount').value = groupThousands(String(ex.amount));
     $('vxDate').value = ex.date;
-    currentVxPaidBy = ex.paidBy;
-    document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentVxPaidBy));
-    renderVxChips();
+    const valido = isPerson(ex.paidBy) || (isSharedPay(ex.paidBy) && peopleCount() > 1);
+    setVxPaidBy(valido ? ex.paidBy : firstPid());
   }
   $('varExpenseModalTitle').textContent = ex ? 'Editar gasto variable' : 'Agregar gasto variable';
   $('vxSubmitBtn').textContent = ex ? 'Guardar cambios' : 'Agregar gasto variable';
@@ -2701,7 +2968,12 @@ function resetVarExpenseForm(){
   $('varExpenseForm').reset();
   editingVarExpenseId = null;
   $('vxDate').value = defaultDate();
-  currentVxPaidBy = firstPid();
+  // arranca en la sub-pestaña que estás mirando: si estás en la de Ana, el
+  // gasto que agregues es de Ana
+  setVxPaidBy(peopleCount() > 1 ? currentVarTab : firstPid());
+}
+function setVxPaidBy(who){
+  currentVxPaidBy = who;
   document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentVxPaidBy));
   renderVxChips();
 }
@@ -2709,19 +2981,19 @@ $('varExpenseModal').addEventListener('click', (e)=>{ if(e.target === $('varExpe
 $('vxPaidBySeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
   if(!btn) return;
-  document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  currentVxPaidBy = btn.dataset.paid;
-  renderVxChips();
+  setVxPaidBy(btn.dataset.paid);
 });
 // one chip per variable-expense estimate the currently-selected person set up
 // in Ajustes; tapping it fills description AND their estimated amount
 function renderVxChips(){
   const estimates = varEstimates[currentVxPaidBy] || [];
+  const vacio = isSharedPay(currentVxPaidBy)
+    ? 'Se divide en partes iguales entre todos. Cargá los estimados compartidos en Ajustes para tenerlos a un toque.'
+    : 'Cargá tus gastos variables estimados en Ajustes para tenerlos a un toque.';
   $('vxDescChips').innerHTML = estimates.length
     ? estimates.map(e=>`<button type="button" data-id="${e.id}">${escapeHtml(e.label)}${
         e.amount ? `<span class="chip-amt">${fmtNum(e.amount)}</span>` : ''}</button>`).join('')
-    : '<div class="income-note">Cargá tus gastos variables estimados en Ajustes para tenerlos a un toque.</div>';
+    : `<div class="income-note">${vacio}</div>`;
   syncVxChips();
 }
 $('vxDescChips').addEventListener('click', (e)=>{
@@ -2750,7 +3022,10 @@ $('varExpenseForm').addEventListener('submit', (e)=>{
     desc, amount,
     date: $('vxDate').value || defaultDate(),
     category: categoryOf(desc),
-    paidBy: currentVxPaidBy
+    paidBy: currentVxPaidBy,
+    // el reparto queda congelado en el gasto, igual que en los fijos: si mañana
+    // cambia la cantidad de personas, este mes sigue dividido como fue
+    shares: isSharedPay(currentVxPaidBy) ? equalShares() : null
   };
   const existing = editingVarExpenseId ? varExpenses.find(x=>x.id === editingVarExpenseId) : null;
   if(existing) Object.assign(existing, fields);
@@ -2767,6 +3042,7 @@ function deleteVarExpense(id){
   render();
   notyf.success('Gasto variable eliminado');
 }
+
 
 // ---- metas de ahorro ----
 const GOAL_KIND_HINTS = {
@@ -2887,14 +3163,11 @@ $('descChips').addEventListener('click', (e)=>{
   // la plantilla ya sabe si el gasto es del hogar o de alguien en particular
   const split = splitForOwner(f.owner);
   if(isSplitAvailable(split)){
-    currentSplit = split;
-    document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
-    // el dueño de un gasto propio suele ser también quien lo paga
-    if(isPerson(f.owner)){
-      currentPaidBy = f.owner;
-      document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
-    }
-    renderIncomePreview();
+    setSplit(split);
+    // el dueño de un gasto propio suele ser también quien lo paga; los del
+    // hogar salen de la parte de cada uno, así que quedan como compartidos
+    if(isPerson(f.owner)) setPaidBy(f.owner);
+    else if(peopleCount() > 1) setPaidBy(SHARED_PAY);
   }
   syncChips();
 });
@@ -2917,12 +3190,11 @@ function resetForm(){
   $('addForm').reset();
   editingExpenseId = null;
   $('fDate').value = defaultDate();
-  currentSplit = 'equal';
-  currentPaidBy = firstPid();
-  document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
-  document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
+  setSplit('equal');
+  // un gasto nuevo arranca compartido: es lo más común cuando se comparte el
+  // espacio, y así cae en la sub-pestaña de Compartidos sin tocar nada
+  setPaidBy(peopleCount() > 1 ? SHARED_PAY : firstPid());
   syncChips();
-  renderIncomePreview();
 }
 
 // Todos los controles que listan personas se arman acá, en un solo lugar: los
@@ -2950,12 +3222,53 @@ function refreshPeopleUI(){
     const box = hideTarget === 'self' ? el : el.parentElement;
     if(box) box.style.display = solo ? 'none' : '';
   };
+  // en un espacio de a uno "Compartido" no significa nada
+  if(solo && isSharedPay(currentPaidBy)) currentPaidBy = firstPid();
   seg('paidBySeg', 'data-paid', currentPaidBy);
+  // ...y con dos o más, "Compartido" va primero: es lo que suele pasar con los
+  // gastos del hogar, que salen de la parte de cada uno y no le deben a nadie
+  if(!solo){
+    $('paidBySeg').insertAdjacentHTML('afterbegin',
+      `<button type="button" data-paid="${SHARED_PAY}"${isSharedPay(currentPaidBy) ? ' class="active"' : ''}>Compartido</button>`);
+  }
+  // en pareja son tres opciones y entran juntas; de tres personas para arriba
+  // conviene que se envuelvan de a dos
+  $('paidBySeg').classList.toggle('seg-fit', n <= 2);
   seg('iWhoSeg', 'data-who', currentIncomeWho);
+  if(solo && isSharedPay(currentVxPaidBy)) currentVxPaidBy = firstPid();
   seg('vxPaidBySeg', 'data-paid', currentVxPaidBy);
+  // los variables también pueden ser de los dos: una cena, un viaje
+  if(!solo){
+    $('vxPaidBySeg').insertAdjacentHTML('afterbegin',
+      `<button type="button" data-paid="${SHARED_PAY}"${isSharedPay(currentVxPaidBy) ? ' class="active"' : ''}>Compartido</button>`);
+  }
+  $('vxPaidBySeg').classList.toggle('seg-fit', n <= 2);
+  if(solo && isSharedPay(currentBrWho)) currentBrWho = firstPid();
+  seg('brWhoSeg', 'data-who', currentBrWho);
+  if(!solo){
+    $('brWhoSeg').insertAdjacentHTML('afterbegin',
+      `<button type="button" data-who="${SHARED_PAY}"${isSharedPay(currentBrWho) ? ' class="active"' : ''}>Compartido</button>`);
+  }
+  $('brWhoSeg').classList.toggle('seg-fit', n <= 2);
   seg('gWhoSeg', 'data-who', currentGoalPerson);
   seg('ahorroPersonSeg', 'data-person', currentAhorroPerson, 'self');
+  if(solo && isSharedPay(currentVarEstPerson)) currentVarEstPerson = firstPid();
   seg('varEstPersonSeg', 'data-person', currentVarEstPerson, 'self');
+  // lo que estiman gastar entre todos: la nafta del auto que comparten, las
+  // salidas de los dos. Sale como etiqueta en el gasto variable compartido.
+  if(!solo){
+    $('varEstPersonSeg').insertAdjacentHTML('afterbegin',
+      `<button type="button" data-person="${SHARED_PAY}"${isSharedPay(currentVarEstPerson) ? ' class="active"' : ''}>Compartido</button>`);
+  }
+  $('varEstPersonSeg').classList.toggle('seg-fit', n <= 2);
+  // mismo trío para las plantillas de gastos posibles
+  if(solo && isSharedPay(currentBudgetTplPerson)) currentBudgetTplPerson = firstPid();
+  seg('bTplPersonSeg', 'data-person', currentBudgetTplPerson, 'self');
+  if(!solo){
+    $('bTplPersonSeg').insertAdjacentHTML('afterbegin',
+      `<button type="button" data-person="${SHARED_PAY}"${isSharedPay(currentBudgetTplPerson) ? ' class="active"' : ''}>Compartido</button>`);
+  }
+  $('bTplPersonSeg').classList.toggle('seg-fit', n <= 2);
 
   // división de un gasto: partes iguales, según ingresos, o todo a cargo de uno.
   // Con una sola persona no hay nada que dividir, así que el bloque se esconde.
@@ -3048,9 +3361,11 @@ function setPeopleCount(n){
   saveNames();
   saveExpenses();
   saveIncome();
+  saveFixed();          // dropPersonData reasigna el dueño de las plantillas
+  saveFixedIncome();
   saveVarEstimates();
   saveVarExpenses();
-  saveBudgetOverrides();
+  saveBudgetTemplates();
   saveGoals();
   refreshPeopleUI();
   renderFixed();
@@ -3058,13 +3373,14 @@ function setPeopleCount(n){
   renderFixedIncome();
   renderIncomeChips();
   renderVarEstimates();
+  renderBudgetTemplates();
   render();
 }
 
 function dropPersonData(id){
   delete income.entries[id];
   delete varEstimates[id];
-  delete budgetOverrides[id];
+  delete budgetTemplates[id];
   varExpenses = varExpenses.filter(e=>e.paidBy !== id);
   goals = goals.filter(g=>g.person !== id);
   // siempre se saca del final de la lista, así que la primera persona sigue ahí
@@ -3073,12 +3389,17 @@ function dropPersonData(id){
   const fallback = people[0].id;
   expenses.forEach(ex=>{ if(ex.paidBy === id) ex.paidBy = fallback; });
   fixedIncome.forEach(f=>{ if(f.person === id) f.person = fallback; });
+  // sus gastos fijos propios pasan a ser del hogar, igual que su parte de los
+  // gastos ya cargados: quedan a la vista en Compartidos y no en la nada
+  fixed.forEach(f=>{ if(f.owner === id) f.owner = null; });
 }
 
 // la parte que le tocaba a quien se fue no puede quedar huérfana: se reparte
 // entre los que siguen, en la misma proporción que ya tenían entre ellos
 function redistributeShares(goneIds){
-  expenses.forEach(ex=>{
+  // los variables compartidos se reparten igual: los propios del que se va ya
+  // los borró dropPersonData, pero de una cena de los dos queda su mitad
+  [...expenses, ...varExpenses].forEach(ex=>{
     if(!ex.shares) return;
     let orphan = 0;
     goneIds.forEach(id=>{
@@ -3094,7 +3415,8 @@ function redistributeShares(goneIds){
       if(base > 0) rest.forEach(id=>{ ex.shares[id] += orphan * (ex.shares[id] / base); });
       else rest.forEach(id=>{ ex.shares[id] = orphan / rest.length; });
     }
-    if(!isSplitAvailable(ex.splitType)) ex.splitType = 'equal';
+    // los variables no tienen tipo de división: no hay nada que corregirles
+    if(ex.splitType && !isSplitAvailable(ex.splitType)) ex.splitType = 'equal';
   });
 }
 
@@ -3378,16 +3700,31 @@ $('splitToggle').addEventListener('click', (e)=>{
   document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   currentSplit = btn.dataset.split;
+  // un gasto que va entero a una persona no puede estar pagado "compartido":
+  // lo banca ella sola, así que el pagador la sigue
+  if(isSharedPay(currentPaidBy) && currentSplit.startsWith('only:')) setPaidBy(currentSplit.slice(5));
   renderIncomePreview();
 });
 
 $('paidBySeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
   if(!btn) return;
-  document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  currentPaidBy = btn.dataset.paid;
+  setPaidBy(btn.dataset.paid);
+  // "Compartido" es, por definición, un gasto que se reparte: si estaba puesto
+  // "todo a X" se vuelve a partes iguales
+  if(isSharedPay(currentPaidBy) && currentSplit.startsWith('only:')) setSplit('equal');
 });
+
+// las dos tiras se pisan entre sí, así que cada una se setea en un solo lugar
+function setPaidBy(who){
+  currentPaidBy = who;
+  document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
+}
+function setSplit(split){
+  currentSplit = split;
+  document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentSplit));
+  renderIncomePreview();
+}
 
 $('addForm').addEventListener('submit', (e)=>{
   e.preventDefault();
@@ -3414,6 +3751,13 @@ $('addForm').addEventListener('submit', (e)=>{
 });
 
 function deleteExpense(id){
+  const ex = expenses.find(x=>x.id === id);
+  if(!ex) return;
+  const locked = lockedTemplateFor(ex);
+  if(locked){   // el botón ya viene deshabilitado; esto cubre el resto de las vías
+    notyf.error(`"${locked.label}" está protegido. Abrí el candado en Ajustes para poder borrarlo.`);
+    return;
+  }
   expenses = expenses.filter(x=>x.id!==id);
   saveExpenses();
   render();
@@ -3435,13 +3779,24 @@ function splitLabelOf(ex){
   return ids.map(id=>`${nameOf(id).charAt(0).toUpperCase()} ${fmt(personShareOf(ex, id))}`).join(' / ');
 }
 
+// El candado de Ajustes protege la plantilla y también el gasto cargado: si
+// está cerrado, la card no se puede borrar desde Gastos. Editarla sí, que es
+// para lo que está el lápiz — lo que el candado evita es perderla de un toque.
+function lockedTemplateFor(ex){
+  const d = (ex.desc||'').trim().toLowerCase();
+  return fixed.find(f=>f.locked && f.label.toLowerCase() === d) || null;
+}
+
 function billRow(ex){
   const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
   const splitLabel = splitLabelOf(ex);
   // en un gasto propio decir quién paga sobra... salvo que lo haya puesto otro,
   // porque ahí sí queda una deuda entre los dos y hay que poder verla
+  // ...y si es compartido tampoco: nadie le debe nada a nadie
   const owner = expenseOwner(ex);
-  const showPayer = owner === 'shared' ? peopleCount() > 1 : ex.paidBy !== owner;
+  const showPayer = isSharedPay(ex.paidBy) ? false
+    : owner === 'shared' ? peopleCount() > 1 : ex.paidBy !== owner;
+  const locked = lockedTemplateFor(ex);
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(ex.desc)}</div>
@@ -3452,8 +3807,20 @@ function billRow(ex){
     </div>
     <div class="bill-amt">${fmt(ex.amount)}</div>
     <button class="bill-edit" onclick="openModal('${ex.id}')" aria-label="Editar">✎</button>
-    <button class="bill-del" onclick="deleteExpense('${ex.id}')" aria-label="Eliminar">✕</button>
+    <button class="bill-del" onclick="deleteExpense('${ex.id}')" aria-label="Eliminar"
+      ${locked ? `disabled title="Protegido por el candado de ${escapeHtml(locked.label)} en Ajustes"` : ''}>✕</button>
   </div>`;
+}
+
+// Un gasto variable o posible es de una persona (sale entero de su saldo) o
+// compartido (una cena de los dos): ahí se reparte en partes iguales al
+// cargarlo, y ese reparto queda guardado en `shares` como en los gastos fijos.
+// Los compartidos que se cargaron antes de tener `shares` se dividen entre los
+// que hay hoy.
+function entryShareOf(e, person){
+  if(!isSharedPay(e.paidBy)) return e.paidBy === person ? (e.amount||0) : 0;
+  if(e.shares) return personShareOf(e, person);
+  return (e.amount||0) / Math.max(peopleCount(), 1);
 }
 
 // same card design as billRow(), no split (personal, not shared)
@@ -3482,13 +3849,16 @@ function financeFor(person, key){
   const inc = incomeTotalArs(person, key);
   const fijos = personShareTotal(list, person);
   const variables = varExpenses
-    .filter(e=>e.paidBy === person && monthKey(e.date) === key)
-    .reduce((s,e)=>s+(e.amount||0), 0);
+    .filter(e=>monthKey(e.date) === key)
+    .reduce((s,e)=>s+entryShareOf(e, person), 0);
   const afterFijos = inc - fijos;
   const afterVar = afterFijos - variables;
-  const cats = budgetCatsFor(person, afterVar);
-  const podes = cats.reduce((s,c)=>s+c.val, 0);
-  return { inc, fijos, variables, afterFijos, afterVar, cats, podes, ahorro: afterVar - podes };
+  // lo que tiene presupuestado gastar: sus rubros de gastos posibles más su
+  // parte de los que armaron entre todos
+  const compartido = sharedBudgetShare();
+  const propio = ownBudgetTotal(person);
+  const podes = propio + compartido;
+  return { inc, fijos, variables, afterFijos, afterVar, propio, compartido, podes, ahorro: afterVar - podes };
 }
 
 function monthFinance(key){
@@ -3532,9 +3902,21 @@ function renderFixedTabs(list, mes){
   $('expenseList').innerHTML = expenseListHtml(shown, mes, vacio);
 }
 
+// cierre de cualquier lista de gastos: la suma real de lo que se está
+// mostrando (respeta el filtro Compartidos/persona activo). No es un saldo
+// de la cadena de plata — eso lo muestra el bloque "Saldos" de más abajo.
+function billTotalRow(list){
+  if(!list.length) return '';
+  const total = list.reduce((s,x)=>s+(x.amount||0), 0);
+  return `<div class="bill bill-total">
+    <div class="bill-main"><div class="bill-name">Totales</div></div>
+    <div class="bill-amt">${fmt(total)}</div>
+  </div>`;
+}
+
 function expenseListHtml(list, mes, vacio){
   return list.length
-    ? list.map(billRow).join('')
+    ? list.map(billRow).join('') + billTotalRow(list)
     : `<div class="empty">${escapeHtml(vacio)}<br>Agregá el primero con el botón de arriba.</div>`;
 }
 
@@ -3562,188 +3944,256 @@ function render(){
 
   renderFixedTabs(list, mes);
 
-  renderTotals(fin);
-  renderTotalsPerPerson(fin);
-  renderVarExpensesGrid();
-  renderBudgetCategories(fin);
+  renderVarExpenseTabs();
+  renderBudgetTabs();
   renderBlockSaldos(fin);
-  renderCharts(list);
+  renderResumen(list, fin);
   renderBalance();
   renderAhorro();
 }
 
 // household view of the month: what came in, everything that goes out
-// (fijos + variables + lo presupuestado) and what's left over
+// (fijos + variables + lo presupuestado) and what's left over. En la pestaña
+// de una persona son sus propios números (financeFor ya los calculó en `fin`).
 function renderTotals(fin){
-  const ingreso = finSum(fin, 'inc');
-  const ahorro = finSum(fin, 'ahorro');
-  const gasto = ingreso - ahorro;
   const cell = (k, v, cls='') => `<div class="totals-cell">
       <div class="totals-k">${k}</div>
       <div class="totals-v ${cls}">${fmt(v)}</div>
     </div>`;
+  let ingreso, gasto, ahorro;
+  if(peopleCount() < 2 || isSharedPay(currentResumenTab)){
+    ingreso = finSum(fin, 'inc');
+    ahorro = finSum(fin, 'ahorro');
+    gasto = ingreso - ahorro;
+  }else{
+    const f = fin[currentResumenTab];
+    ingreso = f.inc;
+    ahorro = f.ahorro;
+    gasto = f.fijos + f.variables + f.podes;
+  }
   $('totalsStrip').innerHTML =
     cell('Ingreso', ingreso) +
     cell('Gasto', gasto) +
     cell('Ahorro', ahorro, ahorro < 0 ? 'neg' : 'save');
 }
 
-// same three numbers, but broken out per person: what each one earns, what
-// their whole month costs them (su parte de los fijos + variables + presupuesto)
-// and what's left
-function renderTotalsPerPerson(fin){
-  const cell = (k, v, cls='') => `<div class="totals-person-cell">
-      <div class="totals-person-k">${k}</div>
-      <div class="totals-person-v ${cls}">${fmt(v)}</div>
-    </div>`;
-  const personBlock = (person) => {
-    const f = fin[person];
-    const gasto = f.fijos + f.variables + f.podes;
-    return `<details class="totals-person">
-      <summary class="totals-person-who">${escapeHtml(names[person])}</summary>
-      <div class="totals-person-row">
-        ${cell('Ingreso', f.inc)}
-        ${cell('Gasto', gasto)}
-        ${cell('Ahorro', f.ahorro, f.ahorro < 0 ? 'neg' : 'save')}
-      </div>
-    </details>`;
-  };
-  $('totalsPersonGrid').innerHTML = pids().map(personBlock).join('');
-}
-
-// the "Saldos" footer every big block on Gastos ends with: the same two people,
-// the same shape, each block one step further down the chain
+// the "Saldos" footer every big block on Gastos ends with: quién y cuánto, sin
+// la cuenta abajo — el número solo, que es lo único que se mira
 // `tone` paints the whole cell green/red by sign — only the closing Ahorro
 // block uses it; the intermediate saldos stay neutral so the last one destaca
-function saldoCell(person, amt, sub, tone){
+function saldoCell(label, amt, tone){
   const toneCls = tone ? (amt < 0 ? 'tone-bad' : 'tone-good') : '';
   return `<div class="sld-cell ${toneCls}">
-    <div class="sld-who">${escapeHtml(names[person])}</div>
+    <div class="sld-who">${escapeHtml(label)}</div>
     <div class="sld-amt ${!tone && amt < 0 ? 'neg' : ''}">${fmt(amt)}</div>
-    <div class="sld-sub">${sub}</div>
   </div>`;
 }
-function renderSaldos(elId, fin, pick, subFn, tone){
+// Una tarjeta por persona, todas a la vista: el saldo de cada uno en ese punto
+// de la cadena. Lo compartido ya está repartido adentro de esos números.
+function renderSaldos(elId, fin, pick, tone){
   const el = $(elId);
   if(!el) return;
-  el.innerHTML = pids().map(p=>saldoCell(p, pick(fin[p]), subFn(fin[p]), tone)).join('');
+  el.innerHTML = pids().map(p=>saldoCell(names[p], pick(fin[p]), tone)).join('');
 }
+
 function renderBlockSaldos(fin){
-  const mes = monthShort(viewMonth);
-  renderSaldos('startSaldos', fin, f=>f.inc,
-    () => `lo que entró en ${mes}, antes de gastos`);
-  renderSaldos('fixedSaldos', fin, f=>f.afterFijos,
-    f=>`${fmt(f.inc)} de ingresos − ${fmt(f.fijos)} de gastos fijos`);
-  renderSaldos('varSaldos', fin, f=>f.afterVar,
-    f=>`${fmt(f.afterFijos)} − ${fmt(f.variables)} de gastos variables`);
-  renderSaldos('budgetSaldos', fin, f=>f.ahorro,
-    f=>`${fmt(f.afterVar)} − ${fmt(f.podes)} que podés gastar`);
-  renderSaldos('ahorroSaldos', fin, f=>f.ahorro,
-    f=>`${fmt(f.inc)} − ${fmt(f.fijos)} − ${fmt(f.variables)} − ${fmt(f.podes)}`, true);
+  renderSaldos('startSaldos', fin, f=>f.inc);
+  renderSaldos('fixedSaldos', fin, f=>f.afterFijos);
+  renderSaldos('varSaldos', fin, f=>f.afterVar);
+  renderSaldos('budgetSaldos', fin, f=>f.ahorro);
+  renderSaldos('ahorroSaldos', fin, f=>f.ahorro, true);
 }
 
 
-// splits what's left after fijos y variables into suggested caps per
-// discretionary category — same idea as the Ahorro tab's PLAN %, but applied to
-// the running saldo rather than gross income.
-// Every category is independently editable per person (budgetOverrides); the
-// defaults leave a slice unallocated on purpose so Ahorro starts out positive.
-const BUDGET_CATEGORIES = [
-  { key:'salidas', label:'Salidas',       f:0.30 },
-  { key:'regalos', label:'Regalos',       f:0.10 },
-  { key:'hogar',   label:'Compras Hogar', f:0.20 },
-  { key:'deudas',  label:'Deudas',        f:0.20 },
-  { key:'diaria',  label:'Diaria',        f:0.15 }
-];
-const AHORRO_IDEAL_PCT = 0.2; // same 20% used as "Invertir por mes" in the Ahorro tab's PLAN
+// ---- Gastos posibles ----
+// Los rubros que cada uno tiene presupuestados todos los meses, más los que
+// armaron entre todos. El monto se edita en Ajustes, como los gastos fijos y
+// los variables: acá abajo solo se leen.
+const budgetTotalOf = (who) => (budgetTemplates[who] || []).reduce((s,c)=>s+(c.amount||0), 0);
+const ownBudgetTotal = (person) => budgetTotalOf(person);
+// lo compartido se divide en partes iguales, igual que un gasto compartido
+const sharedBudgetTotal = () => budgetTotalOf(SHARED_PAY);
+const sharedBudgetShare = () => sharedBudgetTotal() / Math.max(peopleCount(), 1);
 
-// suggested cap per category, as a share of what's left after fijos y
-// variables; a category the user typed over keeps their number instead
-function budgetCatsFor(person, base){
-  const overrides = budgetOverrides[person] || {};
-  const left = Math.max(0, base);
-  return BUDGET_CATEGORIES.map(c=>({
-    ...c,
-    val: overrides[c.key] != null ? overrides[c.key] : left * c.f
-  }));
+let currentBudgetTab = SHARED_PAY;
+
+function renderBudgetTabs(){
+  const tabs = $('budgetTabs'), box = $('budgetList');
+  if(!tabs || !box) return;
+  const solo = peopleCount() < 2;
+  if(solo) currentBudgetTab = firstPid();
+
+  tabs.style.display = solo ? 'none' : '';
+  if(!solo){
+    const groups = [{ key:SHARED_PAY, label:'Compartidos' }, ...people.map(p=>({ key:p.id, label:p.name }))];
+    if(!groups.some(g=>g.key === currentBudgetTab)) currentBudgetTab = SHARED_PAY;
+    tabs.innerHTML = groups.map(g=>
+      `<button type="button" data-tab="${g.key}"${g.key === currentBudgetTab ? ' class="active"' : ''}>${escapeHtml(g.label)}</button>`
+    ).join('');
+  }
+
+  const cats = budgetTemplates[currentBudgetTab] || [];
+  const rows = cats.length
+    ? cats.map(budgetRubroRow).join('') + billTotalRow(cats)
+    : `<div class="empty">${isSharedPay(currentBudgetTab)
+        ? 'Todavía no hay rubros compartidos.'
+        : `${escapeHtml(nameOf(currentBudgetTab))} no tiene rubros cargados.`}<br>
+       <button type="button" class="btn-link" onclick="switchTab('ajustes')">Cargalos en Ajustes</button></div>`;
+
+  box.innerHTML = rows;
 }
 
-function renderBudgetCategories(fin){
-  const grid = $('budgetGrid');
-  if(!grid) return;
+// misma card que un gasto fijo: monto, lápiz para editarlo y ✕ que el candado
+// deshabilita. Lo de siempre se carga en Ajustes; acá se corrige cuando cambia.
+function budgetRubroRow(c){
+  return `<div class="bill">
+    <div class="bill-main">
+      <div class="bill-name">${escapeHtml(c.label)}</div>
+    </div>
+    <div class="bill-amt">${fmt(c.amount || 0)}</div>
+    <button class="bill-edit" onclick="openBudgetRubroModal('${c.id}')" aria-label="Editar">✎</button>
+    <button class="bill-del" onclick="deleteBudgetRubro('${c.id}')" aria-label="Eliminar"
+      ${c.locked ? 'disabled title="Protegido por el candado en Ajustes"' : ''}>✕</button>
+  </div>`;
+}
 
-  if(finSum(fin, 'inc') <= 0){
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;">Para saber cuánto podés gastar, cargá primero los ingresos.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
+// ---- modal del rubro ----
+// Sirve para agregar y para editar, como el de gastos fijos. Sólo de quién es,
+// concepto y monto: un rubro no tiene fecha, se repite todos los meses.
+let editingRubroId = null;
+let editingRubroWho = null;
+let currentBrWho = 'A';
+
+function openBudgetRubroModal(id){
+  const c = id ? (budgetTemplates[currentBudgetTab]||[]).find(x=>x.id === id) : null;
+  editingRubroId = c ? c.id : null;
+  editingRubroWho = c ? currentBudgetTab : null;
+  $('budgetRubroForm').reset();
+  setBrWho(c ? currentBudgetTab : (peopleCount() > 1 ? currentBudgetTab : firstPid()));
+  if(c){
+    $('brLabel').value = c.label;
+    $('brAmount').value = c.amount ? groupThousands(String(Math.round(c.amount))) : '';
+  }
+  $('budgetRubroTitle').textContent = c ? 'Editar gasto posible' : 'Agregar gasto posible';
+  $('brSubmitBtn').textContent = c ? 'Guardar cambios' : 'Agregar gasto posible';
+  $('budgetRubroModal').classList.add('open');
+  document.body.classList.add('modal-open');
+  if(c){ $('brAmount').focus(); $('brAmount').select(); }
+  else $('brLabel').focus();
+}
+function closeBudgetRubroModal(){
+  $('budgetRubroModal').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  editingRubroId = null;
+}
+function setBrWho(who){
+  currentBrWho = who;
+  document.querySelectorAll('#brWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === currentBrWho));
+}
+$('budgetRubroModal').addEventListener('click', (e)=>{ if(e.target === $('budgetRubroModal')) closeBudgetRubroModal(); });
+$('brWhoSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  setBrWho(btn.dataset.who);
+});
+
+$('budgetRubroForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const label = $('brLabel').value.trim();
+  if(!label) return;
+  const d = digitsOnly($('brAmount').value);
+  const amount = d ? parseInt(d,10) : 0;
+  const destino = currentBrWho;
+  if(!budgetTemplates[destino]) budgetTemplates[destino] = [];
+
+  const c = editingRubroId ? (budgetTemplates[editingRubroWho]||[]).find(x=>x.id === editingRubroId) : null;
+  if(c){
+    c.label = label;
+    c.amount = amount;
+    // cambiar de quién es lo muda de pestaña, sin perder el candado
+    if(destino !== editingRubroWho){
+      budgetTemplates[editingRubroWho] = budgetTemplates[editingRubroWho].filter(x=>x.id !== c.id);
+      budgetTemplates[destino].push(c);
+      currentBudgetTab = destino;
+    }
+  }else{
+    budgetTemplates[destino].push({ id: genId(), label, amount });
+    currentBudgetTab = destino;
+  }
+  saveBudgetTemplates();
+  closeBudgetRubroModal();
+  renderBudgetTemplates();
+  render();
+});
+
+function deleteBudgetRubro(id){
+  const who = currentBudgetTab;
+  const c = (budgetTemplates[who]||[]).find(x=>x.id === id);
+  if(!c) return;
+  if(c.locked){
+    notyf.error(`"${c.label}" está protegido. Abrí el candado en Ajustes para poder borrarlo.`);
     return;
   }
-
-  const col = (person) => {
-    const f = fin[person];
-    const rows = f.cats.map(c=>`
-      <div class="budget-row">
-        <span class="budget-cat">${c.label}</span>
-        <input type="text" inputmode="numeric" class="budget-amt-input" value="${groupThousands(String(Math.round(c.val)))}"
-          data-person="${person}" data-cat="${c.key}"
-          oninput="groupThousandsInPlace(this)" onchange="setBudgetOverride(this)">
-      </div>`).join('');
-    const ahorroIdeal = f.inc * AHORRO_IDEAL_PCT;
-
-    return `<div class="avail-col">
-      <div class="avail-who">${escapeHtml(names[person])}</div>
-      <div class="avail-detail-top">${rows}</div>
-      <div class="avail-sub">Sobre ${fmt(Math.max(0, f.afterVar))} que te quedaron después de fijos y variables. Ideal: ahorrar ${fmt(ahorroIdeal)} (${Math.round(AHORRO_IDEAL_PCT*100)}% de tu ingreso).</div>
-    </div>`;
-  };
-  grid.innerHTML = pids().map(col).join('');
-}
-
-// mirrors attachThousands()'s caret-preserving reformat, but as an inline
-// handler since these inputs are re-created on every render() via innerHTML
-function groupThousandsInPlace(el){
-  const fromEnd = el.value.length - (el.selectionStart ?? el.value.length);
-  el.value = groupThousands(el.value);
-  const pos = Math.max(0, el.value.length - fromEnd);
-  el.setSelectionRange(pos, pos);
-}
-
-function setBudgetOverride(el){
-  const person = el.dataset.person, cat = el.dataset.cat;
-  const d = digitsOnly(el.value);
-  if(!budgetOverrides[person]) budgetOverrides[person] = {};
-  if(!d){
-    delete budgetOverrides[person][cat];
-  } else {
-    budgetOverrides[person][cat] = parseInt(d,10);
-  }
-  saveBudgetOverrides();
+  budgetTemplates[who] = budgetTemplates[who].filter(x=>x.id !== id);
+  saveBudgetTemplates();
+  renderBudgetTemplates();
   render();
+  notyf.success(`"${c.label}" eliminado`);
 }
 
-// two columns, one per person, listing the personal variable expenses they
-// actually logged this month — the block's saldo closes the account below
-function renderVarExpensesGrid(){
-  const grid = $('varEstGrid');
-  if(!grid) return;
+$('budgetTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentBudgetTab = btn.dataset.tab;
+  renderBudgetTabs();
+});
 
-  const col = (person) => {
-    const monthlyReal = varExpenses.filter(e=>e.paidBy === person && inViewMonth(e.date));
-    const estTotal = variableEstimatesTotal(person);
 
-    const rows = monthlyReal.length
-      ? monthlyReal.map(varExpenseBillRow).join('')
-      : `<div class="avail-est-empty">Todavía no cargaste gastos variables este mes.</div>`;
-    const estimateNote = estTotal > 0
-      ? `<div class="avail-sub">Estimabas gastar ${fmt(estTotal)} este mes</div>`
-      : '';
 
-    return `<div class="avail-col">
-      <div class="avail-who">${escapeHtml(names[person])}</div>
-      <div class="avail-detail-top">${rows}</div>
-      ${estimateNote}
-    </div>`;
-  };
-  grid.innerHTML = pids().map(col).join('');
+// una sola lista con sub-pestañas, igual que gastos fijos: los compartidos del
+// mes, o los propios de una persona. Los saldos del bloque van abajo aparte.
+let currentVarTab = 'shared';
+
+function renderVarExpenseTabs(){
+  const tabs = $('varTabs');
+  const mes = monthShort(viewMonth);
+  const list = varExpenses.filter(e=>inViewMonth(e.date))
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+
+  // de a uno no hay nada que separar: todos los gastos son suyos
+  if(peopleCount() < 2){
+    tabs.style.display = 'none';
+    currentVarTab = firstPid();
+    $('varExpenseList').innerHTML = varListHtml(list, `Todavía no cargaste gastos variables en ${mes}.`);
+    return;
+  }
+  tabs.style.display = '';
+
+  const groups = [{ key:SHARED_PAY, label:'Compartidos' }, ...people.map(p=>({ key:p.id, label:p.name }))];
+  if(!groups.some(g=>g.key === currentVarTab)) currentVarTab = SHARED_PAY;
+  tabs.innerHTML = groups.map(g=>
+    `<button type="button" data-tab="${g.key}"${g.key === currentVarTab ? ' class="active"' : ''}>${escapeHtml(g.label)}</button>`
+  ).join('');
+
+  const shown = list.filter(e=>(isSharedPay(e.paidBy) ? SHARED_PAY : e.paidBy) === currentVarTab);
+  const vacio = isSharedPay(currentVarTab)
+    ? `Todavía no hay gastos variables compartidos en ${mes}.`
+    : `${nameOf(currentVarTab)} no cargó gastos variables en ${mes}.`;
+  $('varExpenseList').innerHTML = varListHtml(shown, vacio);
 }
+
+function varListHtml(list, vacio){
+  return list.length
+    ? list.map(varExpenseBillRow).join('') + billTotalRow(list)
+    : `<div class="empty">${escapeHtml(vacio)}<br>Agregá el primero con el botón de arriba.</div>`;
+}
+
+$('varTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentVarTab = btn.dataset.tab;
+  renderVarExpenseTabs();
+});
 
 // ---- Ahorro tab ----
 // this person's share of one expense, per its `shares` split (not who paid it)
@@ -4042,7 +4492,11 @@ function renderCategoryRank(list){
 function renderPersonSplit(list){
   const paid = {};
   pids().forEach(id=>{ paid[id] = 0; });
-  list.forEach(ex=>{ if(paid[ex.paidBy] != null) paid[ex.paidBy] += ex.amount; });
+  list.forEach(ex=>{
+    // compartido = cada uno puso su parte, así que se reparte por el mismo criterio
+    if(isSharedPay(ex.paidBy)) pids().forEach(id=>{ paid[id] += personShareOf(ex, id); });
+    else if(paid[ex.paidBy] != null) paid[ex.paidBy] += ex.amount;
+  });
   const total = pids().reduce((s,id)=>s+paid[id], 0);
   if(total <= 0){
     $('personSplit').innerHTML = '<div class="income-note">Todavía no hay gastos en este mes.</div>';
@@ -4058,13 +4512,13 @@ function renderPersonSplit(list){
     ).join('')}</div>`;
 }
 
-function renderMonthTrend(){
-  const months = [...new Set(expenses.map(e=>monthKey(e.date)).filter(Boolean))].sort().slice(-6);
+function renderMonthTrend(scoped){
+  const months = [...new Set(scoped.map(e=>monthKey(e.date)).filter(Boolean))].sort().slice(-6);
   if(!months.length){
     $('monthTrend').innerHTML = '<div class="income-note">Todavía no hay gastos cargados en ningún mes.</div>';
     return;
   }
-  const rows = months.map(m=>({ m, total: expenses.filter(x=>monthKey(x.date)===m).reduce((s,x)=>s+x.amount,0) }));
+  const rows = months.map(m=>({ m, total: scoped.filter(x=>monthKey(x.date)===m).reduce((s,x)=>s+x.amount,0) }));
   const peak = Math.max(1, ...rows.map(r=>r.total));
   $('monthTrend').innerHTML = rows.map(r=>{
     const w = Math.round(r.total/peak*100);
@@ -4077,10 +4531,52 @@ function renderMonthTrend(){
   }).join('');
 }
 
-function renderCharts(list){
-  renderCategoryRank(list);
-  renderPersonSplit(list);
-  renderMonthTrend();
+// ---- sub-pestañas de Resumen: Compartido = el hogar entero (sin filtrar),
+// cada persona ve solo lo suyo (mismo criterio que expenseOwner en Gastos) ----
+let currentResumenTab = SHARED_PAY;
+
+function renderResumenTabs(){
+  const tabs = $('resumenTabs');
+  const solo = peopleCount() < 2;
+  tabs.style.display = solo ? 'none' : '';
+  if(solo){ currentResumenTab = SHARED_PAY; return; }
+  const groups = [{ key:SHARED_PAY, label:'Compartido' }, ...people.map(p=>({ key:p.id, label:p.name }))];
+  if(!groups.some(g=>g.key === currentResumenTab)) currentResumenTab = SHARED_PAY;
+  tabs.innerHTML = groups.map(g=>
+    `<button type="button" data-tab="${g.key}"${g.key === currentResumenTab ? ' class="active"' : ''}>${escapeHtml(g.label)}</button>`
+  ).join('');
+}
+$('resumenTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  currentResumenTab = btn.dataset.tab;
+  render();
+});
+
+// filtra una lista de gastos a lo que le corresponde a la pestaña activa:
+// todo si es Compartido (o hay una sola persona), solo lo propio si es de alguien
+function resumenScope(list){
+  return (peopleCount() < 2 || isSharedPay(currentResumenTab))
+    ? list
+    : list.filter(ex=>expenseOwner(ex) === currentResumenTab);
+}
+
+// "Quién pagó" compara entre personas, así que solo tiene sentido en Compartido;
+// en la pestaña de una persona lo reemplaza su saldo (a quién le debe o le deben)
+function renderResumenMiddleCard(monthList){
+  const shared = peopleCount() < 2 || isSharedPay(currentResumenTab);
+  $('personSplitTitle').textContent = shared ? 'Quién pagó' : 'Tu saldo';
+  $('personSplit').style.display = shared ? '' : 'none';
+  if(shared) renderPersonSplit(monthList);
+  renderResumenBalance(shared ? null : currentResumenTab);
+}
+
+function renderResumen(list, fin){
+  renderResumenTabs();
+  renderTotals(fin);
+  renderCategoryRank(resumenScope(list));
+  renderResumenMiddleCard(list);
+  renderMonthTrend(resumenScope(expenses));
 }
 
 // cuánto puso cada uno de su bolsillo menos lo que le tocaba, sobre TODOS los
@@ -4089,6 +4585,8 @@ function netBalances(){
   const net = {};
   pids().forEach(id=>{ net[id] = 0; });
   expenses.forEach(ex=>{
+    // en un gasto compartido cada uno puso exactamente su parte: no hay deuda
+    if(isSharedPay(ex.paidBy)) return;
     if(net[ex.paidBy] != null) net[ex.paidBy] += ex.amount;
     pids().forEach(id=>{ net[id] -= personShareOf(ex, id); });
   });
@@ -4121,20 +4619,26 @@ function settlements(){
   return out;
 }
 
-function balanceHtml(){
-  return settlements().map(s=>`<span class="bal-pair">
+function balanceHtml(rows){
+  return (rows || settlements()).map(s=>`<span class="bal-pair">
     <span class="bal-who">${escapeHtml(nameOf(s.from))} le debe a ${escapeHtml(nameOf(s.to))}</span>
     <span class="amt">${fmt(s.amount)}</span>
   </span>`).join('');
 }
 
-// who owes whom, across every month
+// who owes whom, across every month — el de Gastos fijos siempre es el
+// panorama completo, no lo toca la pestaña de Resumen
 function renderBalance(){
-  const html = balanceHtml();
   const el = $('balanceResult');
-  const el2 = $('resumenBalance');
-  if(el) el.innerHTML = html;
-  if(el2) el2.innerHTML = html;
+  if(el) el.innerHTML = balanceHtml();
+}
+
+// mismo cálculo, pero filtrado a las deudas donde participa la persona activa
+// en Resumen; en Compartido (o con una sola persona) es el panorama completo
+function renderResumenBalance(personFilter){
+  const rows = personFilter ? settlements().filter(s=>s.from === personFilter || s.to === personFilter) : null;
+  const html = balanceHtml(rows);
+  $('resumenBalance').innerHTML = html || (personFilter ? '<span class="income-note">Estás al día.</span>' : '');
 }
 
 viewMonth = monthNow();
