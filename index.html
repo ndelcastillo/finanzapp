@@ -3036,6 +3036,14 @@ $('varExpenseForm').addEventListener('submit', (e)=>{
   resetVarExpenseForm();
   render();
 });
+function toggleVarExpensePaid(id){
+  const e = varExpenses.find(x=>x.id === id);
+  if(!e) return;
+  e.paid = !e.paid;
+  saveVarExpenses();
+  render();
+}
+
 function deleteVarExpense(id){
   varExpenses = varExpenses.filter(x=>x.id!==id);
   saveVarExpenses();
@@ -3749,6 +3757,14 @@ $('addForm').addEventListener('submit', (e)=>{
   resetForm();
   render();
 });
+
+function toggleExpensePaid(id){
+  const ex = expenses.find(x=>x.id === id);
+  if(!ex) return;
+  ex.paid = !ex.paid;
+  saveExpenses();
+  render();
+}
 
 function deleteExpense(id){
   const ex = expenses.find(x=>x.id === id);
