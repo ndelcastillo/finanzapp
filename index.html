@@ -303,10 +303,15 @@
   }
 
   /* ---- quick-pick chips under Descripción: una sola fila que se desliza,
-     con un desvanecido a la derecha que insinúa que hay más para scrollear ---- */
+     con un desvanecido a la derecha que insinúa que hay más para scrollear.
+     Apenas arranca el scroll (.chips-scrolled, ver JS) se suma el desvanecido
+     de la izquierda, para volver también a insinuarse hacia atrás. ---- */
   .chips{display:flex;flex-wrap:nowrap;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;
     -webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(to right, black calc(100% - 28px), transparent 100%);
     mask-image:linear-gradient(to right, black calc(100% - 28px), transparent 100%);}
+  .chips.chips-scrolled{
+    -webkit-mask-image:linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
+    mask-image:linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);}
   .chips::-webkit-scrollbar{display:none;}
   .chips button{flex-shrink:0;background:var(--pearl);border:1px solid var(--line-strong);border-radius:9999px;
     padding:6px 12px;font-size:13px;cursor:pointer;color:var(--ink);
@@ -1932,6 +1937,13 @@ document.addEventListener('input', (e)=>{
   if(el.classList.contains('ie-money')) reformat(el, groupThousands);
   else if(el.classList.contains('ie-letters')) reformat(el, v=>v.replace(/\d/g,''));
 });
+// el fade de la izquierda de los chips solo aparece una vez que se scrolleó
+// un poco — 'scroll' no burbujea, así que hay que escucharlo en capture
+document.addEventListener('scroll', (e)=>{
+  const el = e.target;
+  if(!el.classList || !el.classList.contains('chips')) return;
+  el.classList.toggle('chips-scrolled', el.scrollLeft > 4);
+}, true);
 // a Realtime push that arrived while this field had focus (see isEditingText()
 // in subscribeCoupleRealtime) was held back to avoid yanking the input out
 // from under the user's keystrokes — catch up once they move on
