@@ -1037,6 +1037,13 @@
           <input type="date" id="vxDate">
         </div>
       </div>
+      <div id="vxSplitField" style="display:none;">
+        <label>¿Cómo se divide?</label>
+        <div class="seg" id="vxSplitToggle">
+          <button type="button" data-split="equal">Partes iguales</button>
+          <button type="button" data-split="income">Según ingresos</button>
+        </div>
+      </div>
       <button type="submit" class="btn-primary" id="vxSubmitBtn">Agregar gasto variable</button>
     </form>
   </div>
@@ -1180,6 +1187,7 @@ let currentVarEstPerson = 'A';
 // `expenses`, but with no split: 100% attributed to whoever's in `paidBy`
 let varExpenses = [];
 let currentVxPaidBy = 'A';
+let currentVxSplit = 'equal';
 let editingVarExpenseId = null;
 // per-person, per-category planned-spend overrides for the "Podés gastar" cards —
 // {A:{salidas:120000,...}, B:{...}}; a category missing from the map falls back
@@ -2954,6 +2962,7 @@ function openVarExpenseModal(expenseId){
     $('vxAmount').value = groupThousands(String(ex.amount));
     $('vxDate').value = ex.date;
     const valido = isPerson(ex.paidBy) || (isSharedPay(ex.paidBy) && peopleCount() > 1);
+    setVxSplit(ex.splitType === 'income' ? 'income' : 'equal');
     setVxPaidBy(valido ? ex.paidBy : firstPid());
   }
   $('varExpenseModalTitle').textContent = ex ? 'Editar gasto variable' : 'Agregar gasto variable';
@@ -2970,6 +2979,7 @@ function resetVarExpenseForm(){
   $('varExpenseForm').reset();
   editingVarExpenseId = null;
   $('vxDate').value = defaultDate();
+  setVxSplit('equal');
   // arranca en la sub-pestaña que estás mirando: si estás en la de Ana, el
   // gasto que agregues es de Ana
   setVxPaidBy(peopleCount() > 1 ? currentVarTab : firstPid());
@@ -2977,13 +2987,23 @@ function resetVarExpenseForm(){
 function setVxPaidBy(who){
   currentVxPaidBy = who;
   document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentVxPaidBy));
+  $('vxSplitField').style.display = (isSharedPay(currentVxPaidBy) && peopleCount() > 1) ? '' : 'none';
   renderVxChips();
+}
+function setVxSplit(split){
+  currentVxSplit = split;
+  document.querySelectorAll('#vxSplitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentVxSplit));
 }
 $('varExpenseModal').addEventListener('click', (e)=>{ if(e.target === $('varExpenseModal')) closeVarExpenseModal(); });
 $('vxPaidBySeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
   if(!btn) return;
   setVxPaidBy(btn.dataset.paid);
+});
+$('vxSplitToggle').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  setVxSplit(btn.dataset.split);
 });
 // one chip per variable-expense estimate the currently-selected person set up
 // in Ajustes; tapping it fills description AND their estimated amount
@@ -3027,7 +3047,8 @@ $('varExpenseForm').addEventListener('submit', (e)=>{
     paidBy: currentVxPaidBy,
     // el reparto queda congelado en el gasto, igual que en los fijos: si mañana
     // cambia la cantidad de personas, este mes sigue dividido como fue
-    shares: isSharedPay(currentVxPaidBy) ? equalShares() : null
+    shares: isSharedPay(currentVxPaidBy) ? sharesFor(currentVxSplit) : null,
+    splitType: isSharedPay(currentVxPaidBy) ? currentVxSplit : undefined
   };
   const existing = editingVarExpenseId ? varExpenses.find(x=>x.id === editingVarExpenseId) : null;
   if(existing) Object.assign(existing, fields);
@@ -3844,14 +3865,15 @@ function entryShareOf(e, person){
   return (e.amount||0) / Math.max(peopleCount(), 1);
 }
 
-// same card design as billRow(), no split (personal, not shared)
+// same card design as billRow(): shows the split label too when it's shared
 function varExpenseBillRow(ex){
   const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
+  const splitLabel = splitLabelOf(ex);
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(ex.desc)}</div>
       <div class="bill-meta">
-        <span>${dateStr}</span>
+        <span>${dateStr}</span>${splitLabel ? `<span>·</span><span>${escapeHtml(splitLabel)}</span>` : ''}
         <label class="bill-paid" title="${ex.paid ? 'Pagado' : 'Marcar como pagado'}">
           <input type="checkbox" ${ex.paid ? 'checked' : ''} onchange="toggleVarExpensePaid('${ex.id}')">
         </label>
