@@ -979,7 +979,7 @@
 <div class="modal-backdrop" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title" id="addModalTitle">Agregar un gasto</div>
+      <div class="modal-title" id="addModalTitle">Agregar un gasto fijo</div>
       <button type="button" class="modal-close" onclick="closeModal()" aria-label="Cerrar">✕</button>
     </div>
     <form class="add-form" id="addForm">
@@ -1013,7 +1013,7 @@
         <div class="seg" id="splitToggle"></div>
         <div class="income-note" id="incomeSplitPreview" style="display:none;"></div>
       </div>
-      <button type="submit" class="btn-primary" id="submitBtn">Agregar gasto</button>
+      <button type="submit" class="btn-primary" id="submitBtn">Agregar gasto fijo</button>
     </form>
   </div>
 </div>
@@ -2975,8 +2975,8 @@ function openModal(expenseId){
     if(isSharedPay(owner)) setPaidBy(isPerson(ex.paidBy) ? ex.paidBy : firstPid());
     syncChips();
   }
-  $('addModalTitle').textContent = ex ? 'Editar gasto' : 'Agregar un gasto';
-  $('submitBtn').textContent = ex ? 'Guardar cambios' : 'Agregar gasto';
+  $('addModalTitle').textContent = ex ? 'Editar gasto fijo' : 'Agregar un gasto fijo';
+  $('submitBtn').textContent = ex ? 'Guardar cambios' : 'Agregar gasto fijo';
   $('addModal').classList.add('open');
   document.body.classList.add('modal-open');
   $('fDesc').focus();
