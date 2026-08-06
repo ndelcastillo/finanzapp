@@ -476,6 +476,8 @@
   .tag-p2{background:#D9E6DC;color:#2F5C3F;}
   .tag-p3{background:#DAE0EE;color:#3A4A78;}
   .bill-amt{font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;white-space:nowrap;}
+  .bill-paid{display:flex;align-items:center;flex-shrink:0;}
+  .bill-paid input{width:13px;height:13px;accent-color:var(--good);cursor:pointer;}
   .bill-edit,.bill-del{background:none;border:none;color:var(--body-muted);cursor:pointer;font-size:16px;padding:2px 4px;flex-shrink:0;border-radius:6px;transition:color .15s ease, transform .1s ease;}
   .bill-edit:hover{color:var(--primary);}
   .bill-del:hover{color:var(--a-clay);}
@@ -3819,6 +3821,9 @@ function billRow(ex){
       <div class="bill-meta">
         <span>${dateStr}</span>${splitLabel ? `<span>·</span><span>${escapeHtml(splitLabel)}</span>` : ''}
         ${showPayer ? `<span class="tag ${personTagClass(ex.paidBy)}">Paga ${escapeHtml(nameOf(ex.paidBy))}</span>` : ''}
+        <label class="bill-paid" title="${ex.paid ? 'Pagado' : 'Marcar como pagado'}">
+          <input type="checkbox" ${ex.paid ? 'checked' : ''} onchange="toggleExpensePaid('${ex.id}')">
+        </label>
       </div>
     </div>
     <div class="bill-amt">${fmt(ex.amount)}</div>
@@ -3847,6 +3852,9 @@ function varExpenseBillRow(ex){
       <div class="bill-name">${escapeHtml(ex.desc)}</div>
       <div class="bill-meta">
         <span>${dateStr}</span>
+        <label class="bill-paid" title="${ex.paid ? 'Pagado' : 'Marcar como pagado'}">
+          <input type="checkbox" ${ex.paid ? 'checked' : ''} onchange="toggleVarExpensePaid('${ex.id}')">
+        </label>
       </div>
     </div>
     <div class="bill-amt">${fmt(ex.amount)}</div>
