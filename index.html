@@ -641,7 +641,6 @@
   <div class="tab-panel active" id="panel-ingresos" role="tabpanel">
     <div class="card">
       <div class="section-title" id="incomeSectionTitle">Ingresos mensuales</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuánto entra por mes por cada lado. Podés cargar más de uno (ej: sueldo + un freelance). Si es en USD, guardás la cotización de ese día.</p>
       <div id="prevMonthSaldo"></div>
       <!-- una columna por persona del espacio, armada en renderIncomeLists() -->
       <div class="people-grid" id="incomeGrid"></div>
@@ -663,7 +662,6 @@
     <!-- BLOQUE 1: gastos fijos del mes -->
     <div class="card">
       <div class="section-title"><span id="fixedBlockTitle">Gastos fijos</span></div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los gastos fijos que cargaste este mes: los del hogar y los que paga cada uno por su cuenta. Abajo, lo que le queda a cada uno después de pagar su parte.</p>
       <button type="button" class="btn-add" onclick="openModal()">+ Agregar gasto fijo</button>
       <!-- filtro de la lista de abajo: compartidos o los propios de cada uno.
            No toca los Saldos, que siempre son los del mes completo. -->
@@ -679,7 +677,6 @@
     <!-- BLOQUE 2: gastos variables del mes -->
     <div class="card">
       <div class="section-title"><span id="varBlockTitle">Gastos variables</span></div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Nafta, salidas, compras. Los propios salen del saldo de quien los gastó; los compartidos se dividen en partes iguales.</p>
       <button type="button" class="btn-add" onclick="openVarExpenseModal()">+ Agregar gasto variable</button>
       <!-- mismo filtro que en gastos fijos: compartidos o los propios de cada
            uno. Los Saldos de abajo son siempre los del mes completo. -->
@@ -694,7 +691,6 @@
     <!-- BLOQUE 3: presupuesto discrecional -->
     <div class="card">
       <div class="section-title"><span id="budgetBlockTitle">Gastos posibles</span></div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Lo que tenés presupuestado gastar por rubro. El monto de siempre se carga en Ajustes y acá lo corregís con el lápiz cuando cambia. Los de Compartidos se dividen en partes iguales y le descuentan a cada uno su parte.</p>
       <button type="button" class="btn-add" onclick="openBudgetRubroModal()">+ Agregar gasto posible</button>
       <div class="seg sub-seg" id="budgetTabs" style="margin-top:16px;"></div>
       <div id="budgetList" style="margin-top:14px;"></div>
@@ -720,30 +716,25 @@
     <div class="card">
       <div class="section-title" id="ahorroTitle">Tu ahorro</div>
       <div class="totals" id="ahorroStrip"></div>
-      <p class="income-note" style="margin-top:12px;" id="ahorroNote"></p>
     </div>
 
     <div class="card">
       <div class="section-title">Tu plan en 4 números</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Cuatro cuentas sobre lo que entra por mes en el hogar. Las tres de arriba son plata por mes; la de abajo es capital a juntar.</p>
       <div id="planBox"></div>
     </div>
 
     <div class="card">
       <div class="section-title">Cómo venís este mes</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Un reparto de referencia de lo que entra: la mitad a lo que no podés dejar de pagar (gastos fijos + variables), un 30% a lo que te querés dar (tus gastos posibles), y un 20% que no se toca (tu ahorro). La marca gris en cada barra es el objetivo; arriba, el mismo par de números en pesos.</p>
       <div id="ruleBox"></div>
     </div>
 
     <div class="card">
       <div class="section-title">Mes a mes</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cuánto te sobró en cada mes que tenés cargado, con la misma cuenta de arriba: ingresos menos gastos fijos, variables y lo que tenías para gastar.</p>
       <div id="savingsHistory"></div>
     </div>
 
     <div class="card">
       <div class="section-title">Tus metas</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Primero el fondo de emergencia; después, las metas que te pongas vos. El avance de las metas de monto se mide contra tu ahorro acumulado; el de las mensuales, contra lo que ahorraste este mes.</p>
       <div id="goalsBox"></div>
       <button type="button" class="btn-add" style="margin-top:16px;" onclick="openGoalModal()">+ Agregar meta</button>
     </div>
@@ -752,9 +743,13 @@
 
   <!-- ============ TAB: RESUMEN ============ -->
   <div class="tab-panel" id="panel-resumen" role="tabpanel">
-    <!-- Compartido = el hogar entero; cada pestaña de persona filtra todo lo de abajo a lo suyo -->
-    <div class="seg sub-seg" id="resumenTabs" style="margin-bottom:14px;"></div>
-    <div class="totals" id="totalsStrip"></div>
+    <!-- Mismo patrón que Ahorro: filtro de persona arriba, card con título + totales.
+         Compartido = el hogar entero; cada persona filtra lo de abajo a lo suyo. -->
+    <div class="seg seg-fit" id="resumenTabs" style="margin-bottom:14px;"></div>
+    <div class="card">
+      <div class="section-title" id="resumenTitle">Saldo</div>
+      <div class="totals" id="totalsStrip"></div>
+    </div>
 
     <div class="card">
       <div class="chart-title">Por categoría</div>
@@ -777,14 +772,12 @@
   <div class="tab-panel" id="panel-ajustes" role="tabpanel">
     <div class="card">
       <div class="section-title">Quiénes son</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">¿Entre cuántos se llevan las cuentas de este espacio? Toda la app se acomoda a ese número: los ingresos, el reparto de cada gasto, los saldos y el ahorro.</p>
       <label>Cantidad de personas</label>
       <div class="seg" id="peopleCountSeg" style="margin-bottom:16px;"></div>
       <div class="people-grid" id="namesGrid"></div>
     </div>
     <div class="card">
       <div class="section-title">Ingresos fijos</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:16px;">Los que entran todos los meses. Actualizá el monto acá y en Ingresos te aparecen como etiqueta para cargarlos de un toque. Arrastrá de ⠿ para reordenar — ese orden es el de las etiquetas. Tocá el nombre para pasárselo a otra persona; la moneda se cambia con el lápiz.</p>
       <div class="fixed-head">
         <span class="h0c"></span>
         <span class="h1c">Concepto</span>
@@ -802,7 +795,6 @@
 
     <div class="card">
       <div class="section-title">Gastos fijos</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Los que se repiten todos los meses. Actualizá el monto acá cuando cambie y al cargar el gasto ya te lo trae puesto. En Compartidos van los del hogar; en la pestaña de cada uno, los propios (el monotributo, la obra social). Lo que agregues cae en la pestaña abierta, y tocando la etiqueta lo pasás a otra. Arrastrá de ⠿ para reordenar — ese orden es el de las etiquetas en Gastos. El candado protege la plantilla y también el gasto cargado: no se pueden borrar hasta abrirlo.</p>
       <div class="seg sub-seg" id="fixedSubTabs" style="margin-bottom:14px;"></div>
       <div class="fixed-head">
         <span class="h0c"></span>
@@ -821,7 +813,6 @@
 
     <div class="card">
       <div class="section-title">Gastos variables</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Una estimación de lo que pensás gastar este mes en cosas variables (nafta, salidas, compras). No es un gasto cargado, es una referencia — te aparece como etiqueta al cargar el gasto y al pie de la lista en Gastos. En Compartidos van los que estiman entre todos. El candado protege la plantilla: no se puede borrar hasta abrirlo.</p>
       <div class="seg" id="varEstPersonSeg" style="margin-bottom:14px;"></div>
       <div class="fixed-head">
         <span class="h1c">Concepto</span>
@@ -839,7 +830,6 @@
 
     <div class="card">
       <div class="section-title">Gastos posibles</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Los rubros que tenés presupuestados todos los meses. Poné el monto de cada uno y en Gastos se descuenta de lo que te quedó. Podés renombrarlos, agregar los tuyos y borrarlos abriendo el candado. El monto también se corrige desde la card en Gastos cuando cambia. En Compartidos van los que presupuestan entre todos: se dividen en partes iguales.</p>
       <div class="seg" id="bTplPersonSeg" style="margin-bottom:14px;"></div>
       <div class="fixed-head">
         <span class="h1c">Concepto</span>
@@ -862,7 +852,6 @@
     </div>
     <div class="card">
       <div class="section-title">Contraseña del espacio</div>
-      <p class="income-note" style="margin-top:-4px;margin-bottom:14px;">Cambiá la contraseña de este espacio sin perder los datos. La contraseña vieja deja de funcionar al instante — pasale la nueva a quien comparta el espacio para que la reingrese en su dispositivo.</p>
       <div class="row2">
         <div>
           <input type="password" id="renameCodeInput" placeholder="Nueva contraseña" autocomplete="off" autocapitalize="off">
@@ -4094,7 +4083,8 @@ function renderTotals(fin){
       <div class="totals-v ${cls}">${fmt(v)}</div>
     </div>`;
   let ingreso, gasto, ahorro;
-  if(peopleCount() < 2 || isSharedPay(currentResumenTab)){
+  const shared = peopleCount() < 2 || isSharedPay(currentResumenTab);
+  if(shared){
     ingreso = finSum(fin, 'inc');
     ahorro = finSum(fin, 'ahorro');
     gasto = ingreso - ahorro;
@@ -4104,6 +4094,12 @@ function renderTotals(fin){
     ahorro = f.ahorro;
     gasto = f.fijos + f.variables + f.podes;
   }
+  const who = shared
+    ? (peopleCount() < 2 ? nameOf(firstPid()) : 'hogar')
+    : nameOf(currentResumenTab);
+  $('resumenTitle').textContent = shared && peopleCount() >= 2
+    ? `Saldo compartido · ${monthShort(viewMonth)}`
+    : `Saldo de ${who} · ${monthShort(viewMonth)}`;
   $('totalsStrip').innerHTML =
     cell('Ingreso', ingreso) +
     cell('Gasto', gasto) +
@@ -4424,8 +4420,7 @@ function renderPlan(person){
         <span class="plan-d">${p.d}</span>
       </span>
       <span class="plan-v">${fmt(ingreso * p.f)}${p.flow ? '<span style="font-size:11px;font-weight:400;color:var(--body-muted);"> /mes</span>' : ''}</span>
-    </div>`).join('') +
-    `<p class="income-note" style="margin-top:12px;">Calculado sobre ${fmt(ingreso)} de ingreso mensual de ${escapeHtml(names[person])}. Es una referencia: cambia según tu situación.</p>`;
+    </div>`).join('');
 }
 
 // months of contributions needed to go from `current` to `target` at the 6% rate
@@ -4598,17 +4593,13 @@ function renderAhorro(){
   const ahorro = financeFor(person).ahorro;
   const tasa = ingreso > 0 ? (ahorro / ingreso) * 100 : 0;
 
-  $('ahorroTitle').textContent = `Ahorro de ${escapeHtml(names[person])} · ${monthShort(viewMonth)}`;
+  $('ahorroTitle').textContent = `Saldo de ${names[person]} · ${monthShort(viewMonth)}`;
   const cell = (k, v, cls='') => `<div class="totals-cell">
       <div class="totals-k">${k}</div><div class="totals-v ${cls}">${v}</div></div>`;
   $('ahorroStrip').innerHTML =
     cell('Ahorro', fmt(ahorro), ahorro < 0 ? 'neg' : 'save') +
     cell('Tasa de ahorro', (ingreso > 0 ? Math.round(tasa) + '%' : '—'), tasa < 0 ? 'neg' : '') +
     cell('En dólares', todayUsdRate && ahorro > 0 ? fmtUsd(ahorro / todayUsdRate) : '—');
-
-  $('ahorroNote').textContent = todayUsdRate
-    ? `Es lo que queda al final de Gastos: tus ingresos menos tu parte de los gastos fijos, tus gastos variables y lo que tenés presupuestado gastar. Convertido al blue promedio de hoy ($${fmtNum(todayUsdRate)}).`
-    : 'Es lo que queda al final de Gastos: tus ingresos menos tu parte de los gastos fijos, tus gastos variables y lo que tenés presupuestado gastar. La conversión a dólares aparece cuando se pueda leer la cotización.';
 
   renderPlan(person);
   renderRule5030(person);
