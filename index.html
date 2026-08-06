@@ -302,9 +302,13 @@
       -webkit-overflow-scrolling:touch;}
   }
 
-  /* ---- quick-pick chips under Descripción ---- */
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-  .chips button{background:var(--pearl);border:1px solid var(--line-strong);border-radius:9999px;
+  /* ---- quick-pick chips under Descripción: una sola fila que se desliza,
+     con un desvanecido a la derecha que insinúa que hay más para scrollear ---- */
+  .chips{display:flex;flex-wrap:nowrap;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    mask-image:linear-gradient(to right, black calc(100% - 28px), transparent 100%);}
+  .chips::-webkit-scrollbar{display:none;}
+  .chips button{flex-shrink:0;background:var(--pearl);border:1px solid var(--line-strong);border-radius:9999px;
     padding:6px 12px;font-size:13px;cursor:pointer;color:var(--ink);
     font-family:'Inter',system-ui,sans-serif;transition:background-color .15s ease,border-color .15s ease,color .15s ease;}
   .chips button:hover{border-color:var(--primary);color:var(--primary);}
