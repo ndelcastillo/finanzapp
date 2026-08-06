@@ -37,6 +37,7 @@
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;}
   body.modal-open{overflow:hidden;}
   .wrap{max-width:900px;margin:0 auto;padding:32px 20px 64px;}
+  @media(max-width:540px){.wrap{padding:20px 10px 48px;}}
   h1{font-weight:600;font-size:34px;margin:0;letter-spacing:-0.374px;line-height:1.15;}
   .app-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;margin-bottom:20px;}
   .app-head h1{justify-self:start;}
@@ -71,7 +72,7 @@
   .usd-dropdown-body .usd-row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:7px;font-weight:600;}
   .usd-dropdown-body.err{color:var(--ink-muted-48);}
   .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:16px;}
-  @media(max-width:540px){.card{padding:18px 16px;}}
+  @media(max-width:540px){.card{padding:18px 10px;}}
 
   .name-a{color:var(--a-gold-ink);}
   .name-b{color:var(--a-clay-ink);}
@@ -289,16 +290,19 @@
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:50;
     display:none;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto;}
   .modal-backdrop.open{display:flex;}
-  .modal{background:var(--card);border-radius:18px;padding:24px;width:100%;max-width:520px;margin:auto;}
+  .modal{background:var(--card);border-radius:18px;padding:24px;width:100%;max-width:520px;margin:auto;
+    overflow-x:hidden;}
   .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
   .modal-title{font-size:21px;font-weight:600;letter-spacing:0.231px;}
   .modal-close{background:none;border:none;color:var(--body-muted);font-size:20px;line-height:1;
     cursor:pointer;padding:4px 6px;border-radius:8px;transition:color .15s ease;}
   .modal-close:hover{color:var(--ink);}
   @media(max-width:540px){
-    .modal-backdrop{padding:20px;align-items:flex-end;border-radius:0px;max-height:100vh;max-height:100dvh;}
+    .modal-backdrop{padding:20px;align-items:flex-end;border-radius:0px;max-height:100vh;max-height:100dvh;
+      overflow-x:hidden;overscroll-behavior:contain;}
     .modal{border-radius:18px;max-width:none;margin:0;padding:20px 18px 28px;
-      max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;
+      max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;overflow-x:hidden;
+      overscroll-behavior:contain;touch-action:pan-y;
       -webkit-overflow-scrolling:touch;}
   }
 
