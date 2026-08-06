@@ -3248,11 +3248,18 @@ function deleteGoal(id){
 }
 
 // one chip per fixed expense; tapping it fills the description AND its current amount
+// mismo criterio que renderVxChips(): los chips muestran solo las plantillas
+// de quien esté elegido en "¿De quién es?" — de a uno no hay "de quién es"
+// que filtrar, así que se ven todas
 function renderChips(){
-  $('descChips').innerHTML = fixed.length
-    ? fixed.map(f=>`<button type="button" data-id="${f.id}">${escapeHtml(f.label)}${
+  const shown = peopleCount() > 1 ? fixed.filter(f=>fixedTabOf(f) === currentOwner) : fixed;
+  const vacio = isSharedPay(currentOwner)
+    ? 'Cargá los gastos fijos del hogar en Ajustes para tenerlos a un toque.'
+    : 'Cargá los gastos fijos de esta persona en Ajustes para tenerlos a un toque.';
+  $('descChips').innerHTML = shown.length
+    ? shown.map(f=>`<button type="button" data-id="${f.id}">${escapeHtml(f.label)}${
         f.amount ? `<span class="chip-amt">${fmtNum(f.amount)}</span>` : ''}</button>`).join('')
-    : '<div class="income-note">Cargá tus gastos fijos en Ajustes para tenerlos a un toque.</div>';
+    : `<div class="income-note">${vacio}</div>`;
   syncChips();
 }
 $('descChips').addEventListener('click', (e)=>{
@@ -3818,6 +3825,7 @@ function setOwner(who){
   $('payerField').style.display = shared ? '' : 'none';
   $('splitField').style.display = shared ? '' : 'none';
   if(shared && !isPerson(currentPaidBy)) setPaidBy(firstPid());
+  renderChips();
 }
 function setPaidBy(who){
   currentPaidBy = who;
