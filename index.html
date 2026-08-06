@@ -1068,6 +1068,13 @@
         <label for="brAmount">Monto (ARS)</label>
         <input type="text" inputmode="numeric" class="ie-money" id="brAmount" placeholder="0">
       </div>
+      <div id="brSplitField" style="display:none;">
+        <label>¿Cómo se divide?</label>
+        <div class="seg" id="brSplitToggle">
+          <button type="button" data-split="equal">Partes iguales</button>
+          <button type="button" data-split="income">Según ingresos</button>
+        </div>
+      </div>
       <button type="submit" class="btn-primary" id="brSubmitBtn">Agregar gasto posible</button>
     </form>
   </div>
@@ -3901,7 +3908,7 @@ function financeFor(person, key){
   const afterVar = afterFijos - variables;
   // lo que tiene presupuestado gastar: sus rubros de gastos posibles más su
   // parte de los que armaron entre todos
-  const compartido = sharedBudgetShare();
+  const compartido = sharedBudgetShareFor(person);
   const propio = ownBudgetTotal(person);
   const podes = propio + compartido;
   return { inc, fijos, variables, afterFijos, afterVar, propio, compartido, podes, ahorro: afterVar - podes };
@@ -4057,9 +4064,16 @@ function renderBlockSaldos(fin){
 // los variables: acá abajo solo se leen.
 const budgetTotalOf = (who) => (budgetTemplates[who] || []).reduce((s,c)=>s+(c.amount||0), 0);
 const ownBudgetTotal = (person) => budgetTotalOf(person);
-// lo compartido se divide en partes iguales, igual que un gasto compartido
 const sharedBudgetTotal = () => budgetTotalOf(SHARED_PAY);
-const sharedBudgetShare = () => sharedBudgetTotal() / Math.max(peopleCount(), 1);
+// cada rubro compartido se reparte según su propio splitType (partes iguales por
+// default); no se congela como en fijos/variables, se recalcula con el ingreso
+// y la cantidad de personas de hoy, igual que hacía sharedBudgetShare() antes
+function sharedBudgetShareFor(person){
+  return (budgetTemplates[SHARED_PAY] || []).reduce((s,c)=>{
+    const shares = c.splitType === 'income' ? (incomeShares() || equalShares()) : equalShares();
+    return s + (c.amount||0) * (shares[person] || 0) / 100;
+  }, 0);
+}
 
 let currentBudgetTab = SHARED_PAY;
 
@@ -4092,9 +4106,11 @@ function renderBudgetTabs(){
 // misma card que un gasto fijo: monto, lápiz para editarlo y ✕ que el candado
 // deshabilita. Lo de siempre se carga en Ajustes; acá se corrige cuando cambia.
 function budgetRubroRow(c){
+  const splitLabel = c.splitType === 'income' ? 'según ingresos' : '';
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(c.label)}</div>
+      ${splitLabel ? `<div class="bill-meta"><span>${escapeHtml(splitLabel)}</span></div>` : ''}
     </div>
     <div class="bill-amt">${fmt(c.amount || 0)}</div>
     <button class="bill-edit" onclick="openBudgetRubroModal('${c.id}')" aria-label="Editar">✎</button>
@@ -4109,12 +4125,14 @@ function budgetRubroRow(c){
 let editingRubroId = null;
 let editingRubroWho = null;
 let currentBrWho = 'A';
+let currentBrSplit = 'equal';
 
 function openBudgetRubroModal(id){
   const c = id ? (budgetTemplates[currentBudgetTab]||[]).find(x=>x.id === id) : null;
   editingRubroId = c ? c.id : null;
   editingRubroWho = c ? currentBudgetTab : null;
   $('budgetRubroForm').reset();
+  setBrSplit(c && c.splitType === 'income' ? 'income' : 'equal');
   setBrWho(c ? currentBudgetTab : (peopleCount() > 1 ? currentBudgetTab : firstPid()));
   if(c){
     $('brLabel').value = c.label;
@@ -4135,12 +4153,22 @@ function closeBudgetRubroModal(){
 function setBrWho(who){
   currentBrWho = who;
   document.querySelectorAll('#brWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === currentBrWho));
+  $('brSplitField').style.display = (isSharedPay(currentBrWho) && peopleCount() > 1) ? '' : 'none';
+}
+function setBrSplit(split){
+  currentBrSplit = split;
+  document.querySelectorAll('#brSplitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentBrSplit));
 }
 $('budgetRubroModal').addEventListener('click', (e)=>{ if(e.target === $('budgetRubroModal')) closeBudgetRubroModal(); });
 $('brWhoSeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
   if(!btn) return;
   setBrWho(btn.dataset.who);
+});
+$('brSplitToggle').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  setBrSplit(btn.dataset.split);
 });
 
 $('budgetRubroForm').addEventListener('submit', (e)=>{
@@ -4152,10 +4180,12 @@ $('budgetRubroForm').addEventListener('submit', (e)=>{
   const destino = currentBrWho;
   if(!budgetTemplates[destino]) budgetTemplates[destino] = [];
 
+  const splitType = destino === SHARED_PAY ? currentBrSplit : undefined;
   const c = editingRubroId ? (budgetTemplates[editingRubroWho]||[]).find(x=>x.id === editingRubroId) : null;
   if(c){
     c.label = label;
     c.amount = amount;
+    c.splitType = splitType;
     // cambiar de quién es lo muda de pestaña, sin perder el candado
     if(destino !== editingRubroWho){
       budgetTemplates[editingRubroWho] = budgetTemplates[editingRubroWho].filter(x=>x.id !== c.id);
@@ -4163,7 +4193,7 @@ $('budgetRubroForm').addEventListener('submit', (e)=>{
       currentBudgetTab = destino;
     }
   }else{
-    budgetTemplates[destino].push({ id: genId(), label, amount });
+    budgetTemplates[destino].push({ id: genId(), label, amount, splitType });
     currentBudgetTab = destino;
   }
   saveBudgetTemplates();
