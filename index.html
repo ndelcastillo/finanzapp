@@ -980,8 +980,8 @@
     </div>
     <form class="add-form" id="addForm">
       <div>
-        <label>¿Quién lo paga?</label>
-        <div class="seg" id="paidBySeg"></div>
+        <label>¿De quién es?</label>
+        <div class="seg" id="ownerSeg"></div>
       </div>
       <div>
         <label for="fDesc">Descripción</label>
@@ -999,8 +999,12 @@
           <input type="date" id="fDate">
         </div>
       </div>
-      <!-- se esconde entero cuando el espacio es de una sola persona -->
-      <div id="splitField">
+      <!-- estos dos solo importan cuando el gasto es Compartido -->
+      <div id="payerField" style="display:none;">
+        <label>¿Quién lo paga?</label>
+        <div class="seg" id="paidBySeg"></div>
+      </div>
+      <div id="splitField" style="display:none;">
         <label>¿Cómo se divide?</label>
         <div class="seg" id="splitToggle"></div>
         <div class="income-note" id="incomeSplitPreview" style="display:none;"></div>
@@ -1211,6 +1215,7 @@ let currentGoalKind = 'total';
 let currentGoalCurrency = 'ARS';
 let currentSplit = 'equal';
 let currentPaidBy = 'A';
+let currentOwner = 'A';
 let currentAhorroPerson = 'A';   // which person's individual breakdown Ahorro shows
 let viewMonth = '';           // 'YYYY-MM' — the month being planned
 let storageMode = 'ninguno';
@@ -2008,7 +2013,8 @@ function setPeople(list){
   // el que estuviera seleccionado en alguna pantalla puede haber desaparecido.
   // Los tres primeros además admiten "Compartido", que no es una persona
   const vale = (v) => isPerson(v) || (isSharedPay(v) && list.length > 1);
-  if(!vale(currentPaidBy)) currentPaidBy = firstPid();
+  if(!vale(currentOwner)) currentOwner = firstPid();
+  if(!isPerson(currentPaidBy)) currentPaidBy = firstPid();
   if(!isPerson(currentIncomeWho)) currentIncomeWho = firstPid();
   if(!vale(currentVxPaidBy)) currentVxPaidBy = firstPid();
   if(!vale(currentBrWho)) currentBrWho = firstPid();
@@ -2553,8 +2559,6 @@ function nextFixedOwner(owner){
   const at = ids.indexOf(owner);
   return at === ids.length - 1 ? null : ids[at + 1];   // después del último, vuelve a compartido
 }
-// la división que le corresponde a un gasto cargado desde esta plantilla
-const splitForOwner = (owner) => isPerson(owner) ? 'only:' + owner : 'equal';
 function cycleFixedOwner(id){
   const item = fixed.find(f=>f.id === id);
   if(!item) return;
@@ -2934,9 +2938,10 @@ function openModal(expenseId){
     $('fDesc').value = ex.desc;
     $('fAmount').value = groupThousands(String(ex.amount));
     $('fDate').value = ex.date;
-    const paid = isPerson(ex.paidBy) || (isSharedPay(ex.paidBy) && peopleCount() > 1);
-    setPaidBy(paid ? ex.paidBy : firstPid());
-    setSplit(isSplitAvailable(ex.splitType) ? ex.splitType : 'equal');
+    const owner = expenseOwner(ex);
+    setSplit(ex.splitType === 'income' ? 'income' : 'equal');
+    setOwner(owner);
+    if(isSharedPay(owner)) setPaidBy(isPerson(ex.paidBy) ? ex.paidBy : firstPid());
     syncChips();
   }
   $('addModalTitle').textContent = ex ? 'Editar gasto' : 'Agregar un gasto';
@@ -3199,14 +3204,7 @@ $('descChips').addEventListener('click', (e)=>{
   $('fDesc').value = f.label;
   $('fAmount').value = f.amount ? groupThousands(String(f.amount)) : '';
   // la plantilla ya sabe si el gasto es del hogar o de alguien en particular
-  const split = splitForOwner(f.owner);
-  if(isSplitAvailable(split)){
-    setSplit(split);
-    // el dueño de un gasto propio suele ser también quien lo paga; los del
-    // hogar salen de la parte de cada uno, así que quedan como compartidos
-    if(isPerson(f.owner)) setPaidBy(f.owner);
-    else if(peopleCount() > 1) setPaidBy(SHARED_PAY);
-  }
+  setOwner(isPerson(f.owner) ? f.owner : (peopleCount() > 1 ? SHARED_PAY : firstPid()));
   syncChips();
 });
 $('fDesc').addEventListener('input', syncChips);
@@ -3231,7 +3229,7 @@ function resetForm(){
   setSplit('equal');
   // un gasto nuevo arranca compartido: es lo más común cuando se comparte el
   // espacio, y así cae en la sub-pestaña de Compartidos sin tocar nada
-  setPaidBy(peopleCount() > 1 ? SHARED_PAY : firstPid());
+  setOwner(peopleCount() > 1 ? SHARED_PAY : firstPid());
   syncChips();
 }
 
@@ -3261,17 +3259,22 @@ function refreshPeopleUI(){
     if(box) box.style.display = solo ? 'none' : '';
   };
   // en un espacio de a uno "Compartido" no significa nada
-  if(solo && isSharedPay(currentPaidBy)) currentPaidBy = firstPid();
-  seg('paidBySeg', 'data-paid', currentPaidBy);
+  if(solo && isSharedPay(currentOwner)) currentOwner = firstPid();
+  seg('ownerSeg', 'data-owner', currentOwner);
   // ...y con dos o más, "Compartido" va primero: es lo que suele pasar con los
   // gastos del hogar, que salen de la parte de cada uno y no le deben a nadie
   if(!solo){
-    $('paidBySeg').insertAdjacentHTML('afterbegin',
-      `<button type="button" data-paid="${SHARED_PAY}"${isSharedPay(currentPaidBy) ? ' class="active"' : ''}>Compartido</button>`);
+    $('ownerSeg').insertAdjacentHTML('afterbegin',
+      `<button type="button" data-owner="${SHARED_PAY}"${isSharedPay(currentOwner) ? ' class="active"' : ''}>Compartido</button>`);
   }
   // en pareja son tres opciones y entran juntas; de tres personas para arriba
   // conviene que se envuelvan de a dos
-  $('paidBySeg').classList.toggle('seg-fit', n <= 2);
+  $('ownerSeg').classList.toggle('seg-fit', n <= 2);
+  // quién paga y cómo se divide sólo importan cuando el gasto es Compartido
+  const ownerShared = isSharedPay(currentOwner);
+  if(!isPerson(currentPaidBy)) currentPaidBy = firstPid();
+  seg('paidBySeg', 'data-paid', currentPaidBy);
+  $('payerField').style.display = (!solo && ownerShared) ? '' : 'none';
   seg('iWhoSeg', 'data-who', currentIncomeWho);
   if(solo && isSharedPay(currentVxPaidBy)) currentVxPaidBy = firstPid();
   seg('vxPaidBySeg', 'data-paid', currentVxPaidBy);
@@ -3308,18 +3311,16 @@ function refreshPeopleUI(){
   }
   $('bTplPersonSeg').classList.toggle('seg-fit', n <= 2);
 
-  // división de un gasto: partes iguales, según ingresos, o todo a cargo de uno.
-  // Con una sola persona no hay nada que dividir, así que el bloque se esconde.
-  const split = $('splitToggle');
-  $('splitField').style.display = solo ? 'none' : '';
+  // división de un gasto: partes iguales o según ingresos. Solo importa
+  // cuando el gasto es Compartido; con una sola persona tampoco hay nada
+  // que dividir.
+  $('splitField').style.display = (!solo && ownerShared) ? '' : 'none';
   if(!solo){
-    if(!isSplitAvailable(currentSplit)) currentSplit = 'equal';
     const opts = [
       { v:'equal',  label:'Partes iguales' },
-      { v:'income', label:'Según ingresos' },
-      ...people.map(p=>({ v:'only:' + p.id, label:'Todo a ' + p.name }))
+      { v:'income', label:'Según ingresos' }
     ];
-    split.innerHTML = opts.map(o=>
+    $('splitToggle').innerHTML = opts.map(o=>
       `<button type="button" data-split="${o.v}"${o.v === currentSplit ? ' class="active"' : ''}>${escapeHtml(o.label)}</button>`
     ).join('');
   }
@@ -3732,28 +3733,30 @@ function renderIncomePreview(){
   }
 }
 
-$('splitToggle').addEventListener('click', (e)=>{
+$('ownerSeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
   if(!btn) return;
-  document.querySelectorAll('#splitToggle button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  currentSplit = btn.dataset.split;
-  // un gasto que va entero a una persona no puede estar pagado "compartido":
-  // lo banca ella sola, así que el pagador la sigue
-  if(isSharedPay(currentPaidBy) && currentSplit.startsWith('only:')) setPaidBy(currentSplit.slice(5));
-  renderIncomePreview();
+  setOwner(btn.dataset.owner);
 });
-
 $('paidBySeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
   if(!btn) return;
   setPaidBy(btn.dataset.paid);
-  // "Compartido" es, por definición, un gasto que se reparte: si estaba puesto
-  // "todo a X" se vuelve a partes iguales
-  if(isSharedPay(currentPaidBy) && currentSplit.startsWith('only:')) setSplit('equal');
+});
+$('splitToggle').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  setSplit(btn.dataset.split);
 });
 
-// las dos tiras se pisan entre sí, así que cada una se setea en un solo lugar
+function setOwner(who){
+  currentOwner = who;
+  document.querySelectorAll('#ownerSeg button').forEach(b=>b.classList.toggle('active', b.dataset.owner === currentOwner));
+  const shared = isSharedPay(currentOwner);
+  $('payerField').style.display = shared ? '' : 'none';
+  $('splitField').style.display = shared ? '' : 'none';
+  if(shared && !isPerson(currentPaidBy)) setPaidBy(firstPid());
+}
 function setPaidBy(who){
   currentPaidBy = who;
   document.querySelectorAll('#paidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentPaidBy));
@@ -3769,13 +3772,14 @@ $('addForm').addEventListener('submit', (e)=>{
   const desc = $('fDesc').value.trim();
   const amount = numVal('fAmount');
   if(!desc || !amount) return;
+  const shared = isSharedPay(currentOwner);
   const fields = {
     desc, amount,
     date: $('fDate').value || defaultDate(),
     category: categoryOf(desc),
-    shares: sharesFor(currentSplit),
-    splitType: currentSplit,
-    paidBy: currentPaidBy
+    shares: shared ? sharesFor(currentSplit) : soloShares(currentOwner),
+    splitType: shared ? currentSplit : undefined,
+    paidBy: shared ? currentPaidBy : currentOwner
   };
 
   const existing = editingExpenseId ? expenses.find(x=>x.id === editingExpenseId) : null;
