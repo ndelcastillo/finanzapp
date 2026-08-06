@@ -3286,9 +3286,9 @@ function resetForm(){
   editingExpenseId = null;
   $('fDate').value = defaultDate();
   setSplit('equal');
-  // un gasto nuevo arranca compartido: es lo más común cuando se comparte el
-  // espacio, y así cae en la sub-pestaña de Compartidos sin tocar nada
-  setOwner(peopleCount() > 1 ? SHARED_PAY : firstPid());
+  // arranca en la sub-pestaña que estás mirando: si estás en la de Ana, el
+  // gasto que agregues es de Ana (mismo criterio que gastos variables)
+  setOwner(peopleCount() > 1 ? currentFixedTab : firstPid());
   syncChips();
 }
 
