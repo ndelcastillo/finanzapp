@@ -3883,22 +3883,27 @@ function lockedTemplateFor(ex){
   return fixed.find(f=>f.locked && f.label.toLowerCase() === d) || null;
 }
 
-function billRow(ex){
-  const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
-  const splitLabel = splitLabelOf(ex);
-  // en un gasto propio decir quién paga sobra... salvo que lo haya puesto otro,
-  // porque ahí sí queda una deuda entre los dos y hay que poder verla
-  // ...y si es compartido tampoco: nadie le debe nada a nadie
+// en un gasto propio decir quién paga sobra... salvo que lo haya puesto otro,
+// porque ahí sí queda una deuda entre los dos y hay que poder verla
+// ...y si es compartido tampoco: nadie le debe nada a nadie. Misma regla para
+// fijos y variables, ahora que los dos generan deuda.
+function payerTagHtml(ex){
   const owner = expenseOwner(ex);
   const showPayer = isSharedPay(ex.paidBy) ? false
     : owner === 'shared' ? peopleCount() > 1 : ex.paidBy !== owner;
+  return showPayer ? `<span class="tag ${personTagClass(ex.paidBy)}">Paga ${escapeHtml(nameOf(ex.paidBy))}</span>` : '';
+}
+
+function billRow(ex){
+  const dateStr = new Date(ex.date+'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
+  const splitLabel = splitLabelOf(ex);
   const locked = lockedTemplateFor(ex);
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(ex.desc)}</div>
       <div class="bill-meta">
         <span>${dateStr}</span>${splitLabel ? `<span>·</span><span>${escapeHtml(splitLabel)}</span>` : ''}
-        ${showPayer ? `<span class="tag ${personTagClass(ex.paidBy)}">Paga ${escapeHtml(nameOf(ex.paidBy))}</span>` : ''}
+        ${payerTagHtml(ex)}
         <label class="bill-paid" title="${ex.paid ? 'Pagado' : 'Marcar como pagado'}">
           <input type="checkbox" ${ex.paid ? 'checked' : ''} onchange="toggleExpensePaid('${ex.id}')">
         </label>
@@ -3931,6 +3936,7 @@ function varExpenseBillRow(ex){
       <div class="bill-name">${escapeHtml(ex.desc)}</div>
       <div class="bill-meta">
         <span>${dateStr}</span>${splitLabel ? `<span>·</span><span>${escapeHtml(splitLabel)}</span>` : ''}
+        ${payerTagHtml(ex)}
         <label class="bill-paid" title="${ex.paid ? 'Pagado' : 'Marcar como pagado'}">
           <input type="checkbox" ${ex.paid ? 'checked' : ''} onchange="toggleVarExpensePaid('${ex.id}')">
         </label>
@@ -4726,16 +4732,22 @@ function renderResumen(list, fin){
 }
 
 // cuánto puso cada uno de su bolsillo menos lo que le tocaba, sobre TODOS los
-// meses. Positivo = le deben; negativo = debe.
-function netBalances(){
-  const net = {};
-  pids().forEach(id=>{ net[id] = 0; });
-  expenses.forEach(ex=>{
+// meses (fijos y variables) — Positivo = le deben; negativo = debe. Gastos
+// posibles no entra acá: es una plantilla recurrente sin fecha, no una
+// transacción puntual.
+function accumulateNet(net, list){
+  list.forEach(ex=>{
     // en un gasto compartido cada uno puso exactamente su parte: no hay deuda
     if(isSharedPay(ex.paidBy)) return;
     if(net[ex.paidBy] != null) net[ex.paidBy] += ex.amount;
     pids().forEach(id=>{ net[id] -= personShareOf(ex, id); });
   });
+}
+function netBalances(){
+  const net = {};
+  pids().forEach(id=>{ net[id] = 0; });
+  accumulateNet(net, expenses);
+  accumulateNet(net, varExpenses);
   return net;
 }
 
