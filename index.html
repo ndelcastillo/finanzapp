@@ -1041,6 +1041,10 @@
           <input type="date" id="vxDate">
         </div>
       </div>
+      <div id="vxPayerField" style="display:none;">
+        <label>¿Quién lo paga?</label>
+        <div class="seg" id="vxPayerSeg"></div>
+      </div>
       <div id="vxSplitField" style="display:none;">
         <label>¿Cómo se divide?</label>
         <div class="seg" id="vxSplitToggle">
@@ -1198,6 +1202,7 @@ let currentVarEstPerson = 'A';
 // `expenses`, but with no split: 100% attributed to whoever's in `paidBy`
 let varExpenses = [];
 let currentVxPaidBy = 'A';
+let currentVxPayer = 'A';
 let currentVxSplit = 'equal';
 let editingVarExpenseId = null;
 // per-person, per-category planned-spend overrides for the "Podés gastar" cards —
@@ -1416,6 +1421,7 @@ function applyCoupleRow(){
   if(Array.isArray(coupleRow.goals)) goals = coupleRow.goals;
   ensureSharedSlots();
   if(normalizeExpenses()) saveExpenses();
+  if(normalizeVarExpenses()) saveVarExpenses();
 }
 
 // ---- toasts ----
@@ -1466,6 +1472,7 @@ function paintFromLocalCache(code){
     const g = readLocalCache(code, GOALS_KEY);
     if(g) goals = JSON.parse(g);
     if(normalizeExpenses()){ /* fixed up in-memory; loadAll()'s real save will persist it */ }
+    normalizeVarExpenses();
     render();
     renderFixed();
     renderFixedIncome();
@@ -2154,6 +2161,21 @@ function migrateIncome(raw){
   return { fx, entries };
 }
 
+// los gastos variables personales guardaban `shares: null` (no hacía falta:
+// entryShareOf lee `paidBy` directo). Ahora expenseOwner() también los mira
+// para decidir la pestaña, así que necesitan el mismo `shares` que ya tienen
+// los fijos — sin esto quedarían mal ubicados (como si fueran de todos).
+function normalizeVarExpenses(){
+  let changed = false;
+  varExpenses.forEach(e=>{
+    if(!e.shares && !isSharedPay(e.paidBy) && isPerson(e.paidBy)){
+      e.shares = soloShares(e.paidBy);
+      changed = true;
+    }
+  });
+  return changed;
+}
+
 // expenses saved before the month view existed could have no date; without one
 // they'd belong to no month and silently vanish from every screen
 function normalizeExpenses(){
@@ -2296,6 +2318,7 @@ async function loadAll(){
   if(!Array.isArray(goals)) goals = [];
 
   if(normalizeExpenses()) saveExpenses();
+  if(normalizeVarExpenses()) saveVarExpenses();
   ensureSharedSlots();   // los datos vienen después de setPeople()
 
   refreshPeopleUI();
@@ -2973,9 +2996,10 @@ function openVarExpenseModal(expenseId){
     $('vxDesc').value = ex.desc;
     $('vxAmount').value = groupThousands(String(ex.amount));
     $('vxDate').value = ex.date;
-    const valido = isPerson(ex.paidBy) || (isSharedPay(ex.paidBy) && peopleCount() > 1);
+    const owner = expenseOwner(ex);
     setVxSplit(ex.splitType === 'income' ? 'income' : 'equal');
-    setVxPaidBy(valido ? ex.paidBy : firstPid());
+    if(isSharedPay(owner)) setVxPayer(isPerson(ex.paidBy) ? ex.paidBy : firstPid());
+    setVxPaidBy(owner);
   }
   $('varExpenseModalTitle').textContent = ex ? 'Editar gasto variable' : 'Agregar gasto variable';
   $('vxSubmitBtn').textContent = ex ? 'Guardar cambios' : 'Agregar gasto variable';
@@ -2999,8 +3023,18 @@ function resetVarExpenseForm(){
 function setVxPaidBy(who){
   currentVxPaidBy = who;
   document.querySelectorAll('#vxPaidBySeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentVxPaidBy));
-  $('vxSplitField').style.display = (isSharedPay(currentVxPaidBy) && peopleCount() > 1) ? '' : 'none';
+  const shared = isSharedPay(currentVxPaidBy) && peopleCount() > 1;
+  $('vxPayerField').style.display = shared ? '' : 'none';
+  $('vxSplitField').style.display = shared ? '' : 'none';
+  if(shared){
+    document.querySelectorAll('#vxPayerSeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentVxPayer));
+    if(!isPerson(currentVxPayer)) setVxPayer(firstPid());
+  }
   renderVxChips();
+}
+function setVxPayer(who){
+  currentVxPayer = who;
+  document.querySelectorAll('#vxPayerSeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentVxPayer));
 }
 function setVxSplit(split){
   currentVxSplit = split;
@@ -3011,6 +3045,11 @@ $('vxPaidBySeg').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
   if(!btn) return;
   setVxPaidBy(btn.dataset.paid);
+});
+$('vxPayerSeg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  setVxPayer(btn.dataset.paid);
 });
 $('vxSplitToggle').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
@@ -3056,10 +3095,10 @@ $('varExpenseForm').addEventListener('submit', (e)=>{
     desc, amount,
     date: $('vxDate').value || defaultDate(),
     category: categoryOf(desc),
-    paidBy: currentVxPaidBy,
+    paidBy: isSharedPay(currentVxPaidBy) ? currentVxPayer : currentVxPaidBy,
     // el reparto queda congelado en el gasto, igual que en los fijos: si mañana
     // cambia la cantidad de personas, este mes sigue dividido como fue
-    shares: isSharedPay(currentVxPaidBy) ? sharesFor(currentVxSplit) : null,
+    shares: isSharedPay(currentVxPaidBy) ? sharesFor(currentVxSplit) : soloShares(currentVxPaidBy),
     splitType: isSharedPay(currentVxPaidBy) ? currentVxSplit : undefined
   };
   const existing = editingVarExpenseId ? varExpenses.find(x=>x.id === editingVarExpenseId) : null;
@@ -3284,6 +3323,9 @@ function refreshPeopleUI(){
       `<button type="button" data-paid="${SHARED_PAY}"${isSharedPay(currentVxPaidBy) ? ' class="active"' : ''}>Compartido</button>`);
   }
   $('vxPaidBySeg').classList.toggle('seg-fit', n <= 2);
+  if(!isPerson(currentVxPayer)) currentVxPayer = firstPid();
+  seg('vxPayerSeg', 'data-paid', currentVxPayer);
+  $('vxPayerField').style.display = (!solo && isSharedPay(currentVxPaidBy)) ? '' : 'none';
   if(solo && isSharedPay(currentBrWho)) currentBrWho = firstPid();
   seg('brWhoSeg', 'data-who', currentBrWho);
   if(!solo){
@@ -3339,11 +3381,6 @@ function refreshPeopleUI(){
       <input type="text" id="name-${p.id}" data-person="${p.id}" value="${escapeHtml(p.name)}" placeholder="Ej: ${i === 0 ? 'Vos' : 'Con quién compartís'}">
     </div>`).join('');
   }
-}
-// un tipo de división sigue siendo válido mientras la persona que nombra exista
-function isSplitAvailable(splitType){
-  if(splitType === 'equal' || splitType === 'income') return true;
-  return !!(splitType && splitType.startsWith('only:') && isPerson(splitType.slice(5)));
 }
 // se sigue llamando desde varios lados con el nombre viejo
 const refreshNameLabels = refreshPeopleUI;
@@ -3420,13 +3457,17 @@ function dropPersonData(id){
   delete income.entries[id];
   delete varEstimates[id];
   delete budgetTemplates[id];
-  varExpenses = varExpenses.filter(e=>e.paidBy !== id);
   goals = goals.filter(g=>g.person !== id);
   // siempre se saca del final de la lista, así que la primera persona sigue ahí
   // y hereda los gastos compartidos que pagaba el que se va (si no, el gasto
   // quedaría sin nadie que lo haya puesto y el balance no cerraría)
   const fallback = people[0].id;
   expenses.forEach(ex=>{ if(ex.paidBy === id) ex.paidBy = fallback; });
+  // los variables propios de quien se va se borran (avisado en el mensaje de
+  // confirmación de setPeopleCount); los compartidos que puso de su bolsillo
+  // quedan, solo se reasigna quién los pagó para no perder esa deuda
+  varExpenses = varExpenses.filter(e=>expenseOwner(e) !== id);
+  varExpenses.forEach(e=>{ if(e.paidBy === id) e.paidBy = fallback; });
   fixedIncome.forEach(f=>{ if(f.person === id) f.person = fallback; });
   // sus gastos fijos propios pasan a ser del hogar, igual que su parte de los
   // gastos ya cargados: quedan a la vista en Compartidos y no en la nada
@@ -3454,8 +3495,6 @@ function redistributeShares(goneIds){
       if(base > 0) rest.forEach(id=>{ ex.shares[id] += orphan * (ex.shares[id] / base); });
       else rest.forEach(id=>{ ex.shares[id] = orphan / rest.length; });
     }
-    // los variables no tienen tipo de división: no hay nada que corregirles
-    if(ex.splitType && !isSplitAvailable(ex.splitType)) ex.splitType = 'equal';
   });
 }
 
@@ -3866,13 +3905,13 @@ function billRow(ex){
 }
 
 // Un gasto variable o posible es de una persona (sale entero de su saldo) o
-// compartido (una cena de los dos): ahí se reparte en partes iguales al
-// cargarlo, y ese reparto queda guardado en `shares` como en los gastos fijos.
-// Los compartidos que se cargaron antes de tener `shares` se dividen entre los
-// que hay hoy.
+// compartido (una cena de los dos): ahí se reparte en partes iguales, o según
+// ingresos, y ese reparto queda guardado en `shares` como en los gastos fijos
+// — independiente de quién lo haya pagado. Los compartidos que se cargaron
+// antes de tener `shares` se dividen entre los que hay hoy.
 function entryShareOf(e, person){
-  if(!isSharedPay(e.paidBy)) return e.paidBy === person ? (e.amount||0) : 0;
   if(e.shares) return personShareOf(e, person);
+  if(!isSharedPay(e.paidBy)) return e.paidBy === person ? (e.amount||0) : 0;
   return (e.amount||0) / Math.max(peopleCount(), 1);
 }
 
@@ -4255,7 +4294,7 @@ function renderVarExpenseTabs(){
     `<button type="button" data-tab="${g.key}"${g.key === currentVarTab ? ' class="active"' : ''}>${escapeHtml(g.label)}</button>`
   ).join('');
 
-  const shown = list.filter(e=>(isSharedPay(e.paidBy) ? SHARED_PAY : e.paidBy) === currentVarTab);
+  const shown = list.filter(e=>expenseOwner(e) === currentVarTab);
   const vacio = isSharedPay(currentVarTab)
     ? `Todavía no hay gastos variables compartidos en ${mes}.`
     : `${nameOf(currentVarTab)} no cargó gastos variables en ${mes}.`;
