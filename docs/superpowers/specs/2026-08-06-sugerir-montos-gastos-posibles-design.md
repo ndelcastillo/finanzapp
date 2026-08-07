@@ -16,13 +16,18 @@
 >   Ver `sugerirMontosBudget()` en el código para la versión exacta — es la fuente de verdad, no
 >   la sección "3. Fórmula de sugerencia" más abajo, que describe una versión intermedia
 >   descartada.
-> - **"Compra dólares" deja de ser un rubro**: `DEFAULT_BUDGET_CATS` termina en solo 2 entradas
->   (Salidas, Gustos). El monto que antes se guardaba en el rubro "Compra dólares" ahora es
->   directamente `financeFor(person).ahorro` (lo que sobra después de Salidas y Gustos) — el
->   mismo número que ya mostraba la pestaña Ahorro. `sugerirMontosBudget()` solo escribe
->   Salidas/Gustos; el bloque final de Gastos (`renderAhorroDolares()`) muestra ese `ahorro` en
->   pesos y convertido a USD con `usdRate()`. Migración `budget_cats_m2` borra el rubro
->   "Compra dólares" de los espacios que ya lo tenían.
+> - **"Compra dólares" se probó como no-rubro y se revirtió**: hubo una iteración corta
+>   (`budget_cats_m2`) donde Compra dólares dejó de ser un rubro y pasaba a ser
+>   `financeFor(person).ahorro`. Se volvió atrás: Compra dólares **es** un rubro de nuevo (como en
+>   `budget_cats_m1`), y una migración más (`budget_cats_m3`) se lo vuelve a agregar a quien se lo
+>   había perdido. `DEFAULT_BUDGET_CATS` queda en 3 entradas (Salidas, Gustos, Compra dólares).
+> - **Bloque final de Ahorro (Gastos) eliminado**: la card "Ahorro de {mes}" que cerraba la
+>   pestaña Gastos ya no existe. Su función la absorbe el footer "Saldos" del bloque de Gastos
+>   posibles (`#budgetSaldos`, `renderBudgetSaldos()`): muestra el monto del rubro "Compra
+>   dólares" de cada persona en pesos y convertido a USD (`saldoDolarCell()`, `usdRate()`),
+>   tonalizado verde/rojo según el signo. La idea explícita: el monto de Compra dólares es lo que
+>   se decide primero (a mano o con "Sugerir montos"), y lo que queda para Salidas/Gustos es
+>   consecuencia de eso, no al revés.
 
 ## Contexto
 
