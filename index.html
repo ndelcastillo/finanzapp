@@ -725,7 +725,7 @@
     </div>
 
     <div class="card">
-      <div class="section-title">Tu plan en 4 números</div>
+      <div class="section-title">Tu plan en 3 números</div>
       <div id="planBox"></div>
     </div>
 
@@ -4405,14 +4405,6 @@ function personShareOf(ex, person){
 function personShareTotal(list, person){
   return list.reduce((s,ex)=>s+personShareOf(ex, person), 0);
 }
-// gastos fijos have no split field of their own — prorate the household total
-// by this person's share ratio of the month's actual expenses (50/50 with none yet)
-function personShareRatio(list, person){
-  const total = list.reduce((s,ex)=>s+ex.amount, 0);
-  if(total <= 0) return 0.5;
-  return personShareTotal(list, person) / total;
-}
-
 const RULE_ANNUAL_ROI = 0.06;   // the 6% reference
 
 // the five reference figures, all derived from monthly income.
@@ -4425,10 +4417,8 @@ const PLAN = [
   { op:'× 0,3',  f:0.3, n:'Salidas y gustos', flow:true,
     d:'Lo que podés gastar por mes en lo que quieras, sin culpa.' },
   { op:'× 0,2',  f:0.2, n:'Invertir por mes', flow:true,
-    d:'Lo que sale a inversión todos los meses. Es el motor de las dos metas de abajo.' },
-  { op:'× 6',    f:6,   n:'Fondo de emergencia', flow:false,
-    d:'La primera meta: seis meses de sueldo guardados y disponibles antes de inmovilizar plata.' },
-  // oculta por ahora: la cifra es tan lejana que tapa las otras cuatro.
+    d:'Lo que sale a inversión todos los meses. Es el motor de las metas de abajo.' },
+  // oculta por ahora: la cifra es tan lejana que tapa las otras tres.
   // Sacale el `hidden` para volver a mostrarla.
   { op:'× 200',  f:200, n:'Vivir de rentas', flow:false, hidden:true,
     d:'El capital que, rindiendo 6% al año, te deposita un sueldo por mes sin trabajar.' }
@@ -4498,27 +4488,13 @@ function goalCardHtml(name, target, pct, detail, extra, acts, kindTag){
 }
 
 // the built-in emergency fund plus every goal the user wrote down for this person
-function renderGoals(acumulado, monthlySaving, person, shareRatio){
+function renderGoals(monthlySaving, person){
   const ingreso = incomeTotalArs(person);
   const box = $('goalsBox');
   if(ingreso <= 0){
     box.innerHTML = '<div class="empty">Cargá los ingresos para ver tus metas.<br><button type="button" class="btn-link" onclick="switchTab(\'ingresos\')">Ir a Ingresos</button></div>';
     return;
   }
-  const saved = Math.max(0, acumulado);
-  const fijosMes = fixed.reduce((s,f)=>s+(f.amount||0), 0) * shareRatio;
-  const runway = fijosMes > 0
-    ? `Tu ahorro de hoy cubre ${(saved/fijosMes).toFixed(1).replace('.', ',')} meses de tu parte de los gastos fijos (${fmt(fijosMes)} por mes).`
-    : '';
-
-  // meta 1 is always there: six months of income, measured against what you've accumulated
-  const emTarget = ingreso * 6;
-  const emPct = Math.min(100, saved/emTarget*100);
-  const emEta = humanMonths(monthsToTarget(monthlySaving, emTarget, saved));
-  const emDetail = emPct >= 100
-    ? `tenés ${fmt(saved)}. Meta cumplida.`
-    : `tenés ${fmt(saved)}, faltan ${fmt(emTarget - saved)}${emEta ? `. A tu ritmo actual: ${emEta}.` : '. Todavía no estás ahorrando por mes.'}`;
-
   const mine = goals.filter(g=>g.person === person);
   const custom = mine.map(g=>{
     const acts = `<span class="goal-acts">
@@ -4564,7 +4540,6 @@ function renderGoals(acumulado, monthlySaving, person, shareRatio){
   }).join('');
 
   box.innerHTML =
-    goalCardHtml('Fondo de emergencia', fmt(emTarget), emPct, emDetail, runway, '', '') +
     custom +
     (mine.length ? '' : '<div class="goal-empty">Todavía no cargaste metas propias. Agregá una: juntar un monto para una fecha, o guardar algo todos los meses.</div>');
 }
@@ -4577,12 +4552,14 @@ function renderRule5030(person){
     return;
   }
   // needs = todo lo que ya está comprometido (fijos + variables);
-  // wants = el presupuesto discrecional de "Gastos posibles";
-  // ahorro = el que cierra la cadena, el mismo número de la tarjeta de arriba
+  // wants = Salidas + Gustos nada más (Compra dólares no es un "deseo");
+  // ahorro = el rubro Compra dólares, el mismo número de la tarjeta de arriba
   const f = financeFor(person);
+  const dolares = (budgetTemplates[person] || []).find(c => c.label === 'Compra dólares');
+  const dolaresAmt = dolares ? (dolares.amount || 0) : 0;
   const needs = f.fijos + f.variables;
-  const wants = f.podes;
-  const saved = f.ahorro;
+  const wants = f.podes - dolaresAmt;
+  const saved = dolaresAmt;
 
   // for needs/wants, going over the target is the bad direction; for savings it's under
   const row = (name, actual, target, lowerIsBetter) => {
@@ -4641,7 +4618,12 @@ function renderAhorro(){
     ...expenses.map(e=>monthKey(e.date)),
     ...(income.entries[person]||[]).map(e=>monthKey(e.date))
   ].filter(Boolean))].sort();
-  const rows = months.map(m=>({ m, ahorro: financeFor(person, m).ahorro }));
+  // el ahorro es el rubro Compra dólares — es una plantilla recurrente, no
+  // cambia mes a mes, así que es el mismo número de la tarjeta de arriba
+  // repetido en cada mes con datos cargados
+  const dolaresC = (budgetTemplates[person] || []).find(c => c.label === 'Compra dólares');
+  const dolaresAmt = dolaresC ? (dolaresC.amount || 0) : 0;
+  const rows = months.map(m=>({ m, ahorro: dolaresAmt }));
   const peak = Math.max(1, ...rows.map(r=>Math.abs(r.ahorro)));
   const acumulado = rows.reduce((s,r)=>s+r.ahorro, 0);
 
@@ -4656,9 +4638,7 @@ function renderAhorro(){
   }).join('') + `<div class="sv-total"><span>Acumulado</span><span class="v ${acumulado<0?'neg':''}">${fmt(acumulado)}</span></div>`
     : '<div class="empty">Todavía no hay gastos cargados en ningún mes.</div>';
 
-  const monthList = expenses.filter(x=>inViewMonth(x.date));
-  const shareRatio = personShareRatio(monthList, person);
-  renderGoals(acumulado, ahorro, person, shareRatio);
+  renderGoals(ahorro, person);
 }
 
 // ---- Resumen: ranked category bars, who-paid split, month trend ----
