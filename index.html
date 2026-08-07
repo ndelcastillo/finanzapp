@@ -706,18 +706,6 @@
       </div>
     </div>
 
-    <!-- BLOQUE 4: lo que queda -->
-    <div class="card">
-      <div class="section-title"><span id="gastosAhorroTitle">Ahorro</span></div>
-      <div class="sld-block bare">
-        <div class="sld-title">Saldos</div>
-        <div class="sld-grid" id="ahorroSaldos"></div>
-      </div>
-      <div class="sld-block">
-        <div class="sld-title">Compra dólares</div>
-        <div class="sld-grid" id="ahorroDolares"></div>
-      </div>
-    </div>
   </div>
 
   <!-- ============ TAB: AHORRO ============ -->
@@ -1221,6 +1209,8 @@ const FIXED_LOCK_KEY = 'fixed_m2';
 const FIXED_DEUDA_KEY = 'fixed_m3';
 // one-time: collapse Regalos/Compras Hogar/Deudas/Diaria into Gustos + Compra dólares
 const BUDGET_CATS_MIGRATION_KEY = 'budget_cats_m1';
+// one-time: Compra dólares vuelve a ser un rubro (budget_cats_m2 quedó sin efecto)
+const BUDGET_CATS_MIGRATION_KEY_V3 = 'budget_cats_m3';
 
 const CATEGORY_COLORS = {
   'Alquiler':'#B4862B','Wifi':'#3D6B4C','Limpieza':'#5C7A8A',
@@ -1270,7 +1260,7 @@ const COLUMN_FOR_KEY = {
   budgetoverrides_v1: 'budget_overrides',
   goals_v1: 'goals'
 };
-const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1','budget_cats_m1']);
+const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1','budget_cats_m1','budget_cats_m3']);
 
 let coupleCode = null;
 let coupleRow = null;          // cached full row, refreshed on load and on every remote change
@@ -2142,6 +2132,22 @@ function migrateBudgetCatsToThree(templates){
   return changed;
 }
 
+// one-time: "Compra dólares" había dejado de ser un rubro (ver budget_cats_m2,
+// ya sin efecto); vuelve a serlo, así que a quien se le haya borrado se lo
+// agregamos de nuevo en 0.
+function migrateBudgetCatsRestoreDolares(templates){
+  let changed = false;
+  Object.keys(templates).forEach(k=>{
+    const list = templates[k];
+    if(!Array.isArray(list)) return;
+    if(!list.some(c=>c.label === 'Compra dólares')){
+      list.push({ id: genId(), label: 'Compra dólares', amount: 0, locked: true });
+      changed = true;
+    }
+  });
+  return changed;
+}
+
 function migrateIncome(raw){
   if(raw && raw.entries){
     // USD entries saved before rates were per-entry inherit the global one
@@ -2316,6 +2322,12 @@ async function loadAll(){
     if(!(await store.get(BUDGET_CATS_MIGRATION_KEY))){
       if(migrateBudgetCatsToThree(budgetTemplates)) saveBudgetTemplates();
       await store.set(BUDGET_CATS_MIGRATION_KEY, '1');
+    }
+  }catch(e){}
+  try{
+    if(!(await store.get(BUDGET_CATS_MIGRATION_KEY_V3))){
+      if(migrateBudgetCatsRestoreDolares(budgetTemplates)) saveBudgetTemplates();
+      await store.set(BUDGET_CATS_MIGRATION_KEY_V3, '1');
     }
   }catch(e){}
 
@@ -4078,7 +4090,6 @@ function render(){
   $('fixedBlockTitle').textContent = `Gastos fijos de ${mes}`;
   $('varBlockTitle').textContent = `Gastos variables de ${mes}`;
   $('budgetBlockTitle').textContent = `Gastos posibles de ${mes}`;
-  $('gastosAhorroTitle').textContent = `Ahorro de ${mes}`;
 
   renderFixedTabs(list, mes);
 
@@ -4145,24 +4156,23 @@ function renderBlockSaldos(fin){
   renderSaldos('startSaldos', fin, f=>f.inc);
   renderSaldos('fixedSaldos', fin, f=>f.afterFijos);
   renderSaldos('varSaldos', fin, f=>f.afterVar);
-  renderSaldos('budgetSaldos', fin, f=>f.ahorro);
-  renderSaldos('ahorroSaldos', fin, f=>f.ahorro, true);
-  renderAhorroDolares();
+  renderBudgetSaldos();
 }
 
 // lo presupuestado en el rubro "Compra dólares" de cada persona, en pesos y
 // convertido a dólares con la cotización del día (o el fx cargado a mano si
-// todavía no se consultó la cotización)
+// todavía no se consultó la cotización) — es el saldo que cierra el bloque
+// de Gastos posibles, la última parada antes de Ahorro
 function saldoDolarCell(label, pesos){
   const rate = usdRate();
-  return `<div class="sld-cell">
+  return `<div class="sld-cell ${pesos < 0 ? 'tone-bad' : 'tone-good'}">
     <div class="sld-who">${escapeHtml(label)}</div>
     <div class="sld-amt">${fmt(pesos)}</div>
     <div class="sld-sub">${rate > 0 ? fmtUsd(pesos / rate) : '—'}</div>
   </div>`;
 }
-function renderAhorroDolares(){
-  const el = $('ahorroDolares');
+function renderBudgetSaldos(){
+  const el = $('budgetSaldos');
   if(!el) return;
   el.innerHTML = pids().map(p=>{
     const c = (budgetTemplates[p] || []).find(x=>x.label === 'Compra dólares');
