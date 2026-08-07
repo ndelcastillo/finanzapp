@@ -490,12 +490,11 @@
   .tag-p2{background:#D9E6DC;color:#2F5C3F;}
   .tag-p3{background:#DAE0EE;color:#3A4A78;}
   .bill-amt{font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;white-space:nowrap;text-align:right;}
-  .bill-amt-usd-row{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:3px;
-    font-size:15px;font-weight:600;color:var(--body-muted);}
-  .bill-amt-usd-row input{width:70px;border:none;border-bottom:1px dashed var(--line);background:transparent;
-    text-align:right;font-size:15px;font-weight:600;color:var(--body-muted);font-variant-numeric:tabular-nums;
-    padding:0 0 1px;}
-  .bill-amt-usd-row input:focus{outline:none;border-bottom-color:var(--primary);color:var(--body);}
+  .bill-name-row{display:flex;align-items:center;gap:6px;}
+  .bill-cur-toggle{background:none;border:none;color:var(--body-muted);cursor:pointer;font-size:13px;
+    padding:2px 5px;border-radius:6px;line-height:1;flex-shrink:0;transition:color .15s ease, transform .1s ease;}
+  .bill-cur-toggle:hover{color:var(--primary);}
+  .bill-cur-toggle:active{transform:scale(0.9);}
   .bill input.f-amt{flex:0 0 110px;width:110px;text-align:right;font-variant-numeric:tabular-nums;
     font-size:15px;font-weight:600;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);}
   @media(max-width:480px){ .bill input.f-amt{flex:0 0 92px;width:92px;font-size:13.5px;padding:6px 7px;} }
@@ -4255,30 +4254,45 @@ function renderBudgetTabs(){
 // tocar Compra dólares reacomoda Salidas y Gustos solo, igual que en
 // Ajustes — ver el listener de #budgetList.
 let editingBudgetAmtId = null;
+// Compra dólares se puede ver/editar en pesos o en dólares — el icono ⇄
+// alterna cuál de los dos, no hay dos campos a la vez (se veía raro apilado)
+let budgetDolaresCur = 'ARS';
 function budgetRubroRow(c){
   const editing = editingBudgetAmtId === c.id;
   const isDolares = c.label === 'Compra dólares';
   const rate = usdRate();
-  const usdAmt = rate > 0 ? Math.round((c.amount || 0) / rate) : 0;
-  const usdField = isDolares && rate > 0
-    ? `<div class="bill-amt-usd-row">US$ <input type="text" class="f-amt-usd ie-money" inputmode="numeric"
-         data-id="${c.id}" value="${usdAmt ? groupThousands(String(usdAmt)) : ''}" placeholder="0"
-         aria-label="Compra dólares en dólares"></div>`
-    : '';
-  const amt = editing
-    ? `<input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${c.id}"
-         value="${c.amount ? groupThousands(String(c.amount)) : ''}" placeholder="0"
-         aria-label="Monto de ${escapeHtml(c.label)}">`
-    : `<div class="bill-amt">${fmt(c.amount || 0)}${usdField}</div>`;
+  const showUsd = isDolares && budgetDolaresCur === 'USD' && rate > 0;
+
+  const nameHtml = isDolares && rate > 0
+    ? `<div class="bill-name-row"><span class="bill-name">${escapeHtml(c.label)}</span>
+         <button type="button" class="bill-cur-toggle" onclick="toggleBudgetDolaresCur()"
+           aria-label="Ver en ${showUsd ? 'pesos' : 'dólares'}" title="Ver en ${showUsd ? 'pesos' : 'dólares'}">⇄</button></div>`
+    : `<div class="bill-name">${escapeHtml(c.label)}</div>`;
+
+  let amt;
+  if(editing){
+    const val = showUsd ? Math.round((c.amount || 0) / rate) : (c.amount || 0);
+    amt = `<input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${c.id}" data-cur="${showUsd ? 'USD' : 'ARS'}"
+             value="${val ? groupThousands(String(val)) : ''}" placeholder="0"
+             aria-label="Monto de ${escapeHtml(c.label)}${showUsd ? ' en dólares' : ''}">`;
+  }else{
+    amt = `<div class="bill-amt">${showUsd ? fmtUsd((c.amount || 0) / rate) : fmt(c.amount || 0)}</div>`;
+  }
+
   return `<div class="bill">
     <div class="bill-main">
-      <div class="bill-name">${escapeHtml(c.label)}</div>
+      ${nameHtml}
     </div>
     ${amt}
     <button class="bill-edit" onclick="toggleBudgetAmtEdit('${c.id}')" aria-label="Editar">✎</button>
     <button class="bill-del" onclick="deleteBudgetRubro('${c.id}')" aria-label="Eliminar"
       ${c.locked ? 'disabled title="Protegido por el candado en Ajustes"' : ''}>✕</button>
   </div>`;
+}
+function toggleBudgetDolaresCur(){
+  budgetDolaresCur = budgetDolaresCur === 'ARS' ? 'USD' : 'ARS';
+  editingBudgetAmtId = null;
+  renderBudgetTabs();
 }
 function toggleBudgetAmtEdit(id){
   editingBudgetAmtId = editingBudgetAmtId === id ? null : id;
@@ -4288,31 +4302,23 @@ function toggleBudgetAmtEdit(id){
   if(input){ input.focus(); input.select(); }
 }
 $('budgetList').addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' && (e.target.classList.contains('f-amt') || e.target.classList.contains('f-amt-usd'))) e.target.blur();
+  if(e.key === 'Enter' && e.target.classList.contains('f-amt')) e.target.blur();
 });
 $('budgetList').addEventListener('change', (e)=>{
   const el = e.target;
-  // el monto en dólares de Compra dólares: se guarda todo en pesos como
-  // siempre (usd × cotización), y desde acá también dispara el reacomodo
-  // de Salidas/Gustos, igual que si se hubiera editado en pesos
-  if(el.classList.contains('f-amt-usd')){
-    const item = (budgetTemplates[currentBudgetTab]||[]).find(f=>f.id === el.dataset.id);
-    const rate = usdRate();
-    if(!item || rate <= 0) return;
-    const d = digitsOnly(el.value);
-    item.amount = Math.round((d ? parseInt(d,10) : 0) * rate);
-    redistribuirWantsSegunDolares(currentBudgetTab);
-    saveBudgetTemplates();
-    renderBudgetTabs();
-    renderBudgetTemplates();
-    render();
-    return;
-  }
   if(!el.classList.contains('f-amt')) return;
   const item = (budgetTemplates[currentBudgetTab]||[]).find(f=>f.id === el.dataset.id);
   if(!item) return;
   const d = digitsOnly(el.value);
-  item.amount = d ? parseInt(d,10) : 0;
+  const typed = d ? parseInt(d,10) : 0;
+  // si se estaba mostrando en dólares, lo tipeado es USD: se guarda en
+  // pesos como siempre (todo el resto de la app asume amount en ARS)
+  if(el.dataset.cur === 'USD'){
+    const rate = usdRate();
+    item.amount = rate > 0 ? Math.round(typed * rate) : 0;
+  }else{
+    item.amount = typed;
+  }
   if(item.label === 'Compra dólares') redistribuirWantsSegunDolares(currentBudgetTab);
   editingBudgetAmtId = null;
   saveBudgetTemplates();
