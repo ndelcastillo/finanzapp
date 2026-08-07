@@ -695,7 +695,8 @@
     <!-- BLOQUE 3: presupuesto discrecional -->
     <div class="card">
       <div class="section-title"><span id="budgetBlockTitle">Gastos posibles</span></div>
-      <button type="button" class="btn-add" onclick="openBudgetRubroModal()">+ Agregar gasto posible</button>
+      <button type="button" class="btn-add" id="budgetSuggestBtn" onclick="sugerirMontosBudget(currentBudgetTab)">Sugerir montos</button>
+      <p class="income-note" id="budgetIdealHint" style="margin-top:8px;"></p>
       <div class="seg sub-seg" id="budgetTabs" style="margin-top:16px;"></div>
       <div id="budgetList" style="margin-top:14px;"></div>
       <div class="sld-block">
@@ -847,8 +848,6 @@
         <button type="button" onclick="addBudgetTemplate()" aria-label="Agregar gasto posible">+</button>
       </div>
       <button type="button" class="btn-primary fixed-save-btn" onclick="commitBudgetTemplates()">Guardar gastos posibles</button>
-      <button type="button" class="btn-primary fixed-save-btn" id="bTplSuggestBtn" style="background:transparent;color:var(--body-muted);border:1px solid var(--line-strong);margin-top:8px;" onclick="sugerirMontosBudget(currentBudgetTplPerson)">Sugerir montos</button>
-      <p class="income-note" id="bTplIdealHint" style="margin-top:8px;"></p>
     </div>
 
     <div class="card">
@@ -1061,40 +1060,6 @@
   </div>
 </div>
 
-<div class="modal-backdrop" id="budgetRubroModal" role="dialog" aria-modal="true" aria-labelledby="budgetRubroTitle">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title" id="budgetRubroTitle">Editar gasto posible</div>
-      <button type="button" class="modal-close" onclick="closeBudgetRubroModal()" aria-label="Cerrar">✕</button>
-    </div>
-    <form class="add-form" id="budgetRubroForm">
-      <div>
-        <label>¿De quién es?</label>
-        <div class="seg" id="brWhoSeg"></div>
-      </div>
-      <div>
-        <label for="brLabel">Concepto</label>
-        <input type="text" id="brLabel" placeholder="Ej: Salidas" required>
-      </div>
-      <div>
-        <label for="brAmount">Monto (ARS)</label>
-        <input type="text" inputmode="numeric" class="ie-money" id="brAmount" placeholder="0">
-      </div>
-      <div id="brPayerField" style="display:none;">
-        <label>¿Quién lo paga?</label>
-        <div class="seg" id="brPayerSeg"></div>
-      </div>
-      <div id="brSplitField" style="display:none;">
-        <label>¿Cómo se divide?</label>
-        <div class="seg" id="brSplitToggle">
-          <button type="button" data-split="equal">Partes iguales</button>
-          <button type="button" data-split="income">Según ingresos</button>
-        </div>
-      </div>
-      <button type="submit" class="btn-primary" id="brSubmitBtn">Agregar gasto posible</button>
-    </form>
-  </div>
-</div>
 <!-- ============ MODAL: agregar meta de ahorro ============ -->
 <div class="modal-backdrop" id="goalModal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
   <div class="modal">
@@ -2013,13 +1978,12 @@ function migratePeople(raw){
 }
 function defaultPersonName(id){ return 'Persona ' + (PERSON_IDS.indexOf(id) + 1); }
 
-// "Compartido" no es una persona, pero tiene los mismos casilleros que una: el
-// presupuesto que arman entre todos y los variables estimados del hogar. Hay
-// que asegurarlos también después de traer los datos, porque un espacio
+// "Compartido" no es una persona, pero tiene el mismo casillero que una para
+// los variables estimados del hogar (gastos posibles ya no tiene Compartido).
+// Hay que asegurarlo también después de traer los datos, porque un espacio
 // guardado antes de esto (o desde otro dispositivo) llega sin esa clave.
 function ensureSharedSlots(){
   if(!varEstimates[SHARED_PAY]) varEstimates[SHARED_PAY] = [];
-  if(!budgetTemplates[SHARED_PAY]) budgetTemplates[SHARED_PAY] = defaultBudgetCats();
 }
 
 // único punto de entrada para cambiar quiénes son: deja `names` en sincronía y
@@ -2041,8 +2005,7 @@ function setPeople(list){
   if(!isPerson(currentPaidBy)) currentPaidBy = firstPid();
   if(!isPerson(currentIncomeWho)) currentIncomeWho = firstPid();
   if(!vale(currentVxPaidBy)) currentVxPaidBy = firstPid();
-  if(!vale(currentBrWho)) currentBrWho = firstPid();
-  if(!vale(currentBudgetTplPerson)) currentBudgetTplPerson = firstPid();
+  if(!isPerson(currentBudgetTplPerson)) currentBudgetTplPerson = firstPid();
   if(!vale(currentVarEstPerson)) currentVarEstPerson = firstPid();
   if(!isPerson(currentAhorroPerson)) currentAhorroPerson = firstPid();
   if(!isPerson(currentGoalPerson)) currentGoalPerson = firstPid();
@@ -2903,29 +2866,14 @@ function renderBudgetTemplates(){
                 aria-label="Eliminar" ${locked ? 'disabled' : ''}>✕</button>
       </span>
     </div>`;
-  }).join('') : `<div class="income-note" style="padding:12px 0;">${
-    isSharedPay(currentBudgetTplPerson)
-      ? 'Todavía no cargaron gastos posibles compartidos.'
-      : 'Todavía no cargaste gastos posibles.'}</div>`;
-
-  // "Sugerir montos" es por persona: se basa en su ingreso y su afterVar, así
-  // que no tiene sentido en la pestaña Compartido
-  const solo = isSharedPay(currentBudgetTplPerson);
-  $('bTplSuggestBtn').style.display = solo ? 'none' : '';
-  if(solo){
-    $('bTplIdealHint').textContent = '';
-  }else{
-    const ingreso = financeFor(currentBudgetTplPerson).inc;
-    $('bTplIdealHint').textContent = ingreso > 0
-      ? `Ideal (teoría 50/30/20): Compra dólares ${fmt(ingreso*0.20)} · Salidas + Gustos ${fmt(ingreso*0.30)}`
-      : 'Cargá el ingreso de este mes para ver el ideal 50/30/20.';
-  }
+  }).join('') : `<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos posibles.</div>`;
 }
 
 // ---- sugerencia de montos para Salidas/Gustos/Compra dólares ----
-// Prioridad: Salidas+Gustos (lo que hace falta para el día a día) por encima
-// de Compra dólares (ahorro); Compra dólares apunta a su ideal (20% del
-// ingreso) sólo cuando el saldo alcanza para los dos ideales a la vez.
+// Compra dólares es el 20% del ingreso inicial; el resto del saldo tras
+// gastos fijos y variables (afterVar) se reparte en partes iguales entre
+// Salidas y Gustos. Si afterVar no alcanza para el 20% del ingreso, Compra
+// dólares se achica al saldo disponible y no queda nada para Salidas/Gustos.
 function sugerirMontosBudget(person){
   const list = budgetTemplates[person] || [];
   const salidas = list.find(c=>c.label === 'Salidas');
@@ -2941,20 +2889,8 @@ function sugerirMontosBudget(person){
     return;
   }
   const afterVar = fin.afterVar;
-  const idealDolares = fin.inc * 0.20;
-  const idealWants = fin.inc * 0.30;
-
-  let dolaresAmt, wantsTotal;
-  if(afterVar >= idealDolares + idealWants){
-    dolaresAmt = idealDolares;
-    wantsTotal = afterVar - dolaresAmt;
-  }else if(afterVar >= idealWants){
-    wantsTotal = idealWants;
-    dolaresAmt = afterVar - wantsTotal;
-  }else{
-    dolaresAmt = 0;
-    wantsTotal = Math.max(0, afterVar);
-  }
+  const dolaresAmt = Math.max(0, Math.min(fin.inc * 0.20, afterVar));
+  const wantsTotal = Math.max(0, afterVar - dolaresAmt);
 
   salidas.amount = Math.round(wantsTotal / 2);
   gustos.amount = Math.round(wantsTotal / 2);
@@ -3084,7 +3020,6 @@ document.addEventListener('keydown', (e)=>{
   if($('addModal').classList.contains('open')) closeModal();
   if($('incomeModal').classList.contains('open')) closeIncomeModal();
   if($('varExpenseModal').classList.contains('open')) closeVarExpenseModal();
-  if($('budgetRubroModal').classList.contains('open')) closeBudgetRubroModal();
 });
 
 // ---- real, dated, personal variable expenses (mirrors openModal/closeModal/
@@ -3434,16 +3369,6 @@ function refreshPeopleUI(){
   if(!isPerson(currentVxPayer)) currentVxPayer = firstPid();
   seg('vxPayerSeg', 'data-paid', currentVxPayer);
   $('vxPayerField').style.display = (!solo && isSharedPay(currentVxPaidBy)) ? '' : 'none';
-  if(solo && isSharedPay(currentBrWho)) currentBrWho = firstPid();
-  seg('brWhoSeg', 'data-who', currentBrWho);
-  if(!solo){
-    $('brWhoSeg').insertAdjacentHTML('afterbegin',
-      `<button type="button" data-who="${SHARED_PAY}"${isSharedPay(currentBrWho) ? ' class="active"' : ''}>Compartido</button>`);
-  }
-  $('brWhoSeg').classList.toggle('seg-fit', n <= 2);
-  if(!isPerson(currentBrPayer)) currentBrPayer = firstPid();
-  seg('brPayerSeg', 'data-paid', currentBrPayer);
-  $('brPayerField').style.display = (!solo && isSharedPay(currentBrWho)) ? '' : 'none';
   seg('gWhoSeg', 'data-who', currentGoalPerson);
   seg('ahorroPersonSeg', 'data-person', currentAhorroPerson, 'self');
   if(solo && isSharedPay(currentVarEstPerson)) currentVarEstPerson = firstPid();
@@ -3455,13 +3380,9 @@ function refreshPeopleUI(){
       `<button type="button" data-person="${SHARED_PAY}"${isSharedPay(currentVarEstPerson) ? ' class="active"' : ''}>Compartido</button>`);
   }
   $('varEstPersonSeg').classList.toggle('seg-fit', n <= 2);
-  // mismo trío para las plantillas de gastos posibles
-  if(solo && isSharedPay(currentBudgetTplPerson)) currentBudgetTplPerson = firstPid();
+  // gastos posibles ya no tiene Compartido: solo un tab por persona
+  if(isSharedPay(currentBudgetTplPerson)) currentBudgetTplPerson = firstPid();
   seg('bTplPersonSeg', 'data-person', currentBudgetTplPerson, 'self');
-  if(!solo){
-    $('bTplPersonSeg').insertAdjacentHTML('afterbegin',
-      `<button type="button" data-person="${SHARED_PAY}"${isSharedPay(currentBudgetTplPerson) ? ' class="active"' : ''}>Compartido</button>`);
-  }
   $('bTplPersonSeg').classList.toggle('seg-fit', n <= 2);
 
   // división de un gasto: partes iguales o según ingresos. Solo importa
@@ -4067,12 +3988,10 @@ function financeFor(person, key){
     .reduce((s,e)=>s+entryShareOf(e, person), 0);
   const afterFijos = inc - fijos;
   const afterVar = afterFijos - variables;
-  // lo que tiene presupuestado gastar: sus rubros de gastos posibles más su
-  // parte de los que armaron entre todos
-  const compartido = sharedBudgetShareFor(person);
-  const propio = ownBudgetTotal(person);
-  const podes = propio + compartido;
-  return { inc, fijos, variables, afterFijos, afterVar, propio, compartido, podes, ahorro: afterVar - podes };
+  // lo que tiene presupuestado gastar: sus rubros de gastos posibles (ya no
+  // hay "Compartido" en gastos posibles, cada uno tiene los suyos)
+  const podes = ownBudgetTotal(person);
+  return { inc, fijos, variables, afterFijos, afterVar, podes, ahorro: afterVar - podes };
 }
 
 function monthFinance(key){
@@ -4227,34 +4146,24 @@ function renderBlockSaldos(fin){
 
 
 // ---- Gastos posibles ----
-// Los rubros que cada uno tiene presupuestados todos los meses, más los que
-// armaron entre todos. El monto se edita en Ajustes, como los gastos fijos y
-// los variables: acá abajo solo se leen.
+// Los rubros de cada persona (Salidas, Gustos, Compra dólares, y los que
+// agregue a mano en Ajustes). El monto se edita en Ajustes, o se pre-completa
+// con el botón "Sugerir montos"; acá abajo solo se leen.
 const budgetTotalOf = (who) => (budgetTemplates[who] || []).reduce((s,c)=>s+(c.amount||0), 0);
 const ownBudgetTotal = (person) => budgetTotalOf(person);
-const sharedBudgetTotal = () => budgetTotalOf(SHARED_PAY);
-// cada rubro compartido se reparte según su propio splitType (partes iguales por
-// default); no se congela como en fijos/variables, se recalcula con el ingreso
-// y la cantidad de personas de hoy, igual que hacía sharedBudgetShare() antes
-function sharedBudgetShareFor(person){
-  return (budgetTemplates[SHARED_PAY] || []).reduce((s,c)=>{
-    const shares = c.splitType === 'income' ? (incomeShares() || equalShares()) : equalShares();
-    return s + (c.amount||0) * (shares[person] || 0) / 100;
-  }, 0);
-}
 
-let currentBudgetTab = SHARED_PAY;
+let currentBudgetTab = 'A';
 
 function renderBudgetTabs(){
   const tabs = $('budgetTabs'), box = $('budgetList');
   if(!tabs || !box) return;
   const solo = peopleCount() < 2;
-  if(solo) currentBudgetTab = firstPid();
+  if(!isPerson(currentBudgetTab)) currentBudgetTab = firstPid();
 
   tabs.style.display = solo ? 'none' : '';
   if(!solo){
-    const groups = [{ key:SHARED_PAY, label:'Compartidos' }, ...people.map(p=>({ key:p.id, label:p.name }))];
-    if(!groups.some(g=>g.key === currentBudgetTab)) currentBudgetTab = SHARED_PAY;
+    const groups = people.map(p=>({ key:p.id, label:p.name }));
+    if(!groups.some(g=>g.key === currentBudgetTab)) currentBudgetTab = firstPid();
     tabs.innerHTML = groups.map(g=>
       `<button type="button" data-tab="${g.key}"${g.key === currentBudgetTab ? ' class="active"' : ''}>${escapeHtml(g.label)}</button>`
     ).join('');
@@ -4263,132 +4172,29 @@ function renderBudgetTabs(){
   const cats = budgetTemplates[currentBudgetTab] || [];
   const rows = cats.length
     ? cats.map(budgetRubroRow).join('') + billTotalRow(cats)
-    : `<div class="empty">${isSharedPay(currentBudgetTab)
-        ? 'Todavía no hay rubros compartidos.'
-        : `${escapeHtml(nameOf(currentBudgetTab))} no tiene rubros cargados.`}<br>
+    : `<div class="empty">${escapeHtml(nameOf(currentBudgetTab))} no tiene rubros cargados.<br>
        <button type="button" class="btn-link" onclick="switchTab('ajustes')">Cargalos en Ajustes</button></div>`;
 
   box.innerHTML = rows;
+
+  const ingreso = financeFor(currentBudgetTab).inc;
+  $('budgetIdealHint').textContent = ingreso > 0
+    ? `Ideal (teoría 50/30/20): Compra dólares ${fmt(ingreso*0.20)} · Salidas + Gustos ${fmt(ingreso*0.30)}`
+    : 'Cargá el ingreso de este mes para ver el ideal 50/30/20.';
 }
 
-// misma card que un gasto fijo: monto, lápiz para editarlo y ✕ que el candado
-// deshabilita. Lo de siempre se carga en Ajustes; acá se corrige cuando cambia.
+// misma card que un gasto fijo pero de solo lectura: monto y ✕ que el
+// candado deshabilita. El monto se edita en Ajustes o con "Sugerir montos".
 function budgetRubroRow(c){
-  const bits = [];
-  if(c.splitType === 'income') bits.push('según ingresos');
-  if(isPerson(c.payer)) bits.push('paga ' + nameOf(c.payer));
-  const meta = bits.join(' · ');
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(c.label)}</div>
-      ${meta ? `<div class="bill-meta"><span>${escapeHtml(meta)}</span></div>` : ''}
     </div>
     <div class="bill-amt">${fmt(c.amount || 0)}</div>
-    <button class="bill-edit" onclick="openBudgetRubroModal('${c.id}')" aria-label="Editar">✎</button>
     <button class="bill-del" onclick="deleteBudgetRubro('${c.id}')" aria-label="Eliminar"
       ${c.locked ? 'disabled title="Protegido por el candado en Ajustes"' : ''}>✕</button>
   </div>`;
 }
-
-// ---- modal del rubro ----
-// Sirve para agregar y para editar, como el de gastos fijos. Sólo de quién es,
-// concepto y monto: un rubro no tiene fecha, se repite todos los meses.
-let editingRubroId = null;
-let editingRubroWho = null;
-let currentBrWho = 'A';
-let currentBrPayer = 'A';
-let currentBrSplit = 'equal';
-
-function openBudgetRubroModal(id){
-  const c = id ? (budgetTemplates[currentBudgetTab]||[]).find(x=>x.id === id) : null;
-  editingRubroId = c ? c.id : null;
-  editingRubroWho = c ? currentBudgetTab : null;
-  $('budgetRubroForm').reset();
-  setBrSplit(c && c.splitType === 'income' ? 'income' : 'equal');
-  setBrPayer(c && isPerson(c.payer) ? c.payer : firstPid());
-  setBrWho(c ? currentBudgetTab : (peopleCount() > 1 ? currentBudgetTab : firstPid()));
-  if(c){
-    $('brLabel').value = c.label;
-    $('brAmount').value = c.amount ? groupThousands(String(Math.round(c.amount))) : '';
-  }
-  $('budgetRubroTitle').textContent = c ? 'Editar gasto posible' : 'Agregar gasto posible';
-  $('brSubmitBtn').textContent = c ? 'Guardar cambios' : 'Agregar gasto posible';
-  $('budgetRubroModal').classList.add('open');
-  document.body.classList.add('modal-open');
-  if(c){ $('brAmount').focus(); $('brAmount').select(); }
-  else $('brLabel').focus();
-}
-function closeBudgetRubroModal(){
-  $('budgetRubroModal').classList.remove('open');
-  document.body.classList.remove('modal-open');
-  editingRubroId = null;
-}
-function setBrWho(who){
-  currentBrWho = who;
-  document.querySelectorAll('#brWhoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.who === currentBrWho));
-  const shared = isSharedPay(currentBrWho) && peopleCount() > 1;
-  $('brPayerField').style.display = shared ? '' : 'none';
-  $('brSplitField').style.display = shared ? '' : 'none';
-  if(shared && !isPerson(currentBrPayer)) setBrPayer(firstPid());
-}
-function setBrPayer(who){
-  currentBrPayer = who;
-  document.querySelectorAll('#brPayerSeg button').forEach(b=>b.classList.toggle('active', b.dataset.paid === currentBrPayer));
-}
-function setBrSplit(split){
-  currentBrSplit = split;
-  document.querySelectorAll('#brSplitToggle button').forEach(b=>b.classList.toggle('active', b.dataset.split === currentBrSplit));
-}
-$('budgetRubroModal').addEventListener('click', (e)=>{ if(e.target === $('budgetRubroModal')) closeBudgetRubroModal(); });
-$('brWhoSeg').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button');
-  if(!btn) return;
-  setBrWho(btn.dataset.who);
-});
-$('brPayerSeg').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button');
-  if(!btn) return;
-  setBrPayer(btn.dataset.paid);
-});
-$('brSplitToggle').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button');
-  if(!btn) return;
-  setBrSplit(btn.dataset.split);
-});
-
-$('budgetRubroForm').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  const label = $('brLabel').value.trim();
-  if(!label) return;
-  const d = digitsOnly($('brAmount').value);
-  const amount = d ? parseInt(d,10) : 0;
-  const destino = currentBrWho;
-  if(!budgetTemplates[destino]) budgetTemplates[destino] = [];
-
-  const shared = destino === SHARED_PAY;
-  const splitType = shared ? currentBrSplit : undefined;
-  const payer = shared ? currentBrPayer : undefined;
-  const c = editingRubroId ? (budgetTemplates[editingRubroWho]||[]).find(x=>x.id === editingRubroId) : null;
-  if(c){
-    c.label = label;
-    c.amount = amount;
-    c.splitType = splitType;
-    c.payer = payer;
-    // cambiar de quién es lo muda de pestaña, sin perder el candado
-    if(destino !== editingRubroWho){
-      budgetTemplates[editingRubroWho] = budgetTemplates[editingRubroWho].filter(x=>x.id !== c.id);
-      budgetTemplates[destino].push(c);
-      currentBudgetTab = destino;
-    }
-  }else{
-    budgetTemplates[destino].push({ id: genId(), label, amount, splitType, payer });
-    currentBudgetTab = destino;
-  }
-  saveBudgetTemplates();
-  closeBudgetRubroModal();
-  renderBudgetTemplates();
-  render();
-});
 
 function deleteBudgetRubro(id){
   const who = currentBudgetTab;
