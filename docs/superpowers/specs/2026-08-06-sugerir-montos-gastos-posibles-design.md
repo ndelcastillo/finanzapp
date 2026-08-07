@@ -1,5 +1,22 @@
 # Sugerencia de montos en Gastos posibles (regla 50/30/20)
 
+> **Actualización post-implementación (2026-08-06):** tras usar la primera versión, el diseño se
+> simplificó dos veces más en la misma sesión. El estado final, vigente en el código:
+> - **Sin "Compartido"**: Gastos posibles ya no tiene pestaña Compartido ni en Gastos ni en
+>   Ajustes — solo un tab por persona. `financeFor()` ya no suma `compartido`; `podes` es
+>   directamente `ownBudgetTotal(person)`.
+> - **Sin modal**: se borró `budgetRubroModal` y todo lo que lo alimentaba (`openBudgetRubroModal`,
+>   `brWhoSeg`, etc.). Las filas en Gastos son de solo lectura (label + monto + ✕ si no está
+>   bloqueado); agregar/editar rubros pasa a ser exclusivo de Ajustes.
+> - **Botón movido**: "Sugerir montos" ya no está en Ajustes — vive en la card de Gastos posibles
+>   de la pestaña Gastos (`#budgetSuggestBtn`, junto a `#budgetIdealHint`), y opera sobre
+>   `currentBudgetTab` (el tab de persona seleccionado ahí), no sobre `currentBudgetTplPerson`.
+> - **Fórmula simplificada**: ya no hay escalones. `dólares = min(20% del ingreso, afterVar)`;
+>   `Salidas + Gustos` se reparten en partes iguales lo que queda de `afterVar` después de eso.
+>   Ver `sugerirMontosBudget()` en el código para la versión exacta — es la fuente de verdad, no
+>   la sección "3. Fórmula de sugerencia" más abajo, que describe una versión intermedia
+>   descartada.
+
 ## Contexto
 
 Hoy los rubros de "Gastos posibles" (`budgetTemplates`) son 5 por defecto — Salidas, Regalos,
