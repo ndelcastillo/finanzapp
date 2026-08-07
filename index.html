@@ -490,6 +490,9 @@
   .tag-p2{background:#D9E6DC;color:#2F5C3F;}
   .tag-p3{background:#DAE0EE;color:#3A4A78;}
   .bill-amt{font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;white-space:nowrap;}
+  .bill input.f-amt{flex:0 0 110px;width:110px;text-align:right;font-variant-numeric:tabular-nums;
+    font-size:15px;font-weight:600;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);}
+  @media(max-width:480px){ .bill input.f-amt{flex:0 0 92px;width:92px;font-size:13.5px;padding:6px 7px;} }
   .bill-paid{display:flex;align-items:center;flex-shrink:0;margin-bottom:0px;}
   .bill-paid input{width:13px;height:13px;accent-color:var(--good);cursor:pointer;}
   .bill-edit,.bill-del{background:none;border:none;color:var(--body-muted);cursor:pointer;font-size:16px;padding:2px 4px;flex-shrink:0;border-radius:6px;transition:color .15s ease, transform .1s ease;}
@@ -4204,8 +4207,9 @@ function renderBudgetSaldos(){
 
 // ---- Gastos posibles ----
 // Los rubros de cada persona (Salidas, Gustos, Compra dólares, y los que
-// agregue a mano en Ajustes). El monto se edita en Ajustes, o se pre-completa
-// con el botón "Sugerir montos"; acá abajo solo se leen.
+// agregue a mano en Ajustes). El monto se edita acá mismo o en Ajustes —
+// son la misma lista, cualquiera de los dos lados la actualiza — y también
+// se puede pre-completar con el botón "Sugerir montos".
 const budgetTotalOf = (who) => (budgetTemplates[who] || []).reduce((s,c)=>s+(c.amount||0), 0);
 const ownBudgetTotal = (person) => budgetTotalOf(person);
 
@@ -4240,18 +4244,34 @@ function renderBudgetTabs(){
     : 'Cargá el ingreso de este mes para ver el ideal 50/30/20.';
 }
 
-// misma card que un gasto fijo pero de solo lectura: monto y ✕ que el
-// candado deshabilita. El monto se edita en Ajustes o con "Sugerir montos".
+// misma card que un gasto fijo, pero el monto es un input editable acá
+// mismo (además de en Ajustes): tocar Compra dólares reacomoda Salidas y
+// Gustos solo, igual que en Ajustes — ver el listener de #budgetList.
 function budgetRubroRow(c){
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(c.label)}</div>
     </div>
-    <div class="bill-amt">${fmt(c.amount || 0)}</div>
+    <input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${c.id}"
+      value="${c.amount ? groupThousands(String(c.amount)) : ''}" placeholder="0"
+      aria-label="Monto de ${escapeHtml(c.label)}">
     <button class="bill-del" onclick="deleteBudgetRubro('${c.id}')" aria-label="Eliminar"
       ${c.locked ? 'disabled title="Protegido por el candado en Ajustes"' : ''}>✕</button>
   </div>`;
 }
+$('budgetList').addEventListener('change', (e)=>{
+  const el = e.target;
+  if(!el.classList.contains('f-amt')) return;
+  const item = (budgetTemplates[currentBudgetTab]||[]).find(f=>f.id === el.dataset.id);
+  if(!item) return;
+  const d = digitsOnly(el.value);
+  item.amount = d ? parseInt(d,10) : 0;
+  if(item.label === 'Compra dólares') redistribuirWantsSegunDolares(currentBudgetTab);
+  saveBudgetTemplates();
+  renderBudgetTabs();
+  renderBudgetTemplates();   // Ajustes muestra los mismos rubros, se mantiene al día
+  render();
+});
 
 function deleteBudgetRubro(id){
   const who = currentBudgetTab;
