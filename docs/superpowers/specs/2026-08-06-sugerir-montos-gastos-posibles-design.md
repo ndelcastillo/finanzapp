@@ -16,6 +16,13 @@
 >   Ver `sugerirMontosBudget()` en el código para la versión exacta — es la fuente de verdad, no
 >   la sección "3. Fórmula de sugerencia" más abajo, que describe una versión intermedia
 >   descartada.
+> - **"Compra dólares" deja de ser un rubro**: `DEFAULT_BUDGET_CATS` termina en solo 2 entradas
+>   (Salidas, Gustos). El monto que antes se guardaba en el rubro "Compra dólares" ahora es
+>   directamente `financeFor(person).ahorro` (lo que sobra después de Salidas y Gustos) — el
+>   mismo número que ya mostraba la pestaña Ahorro. `sugerirMontosBudget()` solo escribe
+>   Salidas/Gustos; el bloque final de Gastos (`renderAhorroDolares()`) muestra ese `ahorro` en
+>   pesos y convertido a USD con `usdRate()`. Migración `budget_cats_m2` borra el rubro
+>   "Compra dólares" de los espacios que ya lo tenían.
 
 ## Contexto
 
