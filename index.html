@@ -489,7 +489,8 @@
   .tag-p1{background:var(--a-clay-bg);color:var(--a-clay-ink);}
   .tag-p2{background:#D9E6DC;color:#2F5C3F;}
   .tag-p3{background:#DAE0EE;color:#3A4A78;}
-  .bill-amt{font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;white-space:nowrap;}
+  .bill-amt{font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;white-space:nowrap;text-align:right;}
+  .bill-amt-usd{display:block;font-size:11.5px;font-weight:400;color:var(--body-muted);margin-top:2px;}
   .bill input.f-amt{flex:0 0 110px;width:110px;text-align:right;font-variant-numeric:tabular-nums;
     font-size:15px;font-weight:600;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);}
   @media(max-width:480px){ .bill input.f-amt{flex:0 0 92px;width:92px;font-size:13.5px;padding:6px 7px;} }
@@ -4244,21 +4245,41 @@ function renderBudgetTabs(){
     : 'Cargá el ingreso de este mes para ver el ideal 50/30/20.';
 }
 
-// misma card que un gasto fijo, pero el monto es un input editable acá
-// mismo (además de en Ajustes): tocar Compra dólares reacomoda Salidas y
-// Gustos solo, igual que en Ajustes — ver el listener de #budgetList.
+// misma card que un gasto fijo (texto + ✎ + ✕), igual que los demás
+// bloques de Gastos. El lápiz habilita el monto para editarlo ahí mismo;
+// tocar Compra dólares reacomoda Salidas y Gustos solo, igual que en
+// Ajustes — ver el listener de #budgetList.
+let editingBudgetAmtId = null;
 function budgetRubroRow(c){
+  const editing = editingBudgetAmtId === c.id;
+  const rate = usdRate();
+  const usdHint = c.label === 'Compra dólares' && rate > 0
+    ? `<span class="bill-amt-usd">${fmtUsd((c.amount || 0) / rate)}</span>` : '';
+  const amt = editing
+    ? `<input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${c.id}"
+         value="${c.amount ? groupThousands(String(c.amount)) : ''}" placeholder="0"
+         aria-label="Monto de ${escapeHtml(c.label)}">`
+    : `<div class="bill-amt">${fmt(c.amount || 0)}${usdHint}</div>`;
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(c.label)}</div>
     </div>
-    <input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${c.id}"
-      value="${c.amount ? groupThousands(String(c.amount)) : ''}" placeholder="0"
-      aria-label="Monto de ${escapeHtml(c.label)}">
+    ${amt}
+    <button class="bill-edit" onclick="toggleBudgetAmtEdit('${c.id}')" aria-label="Editar">✎</button>
     <button class="bill-del" onclick="deleteBudgetRubro('${c.id}')" aria-label="Eliminar"
       ${c.locked ? 'disabled title="Protegido por el candado en Ajustes"' : ''}>✕</button>
   </div>`;
 }
+function toggleBudgetAmtEdit(id){
+  editingBudgetAmtId = editingBudgetAmtId === id ? null : id;
+  renderBudgetTabs();
+  if(editingBudgetAmtId !== id) return;
+  const input = document.querySelector(`#budgetList input.f-amt[data-id="${id}"]`);
+  if(input){ input.focus(); input.select(); }
+}
+$('budgetList').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && e.target.classList.contains('f-amt')) e.target.blur();
+});
 $('budgetList').addEventListener('change', (e)=>{
   const el = e.target;
   if(!el.classList.contains('f-amt')) return;
@@ -4267,6 +4288,7 @@ $('budgetList').addEventListener('change', (e)=>{
   const d = digitsOnly(el.value);
   item.amount = d ? parseInt(d,10) : 0;
   if(item.label === 'Compra dólares') redistribuirWantsSegunDolares(currentBudgetTab);
+  editingBudgetAmtId = null;
   saveBudgetTemplates();
   renderBudgetTabs();
   renderBudgetTemplates();   // Ajustes muestra los mismos rubros, se mantiene al día
