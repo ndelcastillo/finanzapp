@@ -4617,9 +4617,11 @@ function monthTotalForPerson(key, person){
 function renderAhorro(){
   const person = currentAhorroPerson;
   const ingreso = incomeTotalArs(person);
-  // exactly the number the last card of Gastos shows for this person:
-  // ingreso − gastos fijos − variables − lo que podés gastar
-  const ahorro = financeFor(person).ahorro;
+  // el saldo final del bloque de Gastos posibles: lo que está cargado en
+  // el rubro Compra dólares, el mismo número que muestra el footer Saldos
+  // de ese bloque en Gastos
+  const dolares = (budgetTemplates[person] || []).find(c => c.label === 'Compra dólares');
+  const ahorro = dolares ? (dolares.amount || 0) : 0;
   const tasa = ingreso > 0 ? (ahorro / ingreso) * 100 : 0;
 
   $('ahorroTitle').textContent = `Ahorro de ${monthShort(viewMonth)}`;
