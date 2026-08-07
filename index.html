@@ -490,7 +490,12 @@
   .tag-p2{background:#D9E6DC;color:#2F5C3F;}
   .tag-p3{background:#DAE0EE;color:#3A4A78;}
   .bill-amt{font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;white-space:nowrap;text-align:right;}
-  .bill-amt-usd{display:block;font-size:11.5px;font-weight:400;color:var(--body-muted);margin-top:2px;}
+  .bill-amt-usd-row{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:3px;
+    font-size:15px;font-weight:600;color:var(--body-muted);}
+  .bill-amt-usd-row input{width:70px;border:none;border-bottom:1px dashed var(--line);background:transparent;
+    text-align:right;font-size:15px;font-weight:600;color:var(--body-muted);font-variant-numeric:tabular-nums;
+    padding:0 0 1px;}
+  .bill-amt-usd-row input:focus{outline:none;border-bottom-color:var(--primary);color:var(--body);}
   .bill input.f-amt{flex:0 0 110px;width:110px;text-align:right;font-variant-numeric:tabular-nums;
     font-size:15px;font-weight:600;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);}
   @media(max-width:480px){ .bill input.f-amt{flex:0 0 92px;width:92px;font-size:13.5px;padding:6px 7px;} }
@@ -4252,14 +4257,19 @@ function renderBudgetTabs(){
 let editingBudgetAmtId = null;
 function budgetRubroRow(c){
   const editing = editingBudgetAmtId === c.id;
+  const isDolares = c.label === 'Compra dólares';
   const rate = usdRate();
-  const usdHint = c.label === 'Compra dólares' && rate > 0
-    ? `<span class="bill-amt-usd">${fmtUsd((c.amount || 0) / rate)}</span>` : '';
+  const usdAmt = rate > 0 ? Math.round((c.amount || 0) / rate) : 0;
+  const usdField = isDolares && rate > 0
+    ? `<div class="bill-amt-usd-row">US$ <input type="text" class="f-amt-usd ie-money" inputmode="numeric"
+         data-id="${c.id}" value="${usdAmt ? groupThousands(String(usdAmt)) : ''}" placeholder="0"
+         aria-label="Compra dólares en dólares"></div>`
+    : '';
   const amt = editing
     ? `<input type="text" class="f-amt ie-money" inputmode="numeric" data-id="${c.id}"
          value="${c.amount ? groupThousands(String(c.amount)) : ''}" placeholder="0"
          aria-label="Monto de ${escapeHtml(c.label)}">`
-    : `<div class="bill-amt">${fmt(c.amount || 0)}${usdHint}</div>`;
+    : `<div class="bill-amt">${fmt(c.amount || 0)}${usdField}</div>`;
   return `<div class="bill">
     <div class="bill-main">
       <div class="bill-name">${escapeHtml(c.label)}</div>
@@ -4278,10 +4288,26 @@ function toggleBudgetAmtEdit(id){
   if(input){ input.focus(); input.select(); }
 }
 $('budgetList').addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' && e.target.classList.contains('f-amt')) e.target.blur();
+  if(e.key === 'Enter' && (e.target.classList.contains('f-amt') || e.target.classList.contains('f-amt-usd'))) e.target.blur();
 });
 $('budgetList').addEventListener('change', (e)=>{
   const el = e.target;
+  // el monto en dólares de Compra dólares: se guarda todo en pesos como
+  // siempre (usd × cotización), y desde acá también dispara el reacomodo
+  // de Salidas/Gustos, igual que si se hubiera editado en pesos
+  if(el.classList.contains('f-amt-usd')){
+    const item = (budgetTemplates[currentBudgetTab]||[]).find(f=>f.id === el.dataset.id);
+    const rate = usdRate();
+    if(!item || rate <= 0) return;
+    const d = digitsOnly(el.value);
+    item.amount = Math.round((d ? parseInt(d,10) : 0) * rate);
+    redistribuirWantsSegunDolares(currentBudgetTab);
+    saveBudgetTemplates();
+    renderBudgetTabs();
+    renderBudgetTemplates();
+    render();
+    return;
+  }
   if(!el.classList.contains('f-amt')) return;
   const item = (budgetTemplates[currentBudgetTab]||[]).find(f=>f.id === el.dataset.id);
   if(!item) return;
