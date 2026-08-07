@@ -2919,6 +2919,22 @@ function sugerirMontosBudget(person){
   notyf.success(afterVar > 0 ? 'Montos sugeridos aplicados' : 'Sin saldo disponible este mes: los 3 rubros quedaron en $0.');
 }
 
+// Compra dólares manda: si lo editás a mano, Salidas y Gustos se reacomodan
+// solos por mitades con lo que queda de afterVar, igual que "Sugerir
+// montos" pero arrancando del monto que acabás de escribir en vez del 20%
+// del ingreso.
+function redistribuirWantsSegunDolares(person){
+  const list = budgetTemplates[person] || [];
+  const salidas = list.find(c=>c.label === 'Salidas');
+  const gustos = list.find(c=>c.label === 'Gustos');
+  const dolares = list.find(c=>c.label === 'Compra dólares');
+  if(!salidas || !gustos || !dolares) return;
+  const afterVar = financeFor(person).afterVar;
+  const wantsTotal = Math.max(0, afterVar - (dolares.amount || 0));
+  salidas.amount = Math.round(wantsTotal / 2);
+  gustos.amount = Math.round(wantsTotal / 2);
+}
+
 $('bTplTable').addEventListener('change', (e)=>{
   const el = e.target;
   if(!el.classList.contains('f-amt')) return;
@@ -2926,6 +2942,10 @@ $('bTplTable').addEventListener('change', (e)=>{
   if(!item) return;
   const d = digitsOnly(el.value);
   item.amount = d ? parseInt(d,10) : 0;
+  if(item.label === 'Compra dólares'){
+    redistribuirWantsSegunDolares(currentBudgetTplPerson);
+    renderBudgetTemplates();   // Salidas/Gustos cambiaron: refresca sus inputs
+  }
   saveBudgetTemplates();
   render();   // el bloque de Gastos posibles lee estos montos
 });
@@ -2962,6 +2982,7 @@ function saveEditBudgetTemplate(id){
   item.label = label;
   item.amount = d ? parseInt(d,10) : 0;
   editingBudgetTplId = null;
+  if(item.label === 'Compra dólares') redistribuirWantsSegunDolares(currentBudgetTplPerson);
   saveBudgetTemplates();
   renderBudgetTemplates();
   render();   // el bloque de Gastos posibles lee estos montos
