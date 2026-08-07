@@ -1221,8 +1221,6 @@ const FIXED_LOCK_KEY = 'fixed_m2';
 const FIXED_DEUDA_KEY = 'fixed_m3';
 // one-time: collapse Regalos/Compras Hogar/Deudas/Diaria into Gustos + Compra dólares
 const BUDGET_CATS_MIGRATION_KEY = 'budget_cats_m1';
-// one-time: Compra dólares deja de ser un rubro, pasa a ser el saldo de Ahorro
-const BUDGET_CATS_MIGRATION_KEY_V2 = 'budget_cats_m2';
 
 const CATEGORY_COLORS = {
   'Alquiler':'#B4862B','Wifi':'#3D6B4C','Limpieza':'#5C7A8A',
@@ -1272,7 +1270,7 @@ const COLUMN_FOR_KEY = {
   budgetoverrides_v1: 'budget_overrides',
   goals_v1: 'goals'
 };
-const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1','budget_cats_m1','budget_cats_m2']);
+const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1','budget_cats_m1']);
 
 let coupleCode = null;
 let coupleRow = null;          // cached full row, refreshed on load and on every remote change
@@ -2097,7 +2095,8 @@ function sharesFor(splitType){
 // renombrar, cambiarles el monto o borrarlos desde Ajustes, y agregar otros.
 const DEFAULT_BUDGET_CATS = [
   { key:'salidas', label:'Salidas' },
-  { key:'gustos',  label:'Gustos' }
+  { key:'gustos',  label:'Gustos' },
+  { key:'dolares', label:'Compra dólares' }
 ];
 const defaultBudgetCats = () => DEFAULT_BUDGET_CATS.map(c=>({ id: genId(), label: c.label, amount: 0, locked: true }));
 
@@ -2138,22 +2137,6 @@ function migrateBudgetCatsToThree(templates){
         changed = true;
       }
     });
-    templates[k] = filtered;
-  });
-  return changed;
-}
-
-// one-time: "Compra dólares" deja de ser un rubro de gastos posibles. Lo que
-// antes se presupuestaba ahí ahora es directamente el saldo de Ahorro (lo
-// que sobra después de Salidas y Gustos) — se borra el rubro y listo, no hay
-// nada que migrar a otro lado porque el número ya se calcula solo.
-function migrateBudgetCatsDropDolares(templates){
-  let changed = false;
-  Object.keys(templates).forEach(k=>{
-    const list = templates[k];
-    if(!Array.isArray(list)) return;
-    const filtered = list.filter(c=>c.label !== 'Compra dólares');
-    if(filtered.length !== list.length) changed = true;
     templates[k] = filtered;
   });
   return changed;
@@ -2333,12 +2316,6 @@ async function loadAll(){
     if(!(await store.get(BUDGET_CATS_MIGRATION_KEY))){
       if(migrateBudgetCatsToThree(budgetTemplates)) saveBudgetTemplates();
       await store.set(BUDGET_CATS_MIGRATION_KEY, '1');
-    }
-  }catch(e){}
-  try{
-    if(!(await store.get(BUDGET_CATS_MIGRATION_KEY_V2))){
-      if(migrateBudgetCatsDropDolares(budgetTemplates)) saveBudgetTemplates();
-      await store.set(BUDGET_CATS_MIGRATION_KEY_V2, '1');
     }
   }catch(e){}
 
@@ -2897,17 +2874,18 @@ function renderBudgetTemplates(){
   }).join('') : `<div class="income-note" style="padding:12px 0;">Todavía no cargaste gastos posibles.</div>`;
 }
 
-// ---- sugerencia de montos para Salidas/Gustos ----
-// Compra dólares ya no es un rubro: es el saldo de Ahorro que queda después
-// de Salidas y Gustos, y se calcula solo. Acá lo único que se sugiere es
-// cuánto de afterVar va a Salidas/Gustos, dejando aparte el 20% del ingreso
-// inicial (el ideal de ahorro) — el resto se reparte por mitades.
+// ---- sugerencia de montos para Salidas/Gustos/Compra dólares ----
+// Compra dólares es el 20% del ingreso inicial; el resto del saldo tras
+// gastos fijos y variables (afterVar) se reparte en partes iguales entre
+// Salidas y Gustos. Si afterVar no alcanza para el 20% del ingreso, Compra
+// dólares se achica al saldo disponible y no queda nada para Salidas/Gustos.
 function sugerirMontosBudget(person){
   const list = budgetTemplates[person] || [];
   const salidas = list.find(c=>c.label === 'Salidas');
   const gustos = list.find(c=>c.label === 'Gustos');
-  if(!salidas || !gustos){
-    notyf.error('Necesitás los rubros Salidas y Gustos para sugerir montos.');
+  const dolares = list.find(c=>c.label === 'Compra dólares');
+  if(!salidas || !gustos || !dolares){
+    notyf.error('Necesitás los rubros Salidas, Gustos y Compra dólares para sugerir montos.');
     return;
   }
   const fin = financeFor(person);
@@ -2916,16 +2894,17 @@ function sugerirMontosBudget(person){
     return;
   }
   const afterVar = fin.afterVar;
-  const idealAhorro = Math.max(0, Math.min(fin.inc * 0.20, afterVar));
-  const wantsTotal = Math.max(0, afterVar - idealAhorro);
+  const dolaresAmt = Math.max(0, Math.min(fin.inc * 0.20, afterVar));
+  const wantsTotal = Math.max(0, afterVar - dolaresAmt);
 
   salidas.amount = Math.round(wantsTotal / 2);
   gustos.amount = Math.round(wantsTotal / 2);
+  dolares.amount = Math.round(dolaresAmt);
 
   saveBudgetTemplates();
   renderBudgetTemplates();
   render();
-  notyf.success(afterVar > 0 ? 'Montos sugeridos aplicados' : 'Sin saldo disponible este mes: Salidas y Gustos quedaron en $0.');
+  notyf.success(afterVar > 0 ? 'Montos sugeridos aplicados' : 'Sin saldo disponible este mes: los 3 rubros quedaron en $0.');
 }
 
 $('bTplTable').addEventListener('change', (e)=>{
@@ -4168,33 +4147,34 @@ function renderBlockSaldos(fin){
   renderSaldos('varSaldos', fin, f=>f.afterVar);
   renderSaldos('budgetSaldos', fin, f=>f.ahorro);
   renderSaldos('ahorroSaldos', fin, f=>f.ahorro, true);
-  renderAhorroDolares(fin);
+  renderAhorroDolares();
 }
 
-// "Compra dólares" ya no es un rubro cargado a mano: es el saldo de Ahorro
-// (lo que sobra después de Salidas y Gustos), mostrado en pesos y convertido
-// a dólares con la cotización del día (o el fx cargado a mano si todavía no
-// se consultó la cotización)
+// lo presupuestado en el rubro "Compra dólares" de cada persona, en pesos y
+// convertido a dólares con la cotización del día (o el fx cargado a mano si
+// todavía no se consultó la cotización)
 function saldoDolarCell(label, pesos){
   const rate = usdRate();
   return `<div class="sld-cell">
     <div class="sld-who">${escapeHtml(label)}</div>
-    <div class="sld-amt ${pesos < 0 ? 'neg' : ''}">${fmt(pesos)}</div>
+    <div class="sld-amt">${fmt(pesos)}</div>
     <div class="sld-sub">${rate > 0 ? fmtUsd(pesos / rate) : '—'}</div>
   </div>`;
 }
-function renderAhorroDolares(fin){
+function renderAhorroDolares(){
   const el = $('ahorroDolares');
   if(!el) return;
-  el.innerHTML = pids().map(p=>saldoDolarCell(names[p], fin[p].ahorro)).join('');
+  el.innerHTML = pids().map(p=>{
+    const c = (budgetTemplates[p] || []).find(x=>x.label === 'Compra dólares');
+    return saldoDolarCell(names[p], c ? (c.amount || 0) : 0);
+  }).join('');
 }
 
 
 // ---- Gastos posibles ----
-// Los rubros de cada persona (Salidas, Gustos, y los que agregue a mano en
-// Ajustes). El monto se edita en Ajustes, o se pre-completa con el botón
-// "Sugerir montos"; acá abajo solo se leen. Compra dólares ya no es un
-// rubro — ver renderAhorroDolares() más abajo.
+// Los rubros de cada persona (Salidas, Gustos, Compra dólares, y los que
+// agregue a mano en Ajustes). El monto se edita en Ajustes, o se pre-completa
+// con el botón "Sugerir montos"; acá abajo solo se leen.
 const budgetTotalOf = (who) => (budgetTemplates[who] || []).reduce((s,c)=>s+(c.amount||0), 0);
 const ownBudgetTotal = (person) => budgetTotalOf(person);
 
