@@ -842,11 +842,13 @@
       </div>
       <div id="bTplTable"></div>
       <div class="fixed-add">
-        <input type="text" id="bTplLabelInput" placeholder="Ej: Salidas, Regalos">
+        <input type="text" id="bTplLabelInput" placeholder="Ej: Salidas, Gustos">
         <input type="text" class="f-new-amt ie-money" inputmode="numeric" id="bTplAmountInput" placeholder="0">
         <button type="button" onclick="addBudgetTemplate()" aria-label="Agregar gasto posible">+</button>
       </div>
       <button type="button" class="btn-primary fixed-save-btn" onclick="commitBudgetTemplates()">Guardar gastos posibles</button>
+      <button type="button" class="btn-primary fixed-save-btn" id="bTplSuggestBtn" style="background:transparent;color:var(--body-muted);border:1px solid var(--line-strong);margin-top:8px;" onclick="sugerirMontosBudget(currentBudgetTplPerson)">Sugerir montos</button>
+      <p class="income-note" id="bTplIdealHint" style="margin-top:8px;"></p>
     </div>
 
     <div class="card">
@@ -1247,6 +1249,8 @@ const FIXED_MIGRATION_KEY = 'fixed_m1';
 const FIXED_LOCK_KEY = 'fixed_m2';
 // one-time: add Deuda to tables seeded before it existed
 const FIXED_DEUDA_KEY = 'fixed_m3';
+// one-time: collapse Regalos/Compras Hogar/Deudas/Diaria into Gustos + Compra dólares
+const BUDGET_CATS_MIGRATION_KEY = 'budget_cats_m1';
 
 const CATEGORY_COLORS = {
   'Alquiler':'#B4862B','Wifi':'#3D6B4C','Limpieza':'#5C7A8A',
@@ -1296,7 +1300,7 @@ const COLUMN_FOR_KEY = {
   budgetoverrides_v1: 'budget_overrides',
   goals_v1: 'goals'
 };
-const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1']);
+const MIGRATION_FLAG_KEYS = new Set(['fixed_m1','fixed_m2','fixed_m3','fixedincome_m1','budget_cats_m1']);
 
 let coupleCode = null;
 let coupleRow = null;          // cached full row, refreshed on load and on every remote change
@@ -2123,10 +2127,8 @@ function sharesFor(splitType){
 // renombrar, cambiarles el monto o borrarlos desde Ajustes, y agregar otros.
 const DEFAULT_BUDGET_CATS = [
   { key:'salidas', label:'Salidas' },
-  { key:'regalos', label:'Regalos' },
-  { key:'hogar',   label:'Compras Hogar' },
-  { key:'deudas',  label:'Deudas' },
-  { key:'diaria',  label:'Diaria' }
+  { key:'gustos',  label:'Gustos' },
+  { key:'dolares', label:'Compra dólares' }
 ];
 const defaultBudgetCats = () => DEFAULT_BUDGET_CATS.map(c=>({ id: genId(), label: c.label, amount: 0, locked: true }));
 
@@ -2147,6 +2149,29 @@ function migrateBudgetTemplates(raw){
     out[k] = [...propios, ...extra];
   });
   return out;
+}
+
+// one-time: los rubros por defecto pasaron de 5 (Salidas/Regalos/Compras
+// Hogar/Deudas/Diaria) a 3 (Salidas/Gustos/Compra dólares). Borra los viejos,
+// conserva el monto de Salidas si ya estaba, y agrega Gustos/Compra dólares
+// en 0 si faltan. Rubros con otro nombre (agregados a mano) quedan intactos.
+const OLD_BUDGET_LABELS = ['Regalos','Compras Hogar','Deudas','Diaria'];
+function migrateBudgetCatsToThree(templates){
+  let changed = false;
+  Object.keys(templates).forEach(k=>{
+    const list = templates[k];
+    if(!Array.isArray(list)) return;
+    const filtered = list.filter(c=>!OLD_BUDGET_LABELS.includes(c.label));
+    if(filtered.length !== list.length) changed = true;
+    ['Gustos','Compra dólares'].forEach(label=>{
+      if(!filtered.some(c=>c.label === label)){
+        filtered.push({ id: genId(), label, amount: 0, locked: true });
+        changed = true;
+      }
+    });
+    templates[k] = filtered;
+  });
+  return changed;
 }
 
 function migrateIncome(raw){
@@ -2319,6 +2344,12 @@ async function loadAll(){
     const v = await store.get(BUDGET_TEMPLATES_KEY);
     budgetTemplates = migrateBudgetTemplates(v ? JSON.parse(v) : null);
   }catch(e){ budgetTemplates = {}; }
+  try{
+    if(!(await store.get(BUDGET_CATS_MIGRATION_KEY))){
+      if(migrateBudgetCatsToThree(budgetTemplates)) saveBudgetTemplates();
+      await store.set(BUDGET_CATS_MIGRATION_KEY, '1');
+    }
+  }catch(e){}
 
 
   // no seed write here on purpose: an empty goal list is the valid starting
@@ -2876,6 +2907,63 @@ function renderBudgetTemplates(){
     isSharedPay(currentBudgetTplPerson)
       ? 'Todavía no cargaron gastos posibles compartidos.'
       : 'Todavía no cargaste gastos posibles.'}</div>`;
+
+  // "Sugerir montos" es por persona: se basa en su ingreso y su afterVar, así
+  // que no tiene sentido en la pestaña Compartido
+  const solo = isSharedPay(currentBudgetTplPerson);
+  $('bTplSuggestBtn').style.display = solo ? 'none' : '';
+  if(solo){
+    $('bTplIdealHint').textContent = '';
+  }else{
+    const ingreso = financeFor(currentBudgetTplPerson).inc;
+    $('bTplIdealHint').textContent = ingreso > 0
+      ? `Ideal (teoría 50/30/20): Compra dólares ${fmt(ingreso*0.20)} · Salidas + Gustos ${fmt(ingreso*0.30)}`
+      : 'Cargá el ingreso de este mes para ver el ideal 50/30/20.';
+  }
+}
+
+// ---- sugerencia de montos para Salidas/Gustos/Compra dólares ----
+// Prioridad: Salidas+Gustos (lo que hace falta para el día a día) por encima
+// de Compra dólares (ahorro); Compra dólares apunta a su ideal (20% del
+// ingreso) sólo cuando el saldo alcanza para los dos ideales a la vez.
+function sugerirMontosBudget(person){
+  const list = budgetTemplates[person] || [];
+  const salidas = list.find(c=>c.label === 'Salidas');
+  const gustos = list.find(c=>c.label === 'Gustos');
+  const dolares = list.find(c=>c.label === 'Compra dólares');
+  if(!salidas || !gustos || !dolares){
+    notyf.error('Necesitás los rubros Salidas, Gustos y Compra dólares para sugerir montos.');
+    return;
+  }
+  const fin = financeFor(person);
+  if(fin.inc <= 0){
+    notyf.error('Cargá el ingreso de este mes para poder sugerir montos.');
+    return;
+  }
+  const afterVar = fin.afterVar;
+  const idealDolares = fin.inc * 0.20;
+  const idealWants = fin.inc * 0.30;
+
+  let dolaresAmt, wantsTotal;
+  if(afterVar >= idealDolares + idealWants){
+    dolaresAmt = idealDolares;
+    wantsTotal = afterVar - dolaresAmt;
+  }else if(afterVar >= idealWants){
+    wantsTotal = idealWants;
+    dolaresAmt = afterVar - wantsTotal;
+  }else{
+    dolaresAmt = 0;
+    wantsTotal = Math.max(0, afterVar);
+  }
+
+  salidas.amount = Math.round(wantsTotal / 2);
+  gustos.amount = Math.round(wantsTotal / 2);
+  dolares.amount = Math.round(dolaresAmt);
+
+  saveBudgetTemplates();
+  renderBudgetTemplates();
+  render();
+  notyf.success(afterVar > 0 ? 'Montos sugeridos aplicados' : 'Sin saldo disponible este mes: los 3 rubros quedaron en $0.');
 }
 
 $('bTplTable').addEventListener('change', (e)=>{
@@ -4597,7 +4685,7 @@ function renderAhorro(){
   const ahorro = financeFor(person).ahorro;
   const tasa = ingreso > 0 ? (ahorro / ingreso) * 100 : 0;
 
-  $('ahorroTitle').textContent = `Saldo de ${names[person]} · ${monthShort(viewMonth)}`;
+  $('ahorroTitle').textContent = `Ahorro de ${monthShort(viewMonth)}`;
   const cell = (k, v, cls='') => `<div class="totals-cell">
       <div class="totals-k">${k}</div><div class="totals-v ${cls}">${v}</div></div>`;
   $('ahorroStrip').innerHTML =
