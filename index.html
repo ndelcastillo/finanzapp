@@ -4245,7 +4245,7 @@ function renderBudgetTabs(){
 
   const ingreso = financeFor(currentBudgetTab).inc;
   $('budgetIdealHint').textContent = ingreso > 0
-    ? `Ideal (teoría 50/30/20): Compra dólares ${fmt(ingreso*0.20)} · Salidas + Gustos ${fmt(ingreso*0.30)}`
+    ? `Ideal (teoría 50/30/20): Necesidades ${fmt(ingreso*0.50)} · Salidas + Gustos ${fmt(ingreso*0.30)} · Compra dólares ${fmt(ingreso*0.20)}`
     : 'Cargá el ingreso de este mes para ver el ideal 50/30/20.';
 }
 
