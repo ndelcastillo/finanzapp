@@ -4138,18 +4138,23 @@ function renderTotals(fin){
       <div class="totals-k">${k}</div>
       <div class="totals-v ${cls}">${fmt(v)}</div>
     </div>`;
-  let ingreso, gasto, ahorro;
+  // ahorro = lo cargado en el rubro Compra dólares (la misma definición que
+  // usan la pestaña Ahorro y Gastos posibles), no el residual de la cadena
+  const dolaresOf = (person) => {
+    const c = (budgetTemplates[person] || []).find(x => x.label === 'Compra dólares');
+    return c ? (c.amount || 0) : 0;
+  };
+  let ingreso, ahorro;
   const shared = peopleCount() < 2 || isSharedPay(currentResumenTab);
   if(shared){
     ingreso = finSum(fin, 'inc');
-    ahorro = finSum(fin, 'ahorro');
-    gasto = ingreso - ahorro;
+    ahorro = pids().reduce((s,p) => s + dolaresOf(p), 0);
   }else{
     const f = fin[currentResumenTab];
     ingreso = f.inc;
-    ahorro = f.ahorro;
-    gasto = f.fijos + f.variables + f.podes;
+    ahorro = dolaresOf(currentResumenTab);
   }
+  const gasto = ingreso - ahorro;
   const who = shared
     ? (peopleCount() < 2 ? nameOf(firstPid()) : 'hogar')
     : nameOf(currentResumenTab);
